@@ -3,6 +3,7 @@ import { transformYahooHistoryData } from '@/app/services/data/transformData';
 
 const BASE_URL = 'https://query1.finance.yahoo.com/v8/finance/chart';
 
+// 티커와 날짜정보를 받아서 날짜별 종가 정보와 배당 정보를 반환
 export async function GET(
   request: Request,
   { params }: { params: { symbol: string } }
@@ -30,7 +31,7 @@ export async function GET(
     );
   }
 
-  const fetchUrl = `${BASE_URL}/${symbol}?interval=${interval}&period1=${startDate}&period2=${endDate}`;
+  const fetchUrl = `${BASE_URL}/${symbol}?events=capitalGain%7Cdiv%7Csplit&interval=${interval}&period1=${startDate}&period2=${endDate}`;
 
   try {
     const response = await fetch(fetchUrl);
