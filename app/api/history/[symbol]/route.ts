@@ -31,7 +31,7 @@ export async function GET(
     );
   }
 
-  const fetchUrl = `${BASE_URL}/${symbol}?events=capitalGain%7Cdiv%7Csplit&interval=${interval}&period1=${startDate}&period2=${endDate}`;
+  const fetchUrl = `${BASE_URL}/${symbol}?events=div&interval=${interval}&period1=${startDate}&period2=${endDate}`;
 
   try {
     const response = await fetch(fetchUrl);

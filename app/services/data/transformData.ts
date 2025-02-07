@@ -8,6 +8,6 @@ export function transformYahooHistoryData(data: any) {
   return timestamp.map((timestamp: number, index: number) => ({
     timestamp: formatDate(timestamp),
     adjClose: adjClose[index],
-    dividend: events.dividends?.[timestamp]?.amount,
+    dividend: events?.dividends?.[timestamp]?.amount,
   }));
 }
