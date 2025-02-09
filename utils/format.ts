@@ -1,5 +1,5 @@
 // timestamp를 YYYY-MM-DD 형식으로 변환
-export const formatDate = (timestamp: number) => {
+export const timestampToDate = (timestamp: number) => {
   const date = new Date(timestamp * 1000);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -48,4 +48,11 @@ export const createDateArray = (dateStr1: string, dateStr2: string) => {
   }
 
   return datesArray; // 생성된 날짜 배열 반환
+};
+
+// yyyy-mm-dd 형식의 문자열을 timestamp로 변환
+export const dateToTimestamp = (dateString: string) => {
+  const date = new Date(dateString);
+  const timestamp = Math.floor(date.getTime() / 1000); // 밀리초를 초 단위로 변환 후 내림
+  return timestamp;
 };

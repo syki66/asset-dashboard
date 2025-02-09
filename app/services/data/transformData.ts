@@ -1,4 +1,4 @@
-import { formatDate } from '@/utils/format';
+import { timestampToDate } from '@/utils/format';
 
 // 야후 금융 API로부터 데이터 변환 (key: timestamp, value: 조정종가)
 export function transformYahooHistoryData(data: any) {
@@ -6,7 +6,7 @@ export function transformYahooHistoryData(data: any) {
   const adjClose = indicators.adjclose[0].adjclose;
 
   return timestamp.map((timestamp: number, index: number) => ({
-    timestamp: formatDate(timestamp),
+    timestamp: timestampToDate(timestamp),
     adjClose: adjClose[index],
     dividend: events?.dividends?.[timestamp]?.amount,
   }));

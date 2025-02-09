@@ -1,4 +1,5 @@
 import { transactionTypeProps } from '@/types';
+import { formatShinhanDate } from './format';
 
 export const shinhanCsvToJson = (csv: string) => {
   const lines = csv.trim().split('\r\n'); // 줄별로 나누기
@@ -93,7 +94,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
     );
 
     if (isDeposit) {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'deposit';
       _itemData.currency = 'KRW';
       _itemData.quantity = 1;
@@ -112,7 +113,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
     ].some((keyword) => item['구분'].endsWith(keyword));
 
     if (isWithdrawal) {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'withdrawal';
       _itemData.currency = 'KRW';
       _itemData.quantity = 1;
@@ -130,7 +131,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
     );
 
     if (isKrStockBuy) {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'buy';
       _itemData.currency = 'KRW';
       _itemData.ISIN = item['종목번호'];
@@ -140,7 +141,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
       _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
     }
     if (isKrStockSell) {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'sell';
       _itemData.currency = 'KRW';
       _itemData.ISIN = item['종목번호'];
@@ -159,7 +160,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
     );
 
     if (isUsStockBuy) {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'buy';
       _itemData.currency = 'USD';
       _itemData.ISIN = item['종목번호'];
@@ -169,7 +170,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
       _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
     }
     if (isUsStockSell) {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'sell';
       _itemData.currency = 'USD';
       _itemData.ISIN = item['종목번호'];
@@ -181,7 +182,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
 
     // 해외주식 배당금 데이터 대입
     if (item['구분'] === '해외배당금') {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'dividend';
       _itemData.currency = 'USD';
       _itemData.quantity = 1;
@@ -192,7 +193,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
 
     // 국내주식 배당금 데이터 대입
     if (item['구분'] === '배당금') {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'dividend';
       _itemData.currency = 'KRW';
       _itemData.quantity = 1;
@@ -203,7 +204,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
 
     // 타사대체입고 데이터 대입(buy 및 deposit 두 곳 추가)
     if (item['구분'] === '타사대체입고') {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'buy';
       _itemData.currency = 'USD';
       _itemData.ISIN = item['종목번호'];
@@ -213,7 +214,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
       _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
     }
     if (item['구분'] === '타사대체입고') {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'deposit';
       _itemData.currency = 'USD';
       _itemData.ISIN = item['종목번호'];
@@ -225,7 +226,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
 
     // 외화입금 데이터 대입
     if (item['구분'] === '은행이체외화입금') {
-      _itemData.date = item['일자'];
+      _itemData.date = formatShinhanDate(item['일자']);
       _itemData.type = 'deposit';
       _itemData.currency = 'USD';
       _itemData.quantity = 1;
