@@ -24,7 +24,10 @@ export async function GET(
 
     const data = await response.json();
 
-    return NextResponse.json({ symbol: data.quotes[0].symbol });
+    return NextResponse.json({
+      symbol: data.quotes[0].symbol,
+      name: data.quotes[0].shortname,
+    });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
