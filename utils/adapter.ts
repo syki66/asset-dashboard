@@ -155,7 +155,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
     const isUsStockBuy = ['해외증권_해외주식매수', '타사대체입고'].some(
       (keyword) => item['구분'].endsWith(keyword)
     );
-    const isUsStockSell = ['해외증권해외주식매도'].some((keyword) =>
+    const isUsStockSell = ['해외증권_해외주식매도'].some((keyword) =>
       item['구분'].endsWith(keyword)
     );
 
