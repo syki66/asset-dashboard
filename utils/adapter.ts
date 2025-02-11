@@ -33,7 +33,7 @@ export const makeShinhanJsonClean = (json: any[]) => {
   let _usdDeposit: number = 0; // USD 예수금
   let _usdRp: number = 0; // USD RP 잔고
 
-  const newJson = json.map((item) => {
+  const transactions = json.map((item) => {
     // 새로운 데이터 객체 생성
     const _itemData: transactionTypeProps = {
       date: '',
@@ -44,7 +44,6 @@ export const makeShinhanJsonClean = (json: any[]) => {
       price: 0,
       krwDeposit: 0,
       usdDeposit: 0,
-      note: '',
     };
 
     // USD RP 계산은 이자를 포함한 금액이 출금되어서 실제 보다 적게 나옴. 따라서 음수로 찍힐때마다 0으로 초기화해서 보정함.
@@ -89,19 +88,12 @@ export const makeShinhanJsonClean = (json: any[]) => {
     }
 
     // 입금고 데이터 대입
-    const isDeposit = ['은행이체입금', '계좌대체입금', '(펌뱅킹)입금'].some(
-      (keyword) => item['구분'].endsWith(keyword)
-    );
-
-    if (isDeposit) {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'deposit';
-      _itemData.currency = 'KRW';
-      _itemData.quantity = 1;
-      _itemData.price = Number(item['거래대금']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
+    const isDeposit = [
+      '은행이체입금',
+      '계좌대체입금',
+      '(펌뱅킹)입금',
+      '은행이체외화입금', // USD
+    ].some((keyword) => item['구분'].endsWith(keyword));
 
     // 출금고 데이터 대입
     const isWithdrawal = [
@@ -112,131 +104,97 @@ export const makeShinhanJsonClean = (json: any[]) => {
       '체크카드대체출금',
     ].some((keyword) => item['구분'].endsWith(keyword));
 
-    if (isWithdrawal) {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'withdrawal';
-      _itemData.currency = 'KRW';
-      _itemData.quantity = 1;
-      _itemData.price = Number(item['거래대금']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-
     // 국내주식 매수, 매도 데이터 대입
-    const isKrStockBuy = ['계좌대체입고', '장내_매수', '공모주입고'].some(
-      (keyword) => item['구분'].endsWith(keyword)
+    const isKrStockBuy = ['장내_매수', '공모주입고'].some((keyword) =>
+      item['구분'].endsWith(keyword)
     );
     const isKrStockSell = ['장내_매도', '코스닥_매도'].some((keyword) =>
       item['구분'].endsWith(keyword)
     );
 
-    if (isKrStockBuy) {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'buy';
-      _itemData.currency = 'KRW';
-      _itemData.ISIN = item['종목번호'];
-      _itemData.quantity = Number(item['수량']);
-      _itemData.price = Number(item['가격']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-    if (isKrStockSell) {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'sell';
-      _itemData.currency = 'KRW';
-      _itemData.ISIN = item['종목번호'];
-      _itemData.quantity = Number(item['수량']);
-      _itemData.price = Number(item['가격']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-
     // 해외주식 매수, 매도 데이터 대입
-    const isUsStockBuy = ['해외증권_해외주식매수', '타사대체입고'].some(
-      (keyword) => item['구분'].endsWith(keyword)
+    const isUsStockBuy = ['해외증권_해외주식매수'].some((keyword) =>
+      item['구분'].endsWith(keyword)
     );
     const isUsStockSell = ['해외증권_해외주식매도'].some((keyword) =>
       item['구분'].endsWith(keyword)
     );
 
-    if (isUsStockBuy) {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'buy';
-      _itemData.currency = 'USD';
-      _itemData.ISIN = item['종목번호'];
-      _itemData.quantity = Number(item['수량']);
-      _itemData.price = Number(item['가격']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-    if (isUsStockSell) {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'sell';
-      _itemData.currency = 'USD';
-      _itemData.ISIN = item['종목번호'];
-      _itemData.quantity = Number(item['수량']);
-      _itemData.price = Number(item['가격']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
+    // 배당금 데이터 대입
+    const isDividend = ['배당금', '해외배당금'].some((keyword) =>
+      item['구분'].endsWith(keyword)
+    );
+
+    // 공통 데이터
+    _itemData.date = formatShinhanDate(item['일자']);
+    _itemData.usdDeposit = _usdDeposit + _usdRp;
+    _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
+
+    switch (true) {
+      case isDeposit:
+        _itemData.type = 'deposit';
+        _itemData.currency = item['구분'].endsWith('은행이체외화입금')
+          ? 'USD'
+          : 'KRW';
+        _itemData.quantity = 1;
+        _itemData.price = Number(item['거래대금']);
+        break;
+      case isWithdrawal:
+        _itemData.type = 'withdrawal';
+        _itemData.currency = 'KRW';
+        _itemData.quantity = 1;
+        _itemData.price = Number(item['거래대금']);
+        break;
+      case isKrStockBuy:
+        _itemData.type = 'buy';
+        _itemData.currency = 'KRW';
+        _itemData.ISIN = item['종목번호'];
+        _itemData.quantity = Number(item['수량']);
+        _itemData.price = Number(item['가격']);
+        break;
+      case isKrStockSell:
+        _itemData.type = 'sell';
+        _itemData.currency = 'KRW';
+        _itemData.ISIN = item['종목번호'];
+        _itemData.quantity = Number(item['수량']);
+        _itemData.price = Number(item['가격']);
+        break;
+      case isUsStockBuy:
+        _itemData.type = 'buy';
+        _itemData.currency = 'USD';
+        _itemData.ISIN = item['종목번호'];
+        _itemData.quantity = parseInt(item['수량']); // 소수점 주식 무시
+        _itemData.price = Number(item['가격']);
+        break;
+      case isUsStockSell:
+        _itemData.type = 'sell';
+        _itemData.currency = 'USD';
+        _itemData.ISIN = item['종목번호'];
+        _itemData.quantity = parseInt(item['수량']);
+        _itemData.price = Number(item['가격']);
+        break;
+      case isDividend:
+        _itemData.type = 'dividend';
+        _itemData.currency = item['구분'] === '해외배당금' ? 'USD' : 'KRW';
+        _itemData.quantity = 1;
+        _itemData.price = Number(item['거래대금']);
+        break;
+      default:
+        break;
     }
 
-    // 해외주식 배당금 데이터 대입
-    if (item['구분'] === '해외배당금') {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'dividend';
-      _itemData.currency = 'USD';
-      _itemData.quantity = 1;
-      _itemData.price = Number(item['거래대금']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-
-    // 국내주식 배당금 데이터 대입
-    if (item['구분'] === '배당금') {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'dividend';
-      _itemData.currency = 'KRW';
-      _itemData.quantity = 1;
-      _itemData.price = Number(item['거래대금']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-
-    // 타사대체입고 데이터 대입(buy 및 deposit 두 곳 추가)
-    if (item['구분'] === '타사대체입고') {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'buy';
-      _itemData.currency = 'USD';
-      _itemData.ISIN = item['종목번호'];
-      _itemData.quantity = Number(item['수량']);
-      _itemData.price = Number(item['가격']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-    if (item['구분'] === '타사대체입고') {
-      _itemData.date = formatShinhanDate(item['일자']);
+    // 타사대체입고 데이터는 buy, deposit 두 곳에 추가
+    if (item['구분'] === '타사대체입고' || item['구분'] === '계좌대체입고') {
       _itemData.type = 'deposit';
-      _itemData.currency = 'USD';
+      _itemData.currency = item['구분'] === '타사대체입고' ? 'USD' : 'KRW';
       _itemData.ISIN = item['종목번호'];
       _itemData.quantity = Number(item['수량']);
       _itemData.price = Number(item['가격']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
+      return [_itemData, { ..._itemData, type: 'buy' }];
     }
 
-    // 외화입금 데이터 대입
-    if (item['구분'] === '은행이체외화입금') {
-      _itemData.date = formatShinhanDate(item['일자']);
-      _itemData.type = 'deposit';
-      _itemData.currency = 'USD';
-      _itemData.quantity = 1;
-      _itemData.price = Number(item['거래대금']);
-      _itemData.usdDeposit = _usdDeposit + _usdRp;
-      _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
-    }
-
-    return { ..._itemData };
+    return _itemData;
   });
 
-  return newJson.filter((item) => item.date !== ''); // 빈 데이터 제거
+  return transactions.flat().filter((item) => item.type !== ''); // 평탄화 및 타입 없는 데이터 제거
 };
