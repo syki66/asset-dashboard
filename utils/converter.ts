@@ -99,8 +99,8 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
     .slice(1); // 첫번째 빈 데이터 제거
   return accountData;
 };
-  transactions: transactionTypeProps[]
-) => {
+
+export const getApiData = async (transactions: transactionTypeProps[]) => {
   // api 호출용 날짜 범위 추출
   const firstDate = transactions[0]?.date;
   const lastDate = transactions[transactions.length - 1]?.date;
