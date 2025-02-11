@@ -1,4 +1,4 @@
-import { transactionTypeProps } from '@/types';
+import { AccountTypeProps, transactionTypeProps } from '@/types';
 import { dateToTimestamp } from './format';
 import axios from 'axios';
 
@@ -43,7 +43,61 @@ export const formatJsonForGraph = (json: transactionTypeProps[]) => {
 };
 
 export const createAccountData = (transactions: transactionTypeProps[]) => {
-  return transactions;
+  const accountData = transactions
+    .reduce(
+      (acc, transaction) => {
+        const account = structuredClone(acc[acc.length - 1]);
+
+        account.date = transaction.date;
+
+        switch (transaction.type) {
+          case 'deposit':
+            if (transaction.currency === 'KRW') {
+              account.depositKRW += transaction.price;
+            } else if (transaction.currency === 'USD') {
+              account.depositUSD += transaction.price;
+            }
+            break;
+          case 'withdrawal':
+            if (transaction.currency === 'KRW') {
+              account.withdrawKRW += transaction.price;
+            } else if (transaction.currency === 'USD') {
+              account.withdrawUSD += transaction.price;
+            }
+            break;
+          case 'buy':
+            if (!account.stocks[transaction.ISIN]) {
+              account.stocks[transaction.ISIN] = [];
+            }
+            for (let i = 0; i < transaction.quantity; i++) {
+              account.stocks[transaction.ISIN].push(transaction.price);
+            }
+            break;
+          case 'sell':
+            for (let i = 0; i < transaction.quantity; i++) {
+              account.stocks[transaction.ISIN].shift();
+            }
+            break;
+          default:
+            break;
+        }
+
+        return [...acc, account];
+      },
+      [
+        {
+          date: '',
+          withdrawKRW: 0,
+          depositKRW: 0,
+          withdrawUSD: 0,
+          depositUSD: 0,
+          stocks: {},
+          // 예수금도 넣어야됨
+        },
+      ] as AccountTypeProps[]
+    )
+    .slice(1); // 첫번째 빈 데이터 제거
+  return accountData;
 };
   transactions: transactionTypeProps[]
 ) => {
