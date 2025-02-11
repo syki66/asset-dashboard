@@ -102,21 +102,22 @@ export const createShsecTransactions = (json: any[]) => {
       '(펌뱅킹)출금',
       '체크카드승인',
       '체크카드대체출금',
+      '은행이체외화출금', // USD, 테스트 csv에 해당 데이터가 없어서 추정하는 키값임
     ].some((keyword) => item['구분'].endsWith(keyword));
-
-    // 국내주식 매수, 매도 데이터 대입
-    const isKrStockBuy = ['장내_매수', '공모주입고'].some((keyword) =>
-      item['구분'].endsWith(keyword)
-    );
-    const isKrStockSell = ['장내_매도', '코스닥_매도'].some((keyword) =>
-      item['구분'].endsWith(keyword)
-    );
 
     // 해외주식 매수, 매도 데이터 대입
     const isUsStockBuy = ['해외증권_해외주식매수'].some((keyword) =>
       item['구분'].endsWith(keyword)
     );
     const isUsStockSell = ['해외증권_해외주식매도'].some((keyword) =>
+      item['구분'].endsWith(keyword)
+    );
+
+    // 국내주식 매수, 매도 데이터 대입
+    const isKrStockBuy = ['장내_매수', '공모주입고'].some((keyword) =>
+      item['구분'].endsWith(keyword)
+    );
+    const isKrStockSell = ['장내_매도', '코스닥_매도'].some((keyword) =>
       item['구분'].endsWith(keyword)
     );
 
@@ -141,36 +142,24 @@ export const createShsecTransactions = (json: any[]) => {
         break;
       case isWithdrawal:
         _itemData.type = 'withdrawal';
-        _itemData.currency = 'KRW';
+        _itemData.currency = item['구분'].endsWith('은행이체외화출금')
+          ? 'USD'
+          : 'KRW';
         _itemData.quantity = 1;
         _itemData.price = Number(item['거래대금']);
         break;
-      case isKrStockBuy:
+      case isUsStockBuy || isKrStockBuy:
         _itemData.type = 'buy';
-        _itemData.currency = 'KRW';
-        _itemData.ISIN = item['종목번호'];
-        _itemData.quantity = Number(item['수량']);
-        _itemData.price = Number(item['가격']);
-        break;
-      case isKrStockSell:
-        _itemData.type = 'sell';
-        _itemData.currency = 'KRW';
-        _itemData.ISIN = item['종목번호'];
-        _itemData.quantity = Number(item['수량']);
-        _itemData.price = Number(item['가격']);
-        break;
-      case isUsStockBuy:
-        _itemData.type = 'buy';
-        _itemData.currency = 'USD';
+        _itemData.currency = isUsStockBuy ? 'USD' : 'KRW';
         _itemData.ISIN = item['종목번호'];
         _itemData.quantity = parseInt(item['수량']); // 소수점 주식 무시
         _itemData.price = Number(item['가격']);
         break;
-      case isUsStockSell:
+      case isUsStockSell || isKrStockSell:
         _itemData.type = 'sell';
-        _itemData.currency = 'USD';
+        _itemData.currency = isUsStockSell ? 'USD' : 'KRW';
         _itemData.ISIN = item['종목번호'];
-        _itemData.quantity = parseInt(item['수량']);
+        _itemData.quantity = parseInt(item['수량']); // 소수점 주식 무시
         _itemData.price = Number(item['가격']);
         break;
       case isDividend:
