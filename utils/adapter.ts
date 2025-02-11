@@ -1,7 +1,7 @@
 import { transactionTypeProps } from '@/types';
 import { formatShinhanDate } from './format';
 
-export const shinhanCsvToJson = (csv: string) => {
+export const shsecCsvToJson = (csv: string) => {
   const lines = csv.trim().split('\r\n'); // 줄별로 나누기
 
   // 두 줄씩 묶어서 합치기
@@ -27,7 +27,7 @@ export const shinhanCsvToJson = (csv: string) => {
   return json;
 };
 
-export const makeShinhanJsonClean = (json: any[]) => {
+export const createShsecTransactions = (json: any[]) => {
   let _krwDeposit: number = 0; // 원화 예수금
   let _krwIpoDeposit: number = 0; // 공모주 청약 증거금 (원화)
   let _usdDeposit: number = 0; // USD 예수금

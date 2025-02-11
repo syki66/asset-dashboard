@@ -7,5 +7,4 @@ export type transactionTypeProps = {
   price: number;
   krwDeposit: number;
   usdDeposit: number;
-  note: string;
 };

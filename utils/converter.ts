@@ -2,11 +2,7 @@ import { transactionTypeProps } from '@/types';
 import { dateToTimestamp } from './format';
 import axios from 'axios';
 
-export const formatJsonForGraph = (
-  json: transactionTypeProps[],
-  startDate,
-  endDate
-) => {
+export const formatJsonForGraph = (json: transactionTypeProps[]) => {
   let _currency = 1;
   let evaluationAmount = 0; // 평가금액
   let principalAmount = 0; // 원금
@@ -46,7 +42,9 @@ export const formatJsonForGraph = (
   });
 };
 
-export const createAccountData = async (
+export const createAccountData = (transactions: transactionTypeProps[]) => {
+  return transactions;
+};
   transactions: transactionTypeProps[]
 ) => {
   // api 호출용 날짜 범위 추출
