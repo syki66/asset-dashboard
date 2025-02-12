@@ -1,16 +1,16 @@
-import { AccountTypeProps, transactionTypeProps } from '@/types';
+import { AccountProps, transactionProps } from '@/types';
 import { dateToTimestamp } from './format';
 import axios from 'axios';
 
-export const formatJsonForGraph = (json: transactionTypeProps[]) => {
+export const formatJsonForGraph = (json: transactionProps[]) => {
   let _currency = 1;
   let evaluationAmount = 0; // 평가금액
   let principalAmount = 0; // 원금
 
-  return json.map((item: transactionTypeProps) => {
+  return json.map((item: transactionProps) => {
     // 환율 계산
     if (item.currency === 'KRW') {
-      _currency = 1; // 원달러 환율
+      _currency = 1; // 원화 기준 계산
     } else if (item.currency === 'USD') {
       _currency = 1350; // 달러원 환율
     }
@@ -42,7 +42,8 @@ export const formatJsonForGraph = (json: transactionTypeProps[]) => {
   });
 };
 
-export const createAccountData = (transactions: transactionTypeProps[]) => {
+// 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
+export const createAccountData = (transactions: transactionProps[]) => {
   const accountData = transactions
     .reduce(
       (acc, transaction) => {
@@ -130,22 +131,17 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
           },
           stocks: {},
         },
-      ] as AccountTypeProps[]
+      ] as AccountProps[]
     )
     .slice(1); // 첫번째 빈 데이터 제거
   return accountData;
 };
 
-export const getApiData = async (accountData: transactionTypeProps[]) => {
-  // api 호출용 날짜 범위 추출
-  const firstDate = accountData[0]?.date;
-  const lastDate = accountData[accountData.length - 1]?.date;
-
-  // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
-  const stockCodes = [
-    ...new Set(accountData.map((transaction) => transaction.ISIN)),
-  ].filter((code) => code !== '');
-
+export const getStockInfo = async (
+  startDate: string,
+  endDate: string,
+  stockCodes: string[]
+) => {
   // 거래내역 상에 존재하는 모든 미국 종목을 티커로 가져오기
   const symbols = (
     await Promise.all(
@@ -169,8 +165,8 @@ export const getApiData = async (accountData: transactionTypeProps[]) => {
       tickers.map((ticker) =>
         axios.get(
           `/api/history/${ticker}?startDate=${dateToTimestamp(
-            firstDate
-          )}&endDate=${dateToTimestamp(lastDate)}`
+            startDate
+          )}&endDate=${dateToTimestamp(endDate)}`
         )
       )
     )
@@ -197,12 +193,10 @@ export const getApiData = async (accountData: transactionTypeProps[]) => {
   const currencyData = (
     await axios.get(
       `/api/history/KRW=X?startDate=${dateToTimestamp(
-        firstDate
-      )}&endDate=${dateToTimestamp(lastDate)}`
+        startDate
+      )}&endDate=${dateToTimestamp(endDate)}`
     )
   ).data;
 
-  console.log(stockData);
-  console.log(stockKrDict);
-  console.log(currencyData);
+  return { stockData, currencyData, stockKrDict };
 };

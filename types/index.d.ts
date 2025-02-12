@@ -1,4 +1,4 @@
-export type transactionTypeProps = {
+export type transactionProps = {
   date: string;
   type: string;
   currency: string;
@@ -9,7 +9,7 @@ export type transactionTypeProps = {
   usdDeposit: number;
 };
 
-export type AccountTypeProps = {
+export type AccountProps = {
   date: string;
   krw: {
     deposit: number;

@@ -1,4 +1,4 @@
-import { transactionTypeProps } from '@/types';
+import { transactionProps } from '@/types';
 import { formatShinhanDate } from './format';
 
 export const shsecCsvToJson = (csv: string) => {
@@ -35,7 +35,7 @@ export const createShsecTransactions = (json: any[]) => {
 
   const transactions = json.map((item) => {
     // 새로운 데이터 객체 생성
-    const _itemData: transactionTypeProps = {
+    const _itemData: transactionProps = {
       date: '',
       type: '',
       currency: '',
