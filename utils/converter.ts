@@ -53,16 +53,16 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
         switch (transaction.type) {
           case 'deposit':
             if (transaction.currency === 'KRW') {
-              account.depositKRW += transaction.price;
+              account.krw.deposit += transaction.price;
             } else if (transaction.currency === 'USD') {
-              account.depositUSD += transaction.price;
+              account.usd.deposit += transaction.price;
             }
             break;
           case 'withdrawal':
             if (transaction.currency === 'KRW') {
-              account.withdrawKRW += transaction.price;
+              account.krw.withdrawal += transaction.price;
             } else if (transaction.currency === 'USD') {
-              account.withdrawUSD += transaction.price;
+              account.usd.withdrawal += transaction.price;
             }
             break;
           case 'buy':
@@ -78,6 +78,35 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
               account.stocks[transaction.ISIN].shift();
             }
             break;
+          case 'dividend': // 연마다 배당금 누적 계산
+            const year = Number(transaction.date.split('-')[0]);
+            if (transaction.currency === 'KRW') {
+              const krwDividend = account.krw.dividend.find(
+                (dividend) => dividend.year === year
+              );
+              if (!krwDividend) {
+                account.krw.dividend.push({
+                  year,
+                  price: transaction.price,
+                });
+              } else {
+                krwDividend.price += transaction.price;
+              }
+            }
+            if (transaction.currency === 'USD') {
+              const usdDividend = account.usd.dividend.find(
+                (dividend) => dividend.year === year
+              );
+              if (!usdDividend) {
+                account.usd.dividend.push({
+                  year,
+                  price: transaction.price,
+                });
+              } else {
+                usdDividend.price += transaction.price;
+              }
+            }
+            break;
           default:
             break;
         }
@@ -87,12 +116,19 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
       [
         {
           date: '',
-          withdrawKRW: 0,
-          depositKRW: 0,
-          withdrawUSD: 0,
-          depositUSD: 0,
+          krw: {
+            deposit: 0,
+            withdrawal: 0,
+            dividend: [],
+            cash: 0,
+          },
+          usd: {
+            deposit: 0,
+            withdrawal: 0,
+            dividend: [],
+            cash: 0,
+          },
           stocks: {},
-          // 예수금도 넣어야됨
         },
       ] as AccountTypeProps[]
     )

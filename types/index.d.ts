@@ -11,9 +11,23 @@ export type transactionTypeProps = {
 
 export type AccountTypeProps = {
   date: string;
-  withdrawKRW: number;
-  depositKRW: number;
-  withdrawUSD: number;
-  depositUSD: number;
+  krw: {
+    deposit: number;
+    withdrawal: number;
+    dividend: {
+      year: number;
+      price: number;
+    }[];
+    cash: number;
+  };
+  usd: {
+    deposit: number;
+    withdrawal: number;
+    dividend: {
+      year: number;
+      price: number;
+    }[];
+    cash: number;
+  };
   stocks: { [isin: string]: number[] };
 };
