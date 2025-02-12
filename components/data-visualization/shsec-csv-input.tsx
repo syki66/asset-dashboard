@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { shsecCsvToJson, createShsecTransactions } from '@/utils/adapter';
+import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { formatJsonForGraph, createAccountData } from '@/utils/converter';
 import { ChangeEvent } from 'react';
 

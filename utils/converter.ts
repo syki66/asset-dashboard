@@ -78,7 +78,7 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
               account.stocks[transaction.ISIN].shift();
             }
             break;
-          case 'dividend': // 연마다 배당금 누적 계산
+          case 'dividend': // 매년 배당금 누적 계산 (세전)
             const year = Number(transaction.date.split('-')[0]);
             if (transaction.currency === 'KRW') {
               const krwDividend = account.krw.dividend.find(
@@ -136,14 +136,14 @@ export const createAccountData = (transactions: transactionTypeProps[]) => {
   return accountData;
 };
 
-export const getApiData = async (transactions: transactionTypeProps[]) => {
+export const getApiData = async (accountData: transactionTypeProps[]) => {
   // api 호출용 날짜 범위 추출
-  const firstDate = transactions[0]?.date;
-  const lastDate = transactions[transactions.length - 1]?.date;
+  const firstDate = accountData[0]?.date;
+  const lastDate = accountData[accountData.length - 1]?.date;
 
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
   const stockCodes = [
-    ...new Set(transactions.map((transaction) => transaction.ISIN)),
+    ...new Set(accountData.map((transaction) => transaction.ISIN)),
   ].filter((code) => code !== '');
 
   // 거래내역 상에 존재하는 모든 미국 종목을 티커로 가져오기
