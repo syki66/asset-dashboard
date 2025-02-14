@@ -142,6 +142,8 @@ export const getStockInfo = async (
   endDate: string,
   stockCodes: string[]
 ) => {
+  stockCodes.sort(); // 한국 미국 종목의 순서가 섞여있어서 아래에서 순서를 정확하게 매핑하기 위해 정렬
+
   // 거래내역 상에 존재하는 모든 미국 종목을 티커로 가져오기
   const symbols = (
     await Promise.all(
@@ -172,11 +174,6 @@ export const getStockInfo = async (
     )
   ).map((response) => response.data);
 
-  // 주식 데이터와 티커 매핑
-  const stockData = Object.fromEntries(
-    tickers.map((key, index) => [key, stocks[index]])
-  );
-
   // 한국 주식 종목명 가져오기
   const stockNameKr = (
     await Promise.all(
@@ -185,12 +182,20 @@ export const getStockInfo = async (
   ).map((response) => response.data.name);
 
   // 한국 종목 코드와 종목명 매핑
-  const stockKrDict = Object.fromEntries(
+  const stockCodeToNameKr = Object.fromEntries(
     stockCodeKr.map((key, index) => [key, stockNameKr[index]])
   );
 
+  // 주식 데이터 생성
+  const stockData = stockCodes.map((code, index) => {
+    const name = code.startsWith('A')
+      ? stockCodeToNameKr[tickers[index]]
+      : tickers[index];
+    return { name, code, prices: stocks[index] };
+  });
+
   // 환율 데이터 가져오기
-  const currencyData = (
+  const fxRates = (
     await axios.get(
       `/api/history/KRW=X?startDate=${dateToTimestamp(
         startDate
@@ -198,5 +203,5 @@ export const getStockInfo = async (
     )
   ).data;
 
-  return { stockData, currencyData, stockKrDict };
+  return { stockData, fxRates };
 };
