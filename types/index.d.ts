@@ -35,6 +35,7 @@ export type Currency = 'krw' | 'usd';
 
 export type StockProps = {
   date: string;
+  close: number;
   adjClose: number;
   dividend?: number;
 };

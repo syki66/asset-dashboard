@@ -1,5 +1,5 @@
-import { AccountProps, transactionProps } from '@/types';
-import { dateToTimestamp } from './format';
+import { AccountProps, Currency, StockProps, transactionProps } from '@/types';
+import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
 
 export const formatJsonForGraph = (json: transactionProps[]) => {
@@ -71,7 +71,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
         // 환율이 존재하면 가져오고 없다면 이전 환율 사용
         const currentFxRate = fxRates.find(
           (data: StockProps) => data.date === transaction.date
-        )?.adjClose;
+        )?.close;
 
         if (currentFxRate) {
           account.fxRate = currentFxRate;
@@ -202,14 +202,14 @@ export const createAccountData = async (transactions: transactionProps[]) => {
         .find((stock) => stock.code === usStock.code)
         ?.prices.find((price: StockProps) => price.date === data.date);
       if (currentPrice) {
-        usStock.price = currentPrice.adjClose;
+        usStock.price = currentPrice.close;
       } else {
         usStock.price = stockData
           .find((stock) => stock.code === usStock.code)
           ?.prices.filter((price: StockProps) => price.date < data.date)
           .sort((a: StockProps, b: StockProps) =>
             b.date.localeCompare(a.date)
-          )[0]?.adjClose; // 가격이 없으면 매수 가격 사용
+          )[0]?.close; // 과거 데이터도 없다면 매수 가격 사용
       }
     });
     data['krw'].stocks.forEach((krStock) => {
@@ -217,14 +217,14 @@ export const createAccountData = async (transactions: transactionProps[]) => {
         .find((stock) => stock.code === krStock.code)
         ?.prices.find((price: StockProps) => price.date === data.date);
       if (currentPrice) {
-        krStock.price = currentPrice.adjClose;
+        krStock.price = currentPrice.close;
       } else {
         krStock.price = stockData
           .find((stock) => stock.code === krStock.code)
           ?.prices.filter((price: StockProps) => price.date < data.date)
           .sort((a: StockProps, b: StockProps) =>
             b.date.localeCompare(a.date)
-          )[0]?.adjClose; // 가격이 없으면 매수 가격 사용
+          )[0]?.close; // 과거 데이터도 없다면 매수 가격 사용
       }
     });
     return data;
