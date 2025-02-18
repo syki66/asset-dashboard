@@ -42,6 +42,31 @@ export const formatJsonForGraph = (json: transactionProps[]) => {
   });
 };
 
+/**
+ * 계좌의 원금(principalAmount)을 업데이트 합니다.
+ * @param account - 현재 계좌 상태
+ * @param transaction - 거래 내역
+ * @param multiplier - 1 (입금: deposit) 또는 -1 (출금: withdrawal)
+ */
+const updatePrincipal = (
+  account: AccountProps,
+  transaction: transactionProps,
+  multiplier: number
+) => {
+  const currency: Currency = transaction.currency as Currency;
+  if (currency === 'usd') {
+    // USD 통화인 경우, USD 계좌는 원래 금액, KRW는 환율을 곱한 금액 적용
+    account.usd.principalAmount += multiplier * transaction.price;
+    account.krw.principalAmount +=
+      multiplier * (transaction.price * account.fxRate);
+  } else if (currency === 'krw') {
+    // KRW 통화인 경우, KRW 계좌는 원래 금액, USD는 환율로 나눈 금액 적용
+    account.krw.principalAmount += multiplier * transaction.price;
+    account.usd.principalAmount +=
+      multiplier * (transaction.price / account.fxRate);
+  }
+};
+
 // 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
 export const createAccountData = async (transactions: transactionProps[]) => {
   // api 호출용 날짜 범위 추출
@@ -79,26 +104,10 @@ export const createAccountData = async (transactions: transactionProps[]) => {
 
         switch (transaction.type) {
           case 'deposit':
-            if (currency === 'usd') {
-              account['usd'].principalAmount += transaction.price;
-              account['krw'].principalAmount +=
-                transaction.price * account.fxRate;
-            } else if (currency === 'krw') {
-              account['usd'].principalAmount +=
-                transaction.price / account.fxRate;
-              account['krw'].principalAmount += transaction.price;
-            }
+            updatePrincipal(account, transaction, 1);
             break;
           case 'withdrawal':
-            if (currency === 'usd') {
-              account['usd'].principalAmount -= transaction.price;
-              account['krw'].principalAmount -=
-                transaction.price * account.fxRate;
-            } else if (currency === 'krw') {
-              account['usd'].principalAmount -=
-                transaction.price / account.fxRate;
-              account['krw'].principalAmount -= transaction.price;
-            }
+            updatePrincipal(account, transaction, -1);
             break;
           case 'buy':
             const stockToBuy = account[currency].stocks.find(
