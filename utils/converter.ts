@@ -112,6 +112,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
                   ?.name,
                 code: transaction.ISIN,
                 balance: Array(transaction.quantity).fill(transaction.price),
+                price: transaction.price, // 기본값으로 매수 가격 넣기
               });
             } else {
               // 종목이 있으면 추가적인 정보만 삽입
@@ -194,9 +195,46 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     }
   );
 
+  // 날짜별 현재가 업데이트
+  const updatedAccountData = filledAccountData.map((data) => {
+    data['usd'].stocks.forEach((usStock) => {
+      const currentPrice = stockData
+        .find((stock) => stock.code === usStock.code)
+        ?.prices.find((price: StockProps) => price.date === data.date);
+      if (currentPrice) {
+        usStock.price = currentPrice.adjClose;
+      } else {
+        usStock.price = stockData
+          .find((stock) => stock.code === usStock.code)
+          ?.prices.filter((price: StockProps) => price.date < data.date)
+          .sort((a: StockProps, b: StockProps) =>
+            b.date.localeCompare(a.date)
+          )[0]?.adjClose; // 가격이 없으면 매수 가격 사용
+      }
+    });
+    data['krw'].stocks.forEach((krStock) => {
+      const currentPrice = stockData
+        .find((stock) => stock.code === krStock.code)
+        ?.prices.find((price: StockProps) => price.date === data.date);
+      if (currentPrice) {
+        krStock.price = currentPrice.adjClose;
+      } else {
+        krStock.price = stockData
+          .find((stock) => stock.code === krStock.code)
+          ?.prices.filter((price: StockProps) => price.date < data.date)
+          .sort((a: StockProps, b: StockProps) =>
+            b.date.localeCompare(a.date)
+          )[0]?.adjClose; // 가격이 없으면 매수 가격 사용
+      }
+    });
+    return data;
+  });
+
+
   return accountData;
 };
 
+// 주식 및 환율 히스토리 데이터 호출
 export const getStockInfo = async (
   startDate: string,
   endDate: string,
