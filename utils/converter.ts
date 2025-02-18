@@ -177,6 +177,23 @@ export const createAccountData = async (transactions: transactionProps[]) => {
       ] as AccountProps[]
     )
     .slice(1); // 첫번째 빈 데이터 제거
+
+  // 데이터가 없으면 직전 데이터를 넣고, 같은 날짜가 여러번 반복되는 경우는 마지막 데이터만 넣기
+  let prevData = accountData[0];
+  const filledAccountData = generateDateObjects(startDate, endDate).map(
+    (date, index) => {
+      const found = accountData.filter((item) => item.date === date.date);
+      if (found.length > 0) {
+        prevData = found[found.length - 1];
+        return found[found.length - 1];
+      }
+      // 가장 최근의 데이터 가져오기
+      const dummyData = structuredClone(prevData);
+      dummyData.date = date.date;
+      return dummyData;
+    }
+  );
+
   return accountData;
 };
 

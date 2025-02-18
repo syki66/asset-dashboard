@@ -21,3 +21,21 @@ export const dateToTimestamp = (dateString: string) => {
   const timestamp = Math.floor(date.getTime() / 1000); // 밀리초를 초 단위로 변환 후 내림
   return timestamp;
 };
+
+// 주어진 날짜 범위 내에 모든 날짜를 배열로 반환
+export const generateDateObjects = (
+  startDate: string,
+  endDate: string
+): { date: string }[] => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const result: { date: string }[] = [];
+
+  while (start <= end) {
+    const formattedDate = start.toISOString().split('T')[0];
+    result.push({ date: formattedDate });
+    start.setDate(start.getDate() + 1);
+  }
+
+  return result;
+};
