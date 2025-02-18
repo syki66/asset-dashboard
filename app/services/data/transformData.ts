@@ -6,7 +6,7 @@ export function transformYahooHistoryData(data: any) {
   const adjClose = indicators.adjclose[0].adjclose;
 
   return timestamp.map((timestamp: number, index: number) => ({
-    timestamp: timestampToDate(timestamp),
+    date: timestampToDate(timestamp),
     adjClose: adjClose[index],
     dividend: events?.dividends?.[timestamp]?.amount,
   }));

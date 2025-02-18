@@ -24,22 +24,6 @@ export default function DataVisualization() {
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
           const accountData = createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
 
-          // api 호출용 날짜 범위 추출
-          const startDate = accountData[0]?.date;
-          const endDate = accountData[accountData.length - 1]?.date;
-
-          // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
-          const stockCodes = [
-            ...new Set(transactions.map((transaction) => transaction.ISIN)),
-          ].filter((code) => code !== '');
-
-          const { stockData, currencyData, stockKrDict } = await getStockInfo(
-            startDate,
-            endDate,
-            stockCodes
-          ); // api 데이터 가져오기
-
-          console.log(stockData, currencyData, stockKrDict);
           setAccountData(accountData);
         }
       };

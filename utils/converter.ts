@@ -43,69 +43,112 @@ export const formatJsonForGraph = (json: transactionProps[]) => {
 };
 
 // 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
-export const createAccountData = (transactions: transactionProps[]) => {
+export const createAccountData = async (transactions: transactionProps[]) => {
+  // api 호출용 날짜 범위 추출
+  const startDate = transactions[0]?.date;
+  const endDate = transactions[transactions.length - 1]?.date;
+
+  // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
+  const stockCodes = [
+    ...new Set(transactions.map((transaction) => transaction.ISIN)),
+  ].filter((code) => code !== '');
+
+  const { stockData, fxRates } = await getStockInfo(
+    startDate,
+    endDate,
+    stockCodes
+  ); // api 데이터 가져오기
+
   const accountData = transactions
     .reduce(
       (acc, transaction) => {
         const account = structuredClone(acc[acc.length - 1]);
 
+        const currency: Currency = transaction.currency as Currency;
+
         account.date = transaction.date;
+
+        // 환율이 존재하면 가져오고 없다면 이전 환율 사용
+        const currentFxRate = fxRates.find(
+          (data: StockProps) => data.date === transaction.date
+        )?.adjClose;
+
+        if (currentFxRate) {
+          account.fxRate = currentFxRate;
+        }
 
         switch (transaction.type) {
           case 'deposit':
-            if (transaction.currency === 'KRW') {
-              account.krw.deposit += transaction.price;
-            } else if (transaction.currency === 'USD') {
-              account.usd.deposit += transaction.price;
+            if (currency === 'usd') {
+              account['usd'].principalAmount += transaction.price;
+              account['krw'].principalAmount +=
+                transaction.price * account.fxRate;
+            } else if (currency === 'krw') {
+              account['usd'].principalAmount +=
+                transaction.price / account.fxRate;
+              account['krw'].principalAmount += transaction.price;
             }
             break;
           case 'withdrawal':
-            if (transaction.currency === 'KRW') {
-              account.krw.withdrawal += transaction.price;
-            } else if (transaction.currency === 'USD') {
-              account.usd.withdrawal += transaction.price;
+            if (currency === 'usd') {
+              account['usd'].principalAmount -= transaction.price;
+              account['krw'].principalAmount -=
+                transaction.price * account.fxRate;
+            } else if (currency === 'krw') {
+              account['usd'].principalAmount -=
+                transaction.price / account.fxRate;
+              account['krw'].principalAmount -= transaction.price;
             }
             break;
           case 'buy':
-            if (!account.stocks[transaction.ISIN]) {
-              account.stocks[transaction.ISIN] = [];
-            }
+            const stockToBuy = account[currency].stocks.find(
+              (stock) => stock.code === transaction.ISIN
+            );
+
+            if (!stockToBuy) {
+              // 종목이 없으면 초기값과 정보 추가
+              account[currency].stocks.push({
+                name: stockData.find((stock) => stock.code === transaction.ISIN)
+                  ?.name,
+                code: transaction.ISIN,
+                balance: Array(transaction.quantity).fill(transaction.price),
+              });
+            } else {
+              // 종목이 있으면 추가적인 정보만 삽입
             for (let i = 0; i < transaction.quantity; i++) {
-              account.stocks[transaction.ISIN].push(transaction.price);
+                stockToBuy.balance.push(transaction.price);
+              }
             }
             break;
           case 'sell':
+            const stockToSell = account[currency].stocks.find(
+              (stock) => stock.code === transaction.ISIN
+            );
+
+            // 잔고가 있으면 마지막 값 제거
+            if (stockToSell) {
             for (let i = 0; i < transaction.quantity; i++) {
-              account.stocks[transaction.ISIN].shift();
+                stockToSell.balance.shift();
+              }
+            }
+            // 잔고가 비어있으면 삭제
+            if (stockToSell?.balance.length === 0) {
+              account[currency].stocks = account[currency].stocks.filter(
+                (stock) => stock.code !== transaction.ISIN
+              );
             }
             break;
           case 'dividend': // 매년 배당금 누적 계산 (세전)
-            const year = Number(transaction.date.split('-')[0]);
-            if (transaction.currency === 'KRW') {
-              const krwDividend = account.krw.dividend.find(
-                (dividend) => dividend.year === year
+            const foundDividend = account[currency].dividend.find(
+              (dividend) => dividend.date === transaction.date
               );
-              if (!krwDividend) {
-                account.krw.dividend.push({
-                  year,
+            if (!foundDividend) {
+              account[currency].dividend.push({
+                date: transaction.date,
                   price: transaction.price,
                 });
               } else {
-                krwDividend.price += transaction.price;
-              }
-            }
-            if (transaction.currency === 'USD') {
-              const usdDividend = account.usd.dividend.find(
-                (dividend) => dividend.year === year
-              );
-              if (!usdDividend) {
-                account.usd.dividend.push({
-                  year,
-                  price: transaction.price,
-                });
-              } else {
-                usdDividend.price += transaction.price;
-              }
+              foundDividend.price += transaction.price;
             }
             break;
           default:
@@ -117,19 +160,19 @@ export const createAccountData = (transactions: transactionProps[]) => {
       [
         {
           date: '',
+          fxRate: 1400,
           krw: {
-            deposit: 0,
-            withdrawal: 0,
+            principalAmount: 0,
             dividend: [],
             cash: 0,
+            stocks: [],
           },
           usd: {
-            deposit: 0,
-            withdrawal: 0,
+            principalAmount: 0,
             dividend: [],
             cash: 0,
+            stocks: [],
           },
-          stocks: {},
         },
       ] as AccountProps[]
     )

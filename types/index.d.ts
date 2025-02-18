@@ -9,25 +9,32 @@ export type transactionProps = {
   usdDeposit: number;
 };
 
+type AccountDetails = {
+  principalAmount: number;
+  dividend: {
+    date: string;
+    price: number;
+  }[];
+  cash: number;
+  stocks: {
+    name: string;
+    code: string;
+    balance: number[];
+    price: number;
+  }[];
+};
+
 export type AccountProps = {
   date: string;
-  krw: {
-    deposit: number;
-    withdrawal: number;
-    dividend: {
-      year: number;
-      price: number;
-    }[];
-    cash: number;
-  };
-  usd: {
-    deposit: number;
-    withdrawal: number;
-    dividend: {
-      year: number;
-      price: number;
-    }[];
-    cash: number;
-  };
-  stocks: { [isin: string]: number[] };
+  fxRate: number;
+  krw: AccountDetails;
+  usd: AccountDetails;
+};
+
+export type Currency = 'krw' | 'usd';
+
+export type StockProps = {
+  date: string;
+  adjClose: number;
+  dividend?: number;
 };

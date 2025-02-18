@@ -51,7 +51,7 @@ export const createShsecTransactions = (json: any[]) => {
       _usdRp = 0;
     }
 
-    // KRW 예수금 값 업데이트
+    // krw 예수금 값 업데이트
     if (
       item['구분'] === '증금예금_증금예금상환' ||
       item['구분'] === '증금예금_증금예금매수' ||
@@ -135,36 +135,36 @@ export const createShsecTransactions = (json: any[]) => {
       case isDeposit:
         _itemData.type = 'deposit';
         _itemData.currency = item['구분'].endsWith('은행이체외화입금')
-          ? 'USD'
-          : 'KRW';
+          ? 'usd'
+          : 'krw';
         _itemData.quantity = 1;
         _itemData.price = Number(item['거래대금']);
         break;
       case isWithdrawal:
         _itemData.type = 'withdrawal';
         _itemData.currency = item['구분'].endsWith('은행이체외화출금')
-          ? 'USD'
-          : 'KRW';
+          ? 'usd'
+          : 'krw';
         _itemData.quantity = 1;
         _itemData.price = Number(item['거래대금']);
         break;
       case isUsStockBuy || isKrStockBuy:
         _itemData.type = 'buy';
-        _itemData.currency = isUsStockBuy ? 'USD' : 'KRW';
+        _itemData.currency = isUsStockBuy ? 'usd' : 'krw';
         _itemData.ISIN = item['종목번호'];
         _itemData.quantity = parseInt(item['수량']); // 소수점 주식 무시
         _itemData.price = Number(item['가격']);
         break;
       case isUsStockSell || isKrStockSell:
         _itemData.type = 'sell';
-        _itemData.currency = isUsStockSell ? 'USD' : 'KRW';
+        _itemData.currency = isUsStockSell ? 'usd' : 'krw';
         _itemData.ISIN = item['종목번호'];
         _itemData.quantity = parseInt(item['수량']); // 소수점 주식 무시
         _itemData.price = Number(item['가격']);
         break;
       case isDividend:
         _itemData.type = 'dividend';
-        _itemData.currency = item['구분'] === '해외배당금' ? 'USD' : 'KRW';
+        _itemData.currency = item['구분'] === '해외배당금' ? 'usd' : 'krw';
         _itemData.quantity = 1;
         _itemData.price = Number(item['거래대금']);
         break;
@@ -175,7 +175,7 @@ export const createShsecTransactions = (json: any[]) => {
     // 타사대체입고 데이터는 buy, deposit 두 곳에 추가
     if (item['구분'] === '타사대체입고' || item['구분'] === '계좌대체입고') {
       _itemData.type = 'deposit';
-      _itemData.currency = item['구분'] === '타사대체입고' ? 'USD' : 'KRW';
+      _itemData.currency = item['구분'] === '타사대체입고' ? 'usd' : 'krw';
       _itemData.ISIN = item['종목번호'];
       _itemData.quantity = Number(item['수량']);
       _itemData.price = Number(item['가격']);
