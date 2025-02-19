@@ -237,7 +237,6 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     return data;
   });
 
-
   return accountData;
 };
 

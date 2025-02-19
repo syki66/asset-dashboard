@@ -5,8 +5,8 @@ export type transactionProps = {
   ISIN: string;
   quantity: number;
   price: number;
-  krwDeposit: number;
-  usdDeposit: number;
+  krwCash: number;
+  usdCash: number;
 };
 
 type AccountDetails = {

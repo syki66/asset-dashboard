@@ -106,25 +106,28 @@ export const createShsecTransactions = (json: any[]) => {
     ].some((keyword) => item['구분'].endsWith(keyword));
 
     // 해외주식 매수, 매도 데이터 대입
-    const isUsStockBuy = ['해외증권_해외주식매수'].some((keyword) =>
-      item['구분'].endsWith(keyword)
+    const isUsStockBuy = ['해외증권_해외주식매수'].some(
+      (keyword) => item['구분'] === keyword
     );
-    const isUsStockSell = ['해외증권_해외주식매도'].some((keyword) =>
-      item['구분'].endsWith(keyword)
+    const isUsStockSell = ['해외증권_해외주식매도'].some(
+      (keyword) => item['구분'] === keyword
     );
 
     // 국내주식 매수, 매도 데이터 대입
-    const isKrStockBuy = ['장내_매수', '공모주입고'].some((keyword) =>
-      item['구분'].endsWith(keyword)
+    const isKrStockBuy = ['장내_매수', '공모주입고'].some(
+      (keyword) => item['구분'] === keyword
     );
-    const isKrStockSell = ['장내_매도', '코스닥_매도'].some((keyword) =>
-      item['구분'].endsWith(keyword)
+    const isKrStockSell = ['장내_매도', '코스닥_매도'].some(
+      (keyword) => item['구분'] === keyword
     );
 
     // 배당금 데이터 대입
-    const isDividend = ['배당금', '해외배당금'].some((keyword) =>
-      item['구분'].endsWith(keyword)
-    );
+    const isDividend = [
+      '해외배당금',
+      '배당금',
+      '증금예금_증금예금상환',
+      'RP_매도',
+    ].some((keyword) => item['구분'] === keyword);
 
     // 공통 데이터
     _itemData.date = formatShinhanDate(item['일자']);
@@ -166,7 +169,10 @@ export const createShsecTransactions = (json: any[]) => {
         _itemData.type = 'dividend';
         _itemData.currency = item['구분'] === '해외배당금' ? 'usd' : 'krw';
         _itemData.quantity = 1;
-        _itemData.price = Number(item['거래대금']);
+        _itemData.price =
+          item['구분'] === '배당금' || item['구분'] === '해외배당금'
+            ? Number(item['거래대금'])
+            : Number(item['세전이자']);
         break;
       default:
         break;
