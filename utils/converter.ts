@@ -42,15 +42,10 @@ export const formatJsonForGraph = (json: transactionProps[]) => {
   });
 };
 
-/**
- * 계좌의 원금(principalAmount)을 업데이트 합니다.
- * @param account - 현재 계좌 상태
- * @param transaction - 거래 내역
- * @param multiplier - 1 (입금: deposit) 또는 -1 (출금: withdrawal)
- */
+// 계좌의 원금(principalAmount)을 업데이트 합니다.
 const updatePrincipal = (
   account: AccountProps,
-  transaction: transactionProps,
+  transaction: transactionProps, // 1 (입금: deposit) 또는 -1 (출금: withdrawal)
   multiplier: number
 ) => {
   const currency: Currency = transaction.currency as Currency;
@@ -64,6 +59,29 @@ const updatePrincipal = (
     account.krw.principalAmount += multiplier * transaction.price;
     account.usd.principalAmount +=
       multiplier * (transaction.price / account.fxRate);
+  }
+};
+
+// 주어진 주식(stock)의 가격을 data.date 기준으로 업데이트합니다.
+const updateStockPrice = (
+  stock: { code: string; price: number },
+  date: string,
+  stockData: { code: string; prices: { date: string; close: number }[] }[]
+) => {
+  // 주식 코드에 해당하는 데이터 찾기
+  const stockInfo = stockData.find((item) => item.code === stock.code);
+  if (!stockInfo) return;
+
+  // 해당 날짜의 가격이 있는지 확인
+  const currentPrice = stockInfo.prices.find((price) => price.date === date);
+  if (currentPrice) {
+    stock.price = currentPrice.close;
+  } else {
+    // 찾지 못하면, 과거 데이터 중 가장 최근 데이터를 가져옵니다.
+    const pastPrices = stockInfo.prices
+      .filter((price) => price.date < date)
+      .sort((a, b) => b.date.localeCompare(a.date));
+    stock.price = pastPrices[0]?.close ?? stock.price;
   }
 };
 
@@ -206,35 +224,11 @@ export const createAccountData = async (transactions: transactionProps[]) => {
 
   // 날짜별 현재가 업데이트
   const updatedAccountData = filledAccountData.map((data) => {
-    data['usd'].stocks.forEach((usStock) => {
-      const currentPrice = stockData
-        .find((stock) => stock.code === usStock.code)
-        ?.prices.find((price: StockProps) => price.date === data.date);
-      if (currentPrice) {
-        usStock.price = currentPrice.close;
-      } else {
-        usStock.price = stockData
-          .find((stock) => stock.code === usStock.code)
-          ?.prices.filter((price: StockProps) => price.date < data.date)
-          .sort((a: StockProps, b: StockProps) =>
-            b.date.localeCompare(a.date)
-          )[0]?.close; // 과거 데이터도 없다면 매수 가격 사용
-      }
-    });
-    data['krw'].stocks.forEach((krStock) => {
-      const currentPrice = stockData
-        .find((stock) => stock.code === krStock.code)
-        ?.prices.find((price: StockProps) => price.date === data.date);
-      if (currentPrice) {
-        krStock.price = currentPrice.close;
-      } else {
-        krStock.price = stockData
-          .find((stock) => stock.code === krStock.code)
-          ?.prices.filter((price: StockProps) => price.date < data.date)
-          .sort((a: StockProps, b: StockProps) =>
-            b.date.localeCompare(a.date)
-          )[0]?.close; // 과거 데이터도 없다면 매수 가격 사용
-      }
+    // usd와 krw 두 통화를 한 번에 처리합니다.
+    (['usd', 'krw'] as const).forEach((currency) => {
+      data[currency].stocks.forEach((stock) => {
+        updateStockPrice(stock, data.date, stockData);
+      });
     });
     return data;
   });
