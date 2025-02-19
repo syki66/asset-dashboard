@@ -120,6 +120,10 @@ export const createAccountData = async (transactions: transactionProps[]) => {
           account.fxRate = currentFxRate;
         }
 
+        // 예수금 업데이트
+        account.usd.cash = transaction.usdCash;
+        account.krw.cash = transaction.krwCash;
+
         switch (transaction.type) {
           case 'deposit':
             updatePrincipal(account, transaction, 1);
@@ -209,7 +213,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
   // 데이터가 없으면 직전 데이터를 넣고, 같은 날짜가 여러번 반복되는 경우는 마지막 데이터만 넣기
   let prevData = accountData[0];
   const filledAccountData = generateDateObjects(startDate, endDate).map(
-    (date, index) => {
+    (date) => {
       const found = accountData.filter((item) => item.date === date.date);
       if (found.length > 0) {
         prevData = found[found.length - 1];

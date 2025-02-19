@@ -42,8 +42,8 @@ export const createShsecTransactions = (json: any[]) => {
       ISIN: '',
       quantity: 0,
       price: 0,
-      krwDeposit: 0,
-      usdDeposit: 0,
+      krwCash: 0,
+      usdCash: 0,
     };
 
     // USD RP 계산은 이자를 포함한 금액이 출금되어서 실제 보다 적게 나옴. 따라서 음수로 찍힐때마다 0으로 초기화해서 보정함.
@@ -128,8 +128,8 @@ export const createShsecTransactions = (json: any[]) => {
 
     // 공통 데이터
     _itemData.date = formatShinhanDate(item['일자']);
-    _itemData.usdDeposit = _usdDeposit + _usdRp;
-    _itemData.krwDeposit = _krwDeposit + _krwIpoDeposit;
+    _itemData.usdCash = _usdDeposit + _usdRp;
+    _itemData.krwCash = _krwDeposit + _krwIpoDeposit;
 
     switch (true) {
       case isDeposit:
