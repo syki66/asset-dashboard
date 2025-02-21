@@ -2,6 +2,7 @@ import { AccountProps, Currency, StockProps, transactionProps } from '@/types';
 import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { USD_KRW_SYMBOL, DEFAULT_FX_RATE } from '@/constants/keywords';
 
 export const formatJsonForGraph = (json: transactionProps[]) => {
   let _currency = 1;
@@ -98,7 +99,9 @@ export const createAccountData = async (transactions: transactionProps[]) => {
   ].filter((code) => code !== '');
 
   const { stockData } = await getStockInfo(startDate, endDate, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
-  const fxRates = stockData.find((stock) => stock.code === 'KRW=X')?.prices;
+  const fxRates = stockData.find(
+    (stock) => stock.code === USD_KRW_SYMBOL
+  )?.prices;
 
   const accountData = transactions
     .reduce(
@@ -194,7 +197,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
       [
         {
           date: '',
-          fxRate: 1400,
+          fxRate: DEFAULT_FX_RATE,
           krw: {
             principalAmount: 0,
             dividend: [],
@@ -248,7 +251,7 @@ export const getStockInfo = async (
   endDate: string,
   stockCodes: string[]
 ) => {
-  stockCodes.push('KRW=X'); // 환율 심볼 추가
+  stockCodes.push(USD_KRW_SYMBOL); // 환율 심볼 추가
 
   // 종목코드를 바탕으로 종목 정보와 히스토리 데이터 가져오기
   const stockData = await Promise.allSettled(

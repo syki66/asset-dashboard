@@ -17,7 +17,9 @@ type AccountDetails = {
   }[];
   cash: number;
   stocks: {
-    name: string;
+    shortName: string;
+    longName: string;
+    symbol: string;
     code: string;
     balance: number[];
     price: number;
