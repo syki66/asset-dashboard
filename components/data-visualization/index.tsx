@@ -7,7 +7,7 @@ import AccountInfo from './account-info';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
-import { createAccountData, getStockInfo } from '@/utils/converter';
+import { createAccountData } from '@/utils/converter';
 import { ChangeEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -21,34 +21,40 @@ const readFile = async (file: File) => {
 };
 
 export default function DataVisualization() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
   const { data: accountData, refetch } = useQuery({
     queryKey: ['accountData'],
     queryFn: async () => {
-      if (!file) return Promise.reject('No file selected');
+      if (files.length === 0) return Promise.reject('No files selected');
 
-      const fileContent = await readFile(file); // 파일 내용 읽기
-      const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
+      const allAccountData = await Promise.all(
+        files.map(async (file) => {
+          const fileContent = await readFile(file); // 파일 내용 읽기
+          const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
-      const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
+          const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
+          return { name: file.name, accountData };
+        })
+      );
 
-      return accountData;
+      return allAccountData;
     },
-    enabled: !!file, // 파일이 없을 때 실행 방지
+    enabled: files.length > 0, // 파일이 없을 때 실행 방지
   });
 
   return (
     <>
       <div className="grid w-full max-w-sm items-center gap-1.5">
-        <Label htmlFor="picture">import CSV File</Label>
+        <Label htmlFor="picture">import CSV Files</Label>
         <Input
           id="picture"
           type="file"
           accept=".csv"
+          multiple
           onChange={(e) => {
-            if (e.target.files?.[0]) {
-              setFile(e.target.files[0]); // 파일 선택
+            if (e.target.files) {
+              setFiles(Array.from(e.target.files)); // 파일 선택
               refetch(); // 파일 선택 시 query 재실행
             }
           }}
