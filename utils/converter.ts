@@ -97,20 +97,17 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     ...new Set(transactions.map((transaction) => transaction.ISIN)),
   ].filter((code) => code !== '');
 
-  const { stockData, fxRates } = await getStockInfo(
-    startDate,
-    endDate,
-    stockCodes
-  ); // api 데이터 가져오기
+  const { stockData } = await getStockInfo(startDate, endDate, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
+  const fxRates = stockData.find((stock) => stock.code === 'KRW=X')?.prices;
 
   const accountData = transactions
     .reduce(
       (acc, transaction) => {
-        const account = structuredClone(acc[acc.length - 1]);
+        const account = structuredClone(acc[acc.length - 1]); // 직전 데이터 복사
 
-        const currency: Currency = transaction.currency as Currency;
+        const currency: Currency = transaction.currency as Currency; // 통화 타입 지정
 
-        account.date = transaction.date;
+        account.date = transaction.date; // 날짜 업데이트
 
         // 환율이 존재하면 가져오고 없다면 이전 환율 사용
         const currentFxRate = fxRates.find(
@@ -139,16 +136,20 @@ export const createAccountData = async (transactions: transactionProps[]) => {
 
             if (!stockToBuy) {
               // 종목이 없으면 초기값과 정보 추가
+              const stockInfo = stockData.find(
+                (stock) => stock.code === transaction.ISIN
+              );
               account[currency].stocks.push({
-                name: stockData.find((stock) => stock.code === transaction.ISIN)
-                  ?.name,
+                shortName: stockInfo?.shortName,
+                longName: stockInfo?.longName,
+                symbol: stockInfo?.symbol,
                 code: transaction.ISIN,
                 balance: Array(transaction.quantity).fill(transaction.price),
                 price: transaction.price, // 기본값으로 매수 가격 넣기
               });
             } else {
               // 종목이 있으면 추가적인 정보만 삽입
-            for (let i = 0; i < transaction.quantity; i++) {
+              for (let i = 0; i < transaction.quantity; i++) {
                 stockToBuy.balance.push(transaction.price);
               }
             }
@@ -160,7 +161,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
 
             // 잔고가 있으면 마지막 값 제거
             if (stockToSell) {
-            for (let i = 0; i < transaction.quantity; i++) {
+              for (let i = 0; i < transaction.quantity; i++) {
                 stockToSell.balance.shift();
               }
             }
@@ -174,13 +175,13 @@ export const createAccountData = async (transactions: transactionProps[]) => {
           case 'dividend': // 매년 배당금 누적 계산 (세전)
             const foundDividend = account[currency].dividend.find(
               (dividend) => dividend.date === transaction.date
-              );
+            );
             if (!foundDividend) {
               account[currency].dividend.push({
                 date: transaction.date,
-                  price: transaction.price,
-                });
-              } else {
+                price: transaction.price,
+              });
+            } else {
               foundDividend.price += transaction.price;
             }
             break;
