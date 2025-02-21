@@ -246,48 +246,42 @@ export const getStockInfo = async (
   endDate: string,
   stockCodes: string[]
 ) => {
-  stockCodes.sort(); // 한국 미국 종목의 순서가 섞여있어서 아래에서 순서를 정확하게 매핑하기 위해 정렬
+  stockCodes.push('KRW=X'); // 환율 심볼 추가
+  // 종목코드를 바탕으로 종목 정보와 히스토리 데이터 가져오기
+  const stockData = await Promise.allSettled(
+    stockCodes.map(async (code) => {
+      try {
+        const searchResponse = await axios.get(
+          `/api/search/${code.split('A').at(-1)}`
+        );
+        const { symbol, shortName, longName } = searchResponse.data;
 
-  // 거래내역 상에 존재하는 모든 미국 종목을 티커로 가져오기
-  const symbols = (
-    await Promise.all(
-      stockCodes
-        .filter((code) => code.startsWith('US'))
-        .map((code) => axios.get(`/api/search/${code}`))
-    )
-  ).map((response) => response.data.symbol);
-
-  // 한국주식코드를 000000.KS 형태로 변환
-  const stockCodeKr = stockCodes
-    .filter((code) => code.startsWith('A'))
-    .map((code) => code.slice(1) + '.KS');
-
-  // api에서 받아올 수 있도록 티커 배열 생성
-  const tickers = [...stockCodeKr, ...symbols];
-
-  // 주식 데이터 가져오기
-  const stocks = (
-    await Promise.all(
-      tickers.map((ticker) =>
-        axios.get(
-          `/api/history/${ticker}?startDate=${dateToTimestamp(
+        const priceResponse = await axios.get(
+          `/api/history/${symbol}?startDate=${dateToTimestamp(
             startDate
           )}&endDate=${dateToTimestamp(endDate)}`
-        )
-      )
-    )
-  ).map((response) => response.data);
+        );
 
-  // 한국 주식 종목명 가져오기
-  const stockNameKr = (
-    await Promise.all(
-      stockCodeKr.map((code) => axios.get(`/api/search/${code}`))
-    )
-  ).map((response) => response.data.name);
+        return {
+          code,
+          symbol,
+          shortName,
+          longName,
+          prices: priceResponse.data,
+        };
+      } catch (error: any) {
+        const failedApi = error.config?.url?.includes('/api/search')
+          ? 'Search API'
+          : 'Price API';
 
-  // 한국 종목 코드와 종목명 매핑
-  const stockCodeToNameKr = Object.fromEntries(
-    stockCodeKr.map((key, index) => [key, stockNameKr[index]])
+        throw {
+          code, // 종목 코드
+          api: failedApi, // 실패한 API 종류
+          status: error.response?.status || 'Network Error', // HTTP 상태 코드 (네트워크 오류일 경우 메시지)
+          message: error.response?.data?.message || error.message, // API 응답 메시지 또는 기본 오류 메시지
+        };
+      }
+    })
   );
 
   // 주식 데이터 생성
@@ -307,5 +301,9 @@ export const getStockInfo = async (
     )
   ).data;
 
-  return { stockData, fxRates };
+  return {
+    stockData: stockData
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value),
+  };
 };

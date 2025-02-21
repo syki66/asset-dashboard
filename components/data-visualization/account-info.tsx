@@ -1,5 +1,4 @@
 import { AccountProps } from '@/types';
-import { getStockInfo } from '@/utils/converter';
 import { useEffect } from 'react';
 
 type AccountInfoProps = {

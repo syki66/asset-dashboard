@@ -26,7 +26,8 @@ export async function GET(
 
     return NextResponse.json({
       symbol: data.quotes[0].symbol,
-      name: data.quotes[0].shortname,
+      shortName: data.quotes[0].shortname,
+      longName: data.quotes[0].longname,
     });
   } catch (error) {
     if (error instanceof Error) {
