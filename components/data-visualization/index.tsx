@@ -9,35 +9,34 @@ import { Label } from '@/components/ui/label';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { createAccountData, getStockInfo } from '@/utils/converter';
 import { ChangeEvent } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
+const readFile = async (file: File) => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('파일을 읽는 데 실패했습니다.'));
+    reader.readAsText(file); // 파일을 텍스트로 읽음 (필요에 따라 readAsArrayBuffer 등 변경 가능)
+  });
+};
 
 export default function DataVisualization() {
-  const [accountData, setAccountData] = useState<AccountProps[]>([]);
+  const [file, setFile] = useState<File | null>(null);
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === 'text/csv') {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const text = e.target?.result;
-        if (typeof text === 'string') {
-          const shsecJson = shsecCsvToJson(text); // 신한증권 csv 데이터를 json으로 변환
+  const { data: accountData, refetch } = useQuery({
+    queryKey: ['accountData'],
+    queryFn: async () => {
+      if (!file) return Promise.reject('No file selected');
+
+      const fileContent = await readFile(file); // 파일 내용 읽기
+      const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
-          const accountData = createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
+      const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
 
-          setAccountData(accountData);
-        }
-      };
-      reader.readAsText(file);
-    } else {
-      console.log('Please upload a valid CSV file.');
-    }
-  };
-
-  const init = async () => {};
-
-  useEffect(() => {
-    init();
-  }, [accountData]);
+      return accountData;
+    },
+    enabled: !!file, // 파일이 없을 때 실행 방지
+  });
 
   return (
     <>
@@ -47,7 +46,12 @@ export default function DataVisualization() {
           id="picture"
           type="file"
           accept=".csv"
-          onChange={handleFileChange}
+          onChange={(e) => {
+            if (e.target.files?.[0]) {
+              setFile(e.target.files[0]); // 파일 선택
+              refetch(); // 파일 선택 시 query 재실행
+            }
+          }}
         />
       </div>
       {/* <MainChart

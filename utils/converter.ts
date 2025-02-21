@@ -237,7 +237,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     return data;
   });
 
-  return accountData;
+  return updatedAccountData;
 };
 
 // 주식 및 환율 히스토리 데이터 호출
