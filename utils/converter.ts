@@ -1,6 +1,7 @@
 import { AccountProps, Currency, StockProps, transactionProps } from '@/types';
 import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 export const formatJsonForGraph = (json: transactionProps[]) => {
   let _currency = 1;
@@ -247,6 +248,7 @@ export const getStockInfo = async (
   stockCodes: string[]
 ) => {
   stockCodes.push('KRW=X'); // 환율 심볼 추가
+
   // 종목코드를 바탕으로 종목 정보와 히스토리 데이터 가져오기
   const stockData = await Promise.allSettled(
     stockCodes.map(async (code) => {
@@ -284,22 +286,14 @@ export const getStockInfo = async (
     })
   );
 
-  // 주식 데이터 생성
-  const stockData = stockCodes.map((code, index) => {
-    const name = code.startsWith('A')
-      ? stockCodeToNameKr[tickers[index]]
-      : tickers[index];
-    return { name, code, prices: stocks[index] };
+  stockData.forEach((result) => {
+    if (result.status === 'rejected') {
+      const { api, code, message, status } = result.reason;
+      toast.error(
+        `🚨 ${api} failed!\nStock Code: ${code}\nError: ${message} (Status: ${status})`
+      );
+    }
   });
-
-  // 환율 데이터 가져오기
-  const fxRates = (
-    await axios.get(
-      `/api/history/KRW=X?startDate=${dateToTimestamp(
-        startDate
-      )}&endDate=${dateToTimestamp(endDate)}`
-    )
-  ).data;
 
   return {
     stockData: stockData
