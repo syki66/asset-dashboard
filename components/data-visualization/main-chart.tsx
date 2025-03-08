@@ -19,8 +19,8 @@ import {
 type MainChartProps = {
   chartData: {
     date: string;
-    evaluationAmount: Number;
-    principalAmount: Number;
+    evaluationAmount: number;
+    principalAmount: number;
   }[];
   chartConfig: ChartConfig;
 };

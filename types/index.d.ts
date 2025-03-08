@@ -9,23 +9,6 @@ export type transactionProps = {
   usdCash: number;
 };
 
-type AccountDetails = {
-  principalAmount: number;
-  dividend: {
-    date: string;
-    price: number;
-  }[];
-  cash: number;
-  stocks: {
-    shortName: string;
-    longName: string;
-    symbol: string;
-    code: string;
-    balance: number[];
-    price: number;
-  }[];
-};
-
 export type AccountProps = {
   date: string;
   fxRate: number;
@@ -33,9 +16,30 @@ export type AccountProps = {
   usd: AccountDetails;
 };
 
-export type Currency = 'krw' | 'usd';
+type AccountDetails = {
+  principalAmount: number;
+  dividend: DividendProps[];
+  cash: number;
+  stocks: StockProps[];
+};
 
 export type StockProps = {
+  shortName: string;
+  longName: string;
+  symbol: string;
+  code: string;
+  balance: number[];
+  price: number;
+};
+
+export type DividendProps = {
+  date: string;
+  price: number;
+};
+
+export type Currency = 'krw' | 'usd';
+
+export type StockHistoryProps = {
   date: string;
   close: number;
   adjClose: number;

@@ -46,7 +46,7 @@ export const createShsecTransactions = (json: any[]) => {
       usdCash: 0,
     };
 
-    // USD RP 계산은 이자를 포함한 금액이 출금되어서 실제 보다 적게 나옴. 따라서 음수로 찍힐때마다 0으로 초기화해서 보정함.
+    // USD RP 계산은 이자를 포함한 금액이 출금되어서 실제 보다 적게 표시됨. 따라서 음수로 찍힐때마다 0으로 초기화해서 보정함.
     if (_usdRp < 0) {
       _usdRp = 0;
     }

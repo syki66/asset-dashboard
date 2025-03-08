@@ -1,4 +1,11 @@
-import { AccountProps, Currency, StockProps, transactionProps } from '@/types';
+import {
+  AccountProps,
+  StockProps,
+  Currency,
+  DividendProps,
+  StockHistoryProps,
+  transactionProps,
+} from '@/types';
 import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -114,7 +121,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
 
         // 환율이 존재하면 가져오고 없다면 이전 환율 사용
         const currentFxRate = fxRates.find(
-          (data: StockProps) => data.date === transaction.date
+          (data: StockHistoryProps) => data.date === transaction.date
         )?.close;
 
         if (currentFxRate) {
@@ -304,4 +311,87 @@ export const getStockInfo = async (
       .filter((result) => result.status === 'fulfilled')
       .map((result) => result.value),
   };
+};
+
+// 여러개의 계좌 데이터 병합
+export const mergeAccountData = (
+  accountDataArray: {
+    name: string;
+    accountData: AccountProps[];
+  }[]
+): AccountProps[] => {
+  const mergedMap = new Map<string, AccountProps>();
+
+  // Helper: merge two dividend arrays
+  const mergeDividends = (arr1: DividendProps[], arr2: DividendProps[]) => {
+    const dividendMap = new Map<string, number>();
+
+    arr1.forEach((d) => {
+      dividendMap.set(d.date, (dividendMap.get(d.date) || 0) + d.price);
+    });
+    arr2.forEach((d) => {
+      dividendMap.set(d.date, (dividendMap.get(d.date) || 0) + d.price);
+    });
+
+    return Array.from(dividendMap.entries()).map(([date, price]) => ({
+      date,
+      price,
+    }));
+  };
+
+  // Helper: merge stocks arrays by code
+  const mergeStocks = (arr1: StockProps[], arr2: StockProps[]) => {
+    const stockMap = new Map<string, StockProps>();
+
+    const addStocks = (stocks: StockProps[]) => {
+      stocks.forEach((stock) => {
+        if (stockMap.has(stock.code)) {
+          const existing = stockMap.get(stock.code)!;
+          // concatenate balances; use the price from the latest entry (arr2 overrides)
+          existing.balance = existing.balance.concat(stock.balance);
+          existing.price = stock.price;
+        } else {
+          stockMap.set(stock.code, { ...stock });
+        }
+      });
+    };
+
+    addStocks(arr1);
+    addStocks(arr2);
+
+    return Array.from(stockMap.values());
+  };
+
+  // Iterate through all accounts and each accountData within
+  accountDataArray.forEach((account) => {
+    account.accountData.forEach((data) => {
+      const date = data.date;
+      if (!mergedMap.has(date)) {
+        mergedMap.set(date, { ...data });
+      } else {
+        const merged = mergedMap.get(date)!;
+        // 환율은 같은 날짜면 동일하므로 단순 덮어쓰기
+        merged.fxRate = data.fxRate;
+
+        ['krw', 'usd'].forEach((currency) => {
+          merged[currency].principalAmount += data[currency].principalAmount;
+          merged[currency].cash += data[currency].cash;
+          merged[currency].dividend = mergeDividends(
+            merged[currency].dividend,
+            data[currency].dividend
+          );
+          merged[currency].stocks = mergeStocks(
+            merged[currency].stocks,
+            data[currency].stocks
+          );
+        });
+      }
+    });
+  });
+
+  const mergedArray: AccountProps[] = Array.from(mergedMap.values()).sort(
+    (a, b) => a.date.localeCompare(b.date)
+  );
+
+  return mergedArray;
 };
