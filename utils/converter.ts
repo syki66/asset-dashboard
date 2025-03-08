@@ -41,7 +41,7 @@ export const formatJsonForGraph = (json: transactionProps[]) => {
     }
 
     // 예수금 계산
-    const escrow = item.usdDeposit * 1350 + item.krwDeposit;
+    const escrow = item.usdCash * 1350 + item.krwCash;
 
     return {
       date: item.date,
@@ -320,12 +320,11 @@ export const mergeAccountData = (
     accountData: AccountProps[];
   }[]
 ): AccountProps[] => {
-  const mergedMap = new Map<string, AccountProps>();
-
-  // Helper: merge two dividend arrays
+  // Helper: merge two dividend arrays (같은 날짜의 dividend 데이터를 입력받아야 함)
   const mergeDividends = (arr1: DividendProps[], arr2: DividendProps[]) => {
     const dividendMap = new Map<string, number>();
 
+    // 두 개의 배열을 돌면서 날짜별로 배당금 합산
     arr1.forEach((d) => {
       dividendMap.set(d.date, (dividendMap.get(d.date) || 0) + d.price);
     });
@@ -333,13 +332,14 @@ export const mergeAccountData = (
       dividendMap.set(d.date, (dividendMap.get(d.date) || 0) + d.price);
     });
 
+    // Map을 객체 배열로 변환
     return Array.from(dividendMap.entries()).map(([date, price]) => ({
       date,
       price,
     }));
   };
 
-  // Helper: merge stocks arrays by code
+  // Helper: merge stocks arrays by code (같은 날짜의 stock 데이터를 입력받아야 함)
   const mergeStocks = (arr1: StockProps[], arr2: StockProps[]) => {
     const stockMap = new Map<string, StockProps>();
 
@@ -348,8 +348,7 @@ export const mergeAccountData = (
         if (stockMap.has(stock.code)) {
           const existing = stockMap.get(stock.code)!;
           // concatenate balances; use the price from the latest entry (arr2 overrides)
-          existing.balance = existing.balance.concat(stock.balance);
-          existing.price = stock.price;
+          existing.balance = existing.balance.concat(stock.balance); //
         } else {
           stockMap.set(stock.code, { ...stock });
         }
@@ -362,6 +361,9 @@ export const mergeAccountData = (
     return Array.from(stockMap.values());
   };
 
+  // 계좌 데이터를 날짜별로 합치기 위해 Map을 사용
+  const mergedMap = new Map<string, AccountProps>();
+
   // Iterate through all accounts and each accountData within
   accountDataArray.forEach((account) => {
     account.accountData.forEach((data) => {
@@ -369,11 +371,10 @@ export const mergeAccountData = (
       if (!mergedMap.has(date)) {
         mergedMap.set(date, { ...data });
       } else {
+        // 이미 있는 날짜의 데이터가 있으면, 해당 데이터를 가져와서 새로운 데이터와 합침
         const merged = mergedMap.get(date)!;
-        // 환율은 같은 날짜면 동일하므로 단순 덮어쓰기
-        merged.fxRate = data.fxRate;
 
-        ['krw', 'usd'].forEach((currency) => {
+        (['usd', 'krw'] as const).forEach((currency) => {
           merged[currency].principalAmount += data[currency].principalAmount;
           merged[currency].cash += data[currency].cash;
           merged[currency].dividend = mergeDividends(
