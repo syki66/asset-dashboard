@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MainChart } from './main-chart';
 import { AccountProps } from '@/types';
 import AccountInfo from './account-info';
@@ -23,21 +23,20 @@ const readFile = async (file: File) => {
 
 export default function DataVisualization() {
   const [files, setFiles] = useState<File[]>([]);
-  const [selectedValues, setSelectedValues] = useState<string[]>([]); // 계좌 체크박스 선택 값들
+  const [selectedCheckboxValues, setSelectedCheckboxValues] = useState<
+    string[]
+  >([]);
 
-  const options = [
-    { id: 'option1', label: 'Option 1' },
-    { id: 'option2', label: 'Option 2' },
-    { id: 'option3', label: 'Option 3' },
-    { id: 'option4', label: 'Option 4' },
-  ];
-
-  const { data: accountData, refetch } = useQuery({
-    queryKey: ['accountData'],
+  const {
+    data: totalAccountData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ['accountData', files],
     queryFn: async () => {
       if (files.length === 0) return Promise.reject('No files selected');
 
-      const allAccountData = await Promise.all(
+      const totalAccountData = await Promise.all(
         files.map(async (file) => {
           const fileContent = await readFile(file); // 파일 내용 읽기
           const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
@@ -47,22 +46,35 @@ export default function DataVisualization() {
         })
       );
 
-      return allAccountData;
+      return totalAccountData;
     },
     enabled: files.length > 0, // 파일이 없을 때 실행 방지
   });
-  const handleCheckboxChange = (values: string[]) => {
-    setSelectedValues(values);
-    console.log('Selected values:', values);
-  };
+
+  // totalAccountData와 선택된 체크박스에 따라 합산된 데이터를 메모이제이션
+  const mergedAccountData = useMemo(() => {
+    if (!totalAccountData) return [];
+    // 체크박스가 비어있으면 전체 데이터 사용
+    const filteredData =
+      selectedCheckboxValues.length > 0
+        ? totalAccountData.filter((data) =>
+            selectedCheckboxValues.includes(data.name)
+          )
+        : totalAccountData;
+    return mergeAccountData(filteredData);
+  }, [totalAccountData, selectedCheckboxValues]);
+
+  // 체크박스 변경시 선택된 값 업데이트
+  const handleCheckboxChange = useCallback((values: string[]) => {
+    setSelectedCheckboxValues(values);
+  }, []);
 
   useEffect(() => {
-    if (accountData) {
-      console.log(accountData);
-      const test = mergeAccountData(accountData);
-      console.log(test);
-    }
-  }, [accountData]);
+    // mergedAccountData가 변경될 때 로그 출력 혹은 다른 작업 수행
+    console.log(mergedAccountData);
+  }, [mergedAccountData]);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <>
@@ -87,23 +99,15 @@ export default function DataVisualization() {
         </CardHeader>
         <CardContent>
           <CheckboxGroup
-            options={options}
+            options={
+              totalAccountData?.map((data) => ({
+                id: data.name,
+                label: data.name,
+              })) ?? []
+            }
             onChange={handleCheckboxChange}
-            defaultSelected={['option1']}
+            allCheckedByDefault={true}
           />
-
-          <div className="mt-6 p-4 bg-muted rounded-md">
-            <h3 className="font-medium mb-2">Selected Values:</h3>
-            {selectedValues.length > 0 ? (
-              <ul className="list-disc pl-5">
-                {selectedValues.map((value) => (
-                  <li key={value}>{value}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No options selected</p>
-            )}
-          </div>
         </CardContent>
       </Card>
       {/* <MainChart

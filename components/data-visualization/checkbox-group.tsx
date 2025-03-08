@@ -10,18 +10,21 @@ interface CheckboxOption {
 }
 
 interface CheckboxGroupProps {
-  options: CheckboxOption[];
+  options: CheckboxOption[] | [];
   onChange: (selectedValues: string[]) => void;
   defaultSelected?: string[];
+  allCheckedByDefault?: boolean;
 }
 
 export default function CheckboxGroup({
   options,
   onChange,
   defaultSelected = [],
+  allCheckedByDefault = false,
 }: CheckboxGroupProps) {
-  const [selectedValues, setSelectedValues] =
-    useState<string[]>(defaultSelected);
+  const [selectedValues, setSelectedValues] = useState<string[]>(
+    allCheckedByDefault ? options.map((option) => option.id) : defaultSelected
+  );
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     const newSelectedValues = checked
