@@ -7,9 +7,10 @@ import AccountInfo from './account-info';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
-import { createAccountData } from '@/utils/converter';
-import { ChangeEvent } from 'react';
+import { createAccountData, mergeAccountData } from '@/utils/converter';
 import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import CheckboxGroup from './checkbox-group';
 
 const readFile = async (file: File) => {
   return new Promise<string>((resolve, reject) => {
@@ -22,6 +23,14 @@ const readFile = async (file: File) => {
 
 export default function DataVisualization() {
   const [files, setFiles] = useState<File[]>([]);
+  const [selectedValues, setSelectedValues] = useState<string[]>([]); // 계좌 체크박스 선택 값들
+
+  const options = [
+    { id: 'option1', label: 'Option 1' },
+    { id: 'option2', label: 'Option 2' },
+    { id: 'option3', label: 'Option 3' },
+    { id: 'option4', label: 'Option 4' },
+  ];
 
   const { data: accountData, refetch } = useQuery({
     queryKey: ['accountData'],
@@ -42,6 +51,18 @@ export default function DataVisualization() {
     },
     enabled: files.length > 0, // 파일이 없을 때 실행 방지
   });
+  const handleCheckboxChange = (values: string[]) => {
+    setSelectedValues(values);
+    console.log('Selected values:', values);
+  };
+
+  useEffect(() => {
+    if (accountData) {
+      console.log(accountData);
+      const test = mergeAccountData(accountData);
+      console.log(test);
+    }
+  }, [accountData]);
 
   return (
     <>
@@ -60,6 +81,31 @@ export default function DataVisualization() {
           }}
         />
       </div>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Checkbox Selection</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CheckboxGroup
+            options={options}
+            onChange={handleCheckboxChange}
+            defaultSelected={['option1']}
+          />
+
+          <div className="mt-6 p-4 bg-muted rounded-md">
+            <h3 className="font-medium mb-2">Selected Values:</h3>
+            {selectedValues.length > 0 ? (
+              <ul className="list-disc pl-5">
+                {selectedValues.map((value) => (
+                  <li key={value}>{value}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No options selected</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
       {/* <MainChart
         chartData={chartData}
         chartConfig={{
