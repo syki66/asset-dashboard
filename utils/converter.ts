@@ -364,8 +364,10 @@ export const mergeAccountData = (
   // 계좌 데이터를 날짜별로 합치기 위해 Map을 사용
   const mergedMap = new Map<string, AccountProps>();
 
+  const _accountDataArray = structuredClone(accountDataArray); // Deep copy
+
   // Iterate through all accounts and each accountData within
-  accountDataArray.forEach((account) => {
+  _accountDataArray.forEach((account) => {
     account.accountData.forEach((data) => {
       const date = data.date;
       if (!mergedMap.has(date)) {
