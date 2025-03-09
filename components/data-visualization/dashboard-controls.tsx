@@ -112,17 +112,15 @@ export function DashboardControls({
     });
 
     if (validFiles.length !== files.length) {
-      toast({
-        title: '파일 형식 오류',
-        description: 'CSV 또는 XLSX 파일만 업로드 가능합니다.',
-        variant: 'destructive',
+      toast.error('파일 형식 오류', {
+        description: '신한투자증권의 CSV 파일만 업로드 가능합니다.',
       });
+      // toast.error('파일 형식 오류: CSV 또는 XLSX 파일만 업로드 가능합니다.');
     }
 
     if (validFiles.length > 0) {
       setUploadedFiles((prev) => [...prev, ...validFiles]);
-      toast({
-        title: '파일 업로드 성공',
+      toast.success('파일 업로드 성공', {
         description: `${validFiles.length}개의 파일이 업로드되었습니다.`,
       });
     }
@@ -225,7 +223,6 @@ export function DashboardControls({
 
                 <Separator />
 
-                {/* 계좌 선택 섹션을 하단으로 이동 */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-medium">계좌 선택</h3>
@@ -393,13 +390,13 @@ export function DashboardControls({
                       파일을 끌어다 놓거나 클릭하여 업로드
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      CSV 또는 XLSX 파일만 지원됩니다
+                      신한투자증권의 CSV 파일만 지원됩니다
                     </p>
                     <input
                       id="file-upload"
                       type="file"
                       className="hidden"
-                      accept=".csv,.xlsx"
+                      accept=".csv"
                       onChange={handleFileChange}
                       multiple
                     />
@@ -448,16 +445,6 @@ export function DashboardControls({
           </CardContent>
         )}
       </Card>
-
-      {/* 설정이 열려있을 때 다른 콘텐츠 위에 떠 있도록 하는 스타일 */}
-      {isExpanded && (
-        <style jsx global>{`
-          .dashboard-content {
-            position: relative;
-            z-index: 1;
-          }
-        `}</style>
-      )}
     </div>
   );
 }
