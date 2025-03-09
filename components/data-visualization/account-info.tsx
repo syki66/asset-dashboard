@@ -6,7 +6,9 @@ type AccountInfoProps = {
 };
 
 export default function AccountInfo({ accountData }: AccountInfoProps) {
-  useEffect(() => {}, [accountData]);
+  useEffect(() => {
+    console.log(accountData);
+  }, [accountData]);
 
   return <>accountInfo</>;
 }

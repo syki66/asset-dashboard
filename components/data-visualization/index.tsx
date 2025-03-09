@@ -2,15 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MainChart } from './main-chart';
-import { AccountProps } from '@/types';
 import AccountInfo from './account-info';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { createAccountData, mergeAccountData } from '@/utils/converter';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '../ui/button';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import CheckboxGroup from './checkbox-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DashboardControls } from './dashboard-controls';
+import { DashboardSummary } from './dashboard-summary';
+import { DashboardDetail } from './dashboard-detail';
+import { Disclaimer } from './disclaimer';
+import type { DateRange } from 'react-day-picker';
 
 const readFile = async (file: File) => {
   return new Promise<string>((resolve, reject) => {
@@ -26,6 +33,9 @@ export default function DataVisualization() {
   const [selectedCheckboxValues, setSelectedCheckboxValues] = useState<
     string[]
   >([]);
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [currency, setCurrency] = useState<'KRW' | 'USD'>('KRW');
 
   const {
     data: totalAccountData,
@@ -54,13 +64,13 @@ export default function DataVisualization() {
   // totalAccountData와 선택된 체크박스에 따라 합산된 데이터를 메모이제이션
   const mergedAccountData = useMemo(() => {
     if (!totalAccountData) return [];
-    // 체크박스가 비어있으면 전체 데이터 사용
+    // 체크박스가 모두 비어있으면 빈 배열 사용
     const filteredData =
       selectedCheckboxValues.length > 0
         ? totalAccountData.filter((data) =>
             selectedCheckboxValues.includes(data.name)
           )
-        : totalAccountData;
+        : [];
     return mergeAccountData(filteredData);
   }, [totalAccountData, selectedCheckboxValues]);
 
@@ -69,10 +79,10 @@ export default function DataVisualization() {
     setSelectedCheckboxValues(values);
   }, []);
 
-  useEffect(() => {
-    // mergedAccountData가 변경될 때 로그 출력 혹은 다른 작업 수행
-    console.log(mergedAccountData);
-  }, [mergedAccountData]);
+  // useEffect(() => {
+  //   // mergedAccountData가 변경될 때 로그 출력 혹은 다른 작업 수행
+  //   console.log(mergedAccountData);
+  // }, [mergedAccountData]);
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -123,7 +133,46 @@ export default function DataVisualization() {
           },
         }}
       /> */}
-      <AccountInfo accountData={accountData} />
+      <AccountInfo accountData={mergedAccountData} />
+      <Button
+        onClick={() => {
+          toast('Event has been created.');
+        }}
+      >
+        확인
+      </Button>
+
+      <>
+        <div className="container mx-auto py-8 px-4 relative">
+          <h1 className="text-3xl font-bold mb-8">자산 대시보드</h1>
+
+          <DashboardControls
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+          />
+
+          <div className="grid gap-8 dashboard-content">
+            <Tabs defaultValue="summary" className="w-full">
+              <TabsList className="w-full max-w-md grid grid-cols-2 mb-6">
+                <TabsTrigger value="summary">요약</TabsTrigger>
+                <TabsTrigger value="detail">상세</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="summary">
+                <DashboardSummary dateRange={dateRange} currency={currency} />
+              </TabsContent>
+
+              <TabsContent value="detail">
+                <DashboardDetail dateRange={dateRange} currency={currency} />
+              </TabsContent>
+            </Tabs>
+
+            <Disclaimer />
+          </div>
+        </div>
+      </>
     </>
   );
 }
