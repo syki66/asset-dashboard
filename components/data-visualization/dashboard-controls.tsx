@@ -80,11 +80,11 @@ export function DashboardControls({
 
   const {
     data: totalAccountData,
-    isFetching,
+    isLoading,
     isSuccess,
     isError,
   } = useQuery({
-    queryKey: ['accountData', uploadedFiles],
+    queryKey: ['accountData', uploadedFiles, isFilesSubmit],
     queryFn: async () => {
       if (uploadedFiles.length === 0)
         return Promise.reject('No files selected');
@@ -101,7 +101,7 @@ export function DashboardControls({
 
       return totalAccountData;
     },
-    enabled: uploadedFiles.length > 0 && isFilesSubmit, // 파일이 없을 때 실행 방지
+    enabled: uploadedFiles.length > 0 && isFilesSubmit, // 파일이 없거나 제출 버튼을 누르지 않으면 실행 안함
   });
 
   const handleAccountToggle = (accountId: string) => {
@@ -186,6 +186,7 @@ export function DashboardControls({
       toast.error('계좌 불러오기 실패', {
         description: '계좌 데이터를 불러오는 데 실패했습니다.',
       });
+      setIsFilesSubmit(false);
     }
   }, [isSuccess, isError]);
 
@@ -500,8 +501,8 @@ export function DashboardControls({
                         </div>
                       ))}
                       <div className="flex justify-end mt-2">
-                        <Button onClick={handleFileSubmit}>
-                          계좌 불러오기
+                        <Button onClick={handleFileSubmit} disabled={isLoading}>
+                          {isLoading ? '가져오는중' : '계좌 불러오기'}
                         </Button>
                       </div>
                     </div>
