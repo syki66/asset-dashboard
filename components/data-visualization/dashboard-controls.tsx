@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -31,6 +31,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { DateRangePicker } from '@/components/data-visualization/date-range-picker';
+import { useQuery } from '@tanstack/react-query';
+import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
+import { createAccountData, mergeAccountData } from '@/utils/converter';
 
 // 샘플 계좌 데이터 위에 환율 상수 추가
 const EXCHANGE_RATE = 1350; // 1 USD = 1,350 KRW (예시 환율)
@@ -42,6 +45,15 @@ const accounts = [
   { id: '3', name: '은행계좌', balance: 10000000 },
   { id: '4', name: '연금계좌', balance: 7500000 },
 ];
+
+const readFile = async (file: File) => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('파일을 읽는 데 실패했습니다.'));
+    reader.readAsText(file); // 파일을 텍스트로 읽음 (필요에 따라 readAsArrayBuffer 등 변경 가능)
+  });
+};
 
 interface DashboardControlsProps {
   dateRange: DateRange | undefined;
@@ -62,7 +74,35 @@ export function DashboardControls({
   );
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isFilesSubmit, setIsFilesSubmit] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [toastId, setToastId] = useState();
+
+  const {
+    data: totalAccountData,
+    isFetching,
+    isSuccess,
+    isError,
+  } = useQuery({
+    queryKey: ['accountData', uploadedFiles],
+    queryFn: async () => {
+      if (uploadedFiles.length === 0)
+        return Promise.reject('No files selected');
+
+      const totalAccountData = await Promise.all(
+        uploadedFiles.map(async (file) => {
+          const fileContent = await readFile(file); // 파일 내용 읽기
+          const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
+          const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
+          const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
+          return { name: file.name, accountData };
+        })
+      );
+
+      return totalAccountData;
+    },
+    enabled: uploadedFiles.length > 0 && isFilesSubmit, // 파일이 없을 때 실행 방지
+  });
 
   const handleAccountToggle = (accountId: string) => {
     setSelectedAccounts((prev) =>
@@ -129,6 +169,31 @@ export function DashboardControls({
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const handleFileSubmit = () => {
+    setIsFilesSubmit(true);
+  };
+
+  useEffect(() => {
+    if (isSuccess) {
+      console.log(isSuccess);
+      toast.success('계좌 불러오기 성공', {
+        description: '계좌 데이터를 성공적으로 불러왔습니다.',
+      });
+      setIsFilesSubmit(false);
+    }
+    if (isError) {
+      toast.error('계좌 불러오기 실패', {
+        description: '계좌 데이터를 불러오는 데 실패했습니다.',
+      });
+    }
+  }, [isSuccess, isError]);
+
+  useEffect(() => {
+    if (totalAccountData) {
+      console.log(totalAccountData);
+    }
+  }, [totalAccountData]);
 
   return (
     <div className="relative mb-8">
@@ -435,7 +500,9 @@ export function DashboardControls({
                         </div>
                       ))}
                       <div className="flex justify-end mt-2">
-                        <Button>데이터 처리하기</Button>
+                        <Button onClick={handleFileSubmit}>
+                          계좌 불러오기
+                        </Button>
                       </div>
                     </div>
                   )}
