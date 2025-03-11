@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -69,26 +69,20 @@ export function DashboardControls({
   onCurrencyChange,
 }: DashboardControlsProps) {
   const [isPostTax, setIsPostTax] = useState(false);
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>(
-    accounts.map((acc) => acc.id)
-  );
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [isFilesSubmit, setIsFilesSubmit] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [toastId, setToastId] = useState();
 
   const {
     data: totalAccountData,
+    refetch,
     isLoading,
     isSuccess,
     isError,
   } = useQuery({
-    queryKey: ['accountData', uploadedFiles, isFilesSubmit],
+    queryKey: ['accountData'],
     queryFn: async () => {
-      if (uploadedFiles.length === 0)
-        return Promise.reject('No files selected');
-
       const totalAccountData = await Promise.all(
         uploadedFiles.map(async (file) => {
           const fileContent = await readFile(file); // 파일 내용 읽기
@@ -101,22 +95,22 @@ export function DashboardControls({
 
       return totalAccountData;
     },
-    enabled: uploadedFiles.length > 0 && isFilesSubmit, // 파일이 없거나 제출 버튼을 누르지 않으면 실행 안함
+    enabled: false, // refetch를 이용해서 수동으로만 가져올 수 있도록 함
   });
 
-  const handleAccountToggle = (accountId: string) => {
+  const handleAccountToggle = (accountName: string) => {
     setSelectedAccounts((prev) =>
-      prev.includes(accountId)
-        ? prev.filter((id) => id !== accountId)
-        : [...prev, accountId]
+      prev.includes(accountName)
+        ? prev.filter((name) => name !== accountName)
+        : [...prev, accountName]
     );
   };
 
   const handleSelectAllAccounts = () => {
-    if (selectedAccounts.length === accounts.length) {
+    if (selectedAccounts.length === totalAccountData?.length) {
       setSelectedAccounts([]);
     } else {
-      setSelectedAccounts(accounts.map((acc) => acc.id));
+      setSelectedAccounts(totalAccountData?.map((acc) => acc.name));
     }
   };
 
@@ -171,30 +165,39 @@ export function DashboardControls({
   };
 
   const handleFileSubmit = () => {
-    setIsFilesSubmit(true);
+    refetch();
   };
+
+  // totalAccountData와 선택된 체크박스에 따라 병합된 데이터를 메모이제이션
+  const mergedAccountData = useMemo(() => {
+    if (!totalAccountData) return [];
+
+    const filteredData =
+      selectedAccounts.length > 0
+        ? totalAccountData.filter((data) =>
+            selectedAccounts.includes(data.name)
+          )
+        : [];
+    return mergeAccountData(filteredData);
+  }, [totalAccountData, selectedAccounts]);
 
   useEffect(() => {
     if (isSuccess) {
-      console.log(isSuccess);
       toast.success('계좌 불러오기 성공', {
         description: '계좌 데이터를 성공적으로 불러왔습니다.',
       });
-      setIsFilesSubmit(false);
     }
     if (isError) {
       toast.error('계좌 불러오기 실패', {
         description: '계좌 데이터를 불러오는 데 실패했습니다.',
       });
-      setIsFilesSubmit(false);
     }
   }, [isSuccess, isError]);
 
   useEffect(() => {
-    if (totalAccountData) {
-      console.log(totalAccountData);
-    }
-  }, [totalAccountData]);
+    // mergedAccountData가 변경될 때 로그 출력 혹은 다른 작업 수행
+    console.log(mergedAccountData);
+  }, [mergedAccountData]);
 
   return (
     <div className="relative mb-8">
@@ -295,7 +298,9 @@ export function DashboardControls({
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="select-all"
-                        checked={selectedAccounts.length === accounts.length}
+                        checked={
+                          selectedAccounts.length === totalAccountData?.length
+                        }
                         onCheckedChange={handleSelectAllAccounts}
                       />
                       <Label htmlFor="select-all" className="text-sm">
@@ -304,30 +309,23 @@ export function DashboardControls({
                     </div>
                   </div>
                   <div className="space-y-2">
-                    {accounts.map((account) => (
+                    {totalAccountData?.map((account) => (
                       <div
-                        key={account.id}
+                        key={account.name}
                         className="flex items-center justify-between border p-3 rounded-md"
                       >
                         <div className="flex items-center space-x-2">
                           <Checkbox
-                            id={`account-${account.id}`}
-                            checked={selectedAccounts.includes(account.id)}
+                            id={`account-${account.name}`}
+                            checked={selectedAccounts.includes(account.name)}
                             onCheckedChange={() =>
-                              handleAccountToggle(account.id)
+                              handleAccountToggle(account.name)
                             }
                           />
-                          <Label htmlFor={`account-${account.id}`}>
+                          <Label htmlFor={`account-${account.name}`}>
                             {account.name}
                           </Label>
                         </div>
-                        <span className="text-sm font-medium">
-                          {new Intl.NumberFormat('ko-KR', {
-                            style: 'currency',
-                            currency: 'KRW',
-                            maximumFractionDigits: 0,
-                          }).format(account.balance)}
-                        </span>
                       </div>
                     ))}
                   </div>
