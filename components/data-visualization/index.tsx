@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardControls } from './dashboard-controls';
@@ -8,10 +8,20 @@ import { DashboardSummary } from './dashboard-summary';
 import { DashboardDetail } from './dashboard-detail';
 import { Disclaimer } from './disclaimer';
 import type { DateRange } from 'react-day-picker';
+import { AccountProps } from '@/types';
 
 export default function DataVisualization() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currency, setCurrency] = useState<'KRW' | 'USD'>('KRW');
+  const [accountData, setAccountData] = useState<AccountProps[]>([]);
+
+  const handleAccountDataChange = (newAccountData: AccountProps[]) => {
+    setAccountData(newAccountData);
+  };
+
+  useEffect(() => {
+    console.log('Account data updated:', accountData);
+  }, [accountData]);
 
   return (
     <>
@@ -39,6 +49,7 @@ export default function DataVisualization() {
             onDateRangeChange={setDateRange}
             currency={currency}
             onCurrencyChange={setCurrency}
+            onAccountDataChange={handleAccountDataChange}
           />
 
           <div className="grid gap-8 dashboard-content">
