@@ -12,7 +12,8 @@ import { Currency, DashboardProps } from '@/types';
 import { DEFAULT_FX_RATE } from '@/constants/keywords';
 
 const defaultDashboardData: DashboardProps = {
-  date: '',
+  date: '1970-01-01',
+  lastUpdated: '1970-01-01',
   fxRate: DEFAULT_FX_RATE,
   currentValue: 0,
   principal: 0,

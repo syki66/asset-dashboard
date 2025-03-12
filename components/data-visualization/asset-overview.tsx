@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Currency, DashboardProps } from '@/types';
+import { formatDateKr } from '@/utils/format';
 
 // 함수 선언부 업데이트
 interface AssetOverviewProps {
@@ -36,6 +37,11 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
     <div>
       <h2 className="text-2xl font-bold mb-4">자산 현황</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <AssetCard
+          title="날짜"
+          value={formatDateKr(data.date)}
+          description={`최근 업데이트: ${data.lastUpdated}`}
+        />
         <AssetCard
           title="총 자산"
           value={formatCurrency(data.currentValue)}

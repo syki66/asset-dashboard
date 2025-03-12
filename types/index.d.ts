@@ -49,6 +49,7 @@ export type StockHistoryProps = {
 
 export type DashboardProps = {
   date: string;
+  lastUpdated: string;
   fxRate: number;
   currentValue: number;
   principal: number;

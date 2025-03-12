@@ -19,6 +19,7 @@ export const convertToDashboardData = (
 ): DashboardProps[] => {
   // let _maximunDrawdown = 0;
   // let _dailyMaxDrawdown = 0;
+  let _lastUpdated = ''; // 마지막 업데이트 날짜
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -102,8 +103,12 @@ export const convertToDashboardData = (
     // // 하루 최대 손실 낙폭
     // const dailyMaxDrawdown = 0;
 
+    // 마지막 업데이트 날짜
+    _lastUpdated = account.date;
+
     return {
       date: account.date,
+      lastUpdated: _lastUpdated,
       fxRate: account.fxRate,
       currentValue,
       principal,

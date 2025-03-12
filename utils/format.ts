@@ -39,3 +39,13 @@ export const generateDateObjects = (
 
   return result;
 };
+
+// YYYY-MM-dd 형식을 한국용 날짜로 변환
+export const formatDateKr = (dateString: string): string => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 월은 0부터 시작하므로 1을 더해줍니다.
+  const day = date.getDate();
+
+  return `${year}년 ${month}월 ${day}일`;
+};
