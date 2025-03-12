@@ -52,11 +52,15 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
           value={formatCurrency(data.profit)}
           description={`수익률: ${data.returnRate}%`}
           valueClassName={data.profit >= 0 ? 'text-red-600' : 'text-blue-600'}
+          descClassName={
+            data.returnRate >= 0 ? 'text-red-600' : 'text-blue-600'
+          }
         />
         <AssetCard
           title="배당금 (최근 1년)"
           value={formatCurrency(data.dividends)}
           description={`배당률: ${data.dividendYield}% (원금대비: ${data.yieldOnCost}%)`}
+          valueClassName={'text-yellow-600'}
         />
         <AssetCard
           title="최대 손실 낙폭 (MDD)"
@@ -74,6 +78,7 @@ interface AssetCardProps {
   value: string;
   description: string;
   valueClassName?: string;
+  descClassName?: string;
 }
 
 function AssetCard({
@@ -81,6 +86,7 @@ function AssetCard({
   value,
   description,
   valueClassName = '',
+  descClassName = '',
 }: AssetCardProps) {
   return (
     <Card>
@@ -91,7 +97,9 @@ function AssetCard({
       </CardHeader>
       <CardContent>
         <div className={`text-2xl font-bold ${valueClassName}`}>{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <p className={`text-xs text-muted-foreground mt-1 ${descClassName}`}>
+          {description}
+        </p>
       </CardContent>
     </Card>
   );
