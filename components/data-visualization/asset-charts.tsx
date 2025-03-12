@@ -18,6 +18,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
+import { Currency } from '@/types';
 
 // 다양한 기간별 자산 변화 데이터 (샘플)
 const assetHistoryData = {
@@ -131,7 +132,7 @@ const allAssetData = Object.values(assetHistoryData)
 
 interface AssetChartsProps {
   dateRange: DateRange | undefined;
-  currency: 'KRW' | 'USD';
+  currency: Currency;
   view: 'summary' | 'detail';
   className?: string;
 }
@@ -185,7 +186,7 @@ export function AssetCharts({
   };
 
   const formatCurrency = (value: number) => {
-    if (currency === 'USD') {
+    if (currency === 'usd') {
       // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
       const usdValue = value / 1350;
       return new Intl.NumberFormat('en-US', {
@@ -312,7 +313,7 @@ export function AssetCharts({
                 />
                 <YAxis
                   tickFormatter={(value) => {
-                    if (currency === 'USD') {
+                    if (currency === 'usd') {
                       return `$${(value / 1350 / 10000).toFixed(1)}만`;
                     }
                     return `${(value / 10000000).toFixed(1)}천만`;

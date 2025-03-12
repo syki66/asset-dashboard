@@ -15,9 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Currency } from '@/types';
 
 interface StockHoldingsSummaryProps {
-  currency: 'KRW' | 'USD';
+  currency: Currency;
 }
 
 export function StockHoldingsSummary({ currency }: StockHoldingsSummaryProps) {
@@ -70,7 +71,7 @@ export function StockHoldingsSummary({ currency }: StockHoldingsSummaryProps) {
 
   // formatCurrency 함수 수정
   function formatCurrency(amount: number): string {
-    if (currency === 'USD') {
+    if (currency === 'usd') {
       // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
       const usdValue = amount / 1350;
       return new Intl.NumberFormat('en-US', {

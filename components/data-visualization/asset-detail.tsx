@@ -7,9 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Currency } from '@/types';
 
 interface AssetDetailProps {
-  currency: 'KRW' | 'USD';
+  currency: Currency;
 }
 
 export function AssetDetail({ currency }: AssetDetailProps) {
@@ -24,7 +25,7 @@ export function AssetDetail({ currency }: AssetDetailProps) {
 
   // formatCurrency 함수 수정
   function formatCurrency(amount: number): string {
-    if (currency === 'USD') {
+    if (currency === 'usd') {
       // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
       const usdValue = amount / 1350;
       return new Intl.NumberFormat('en-US', {

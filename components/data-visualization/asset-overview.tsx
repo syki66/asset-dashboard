@@ -1,25 +1,23 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Currency, DisplayDataProps } from '@/types';
 
 // 함수 선언부 업데이트
 interface AssetOverviewProps {
-  currency: 'KRW' | 'USD';
+  currency: Currency;
+  displayData: DisplayDataProps;
 }
 
-export function AssetOverview({ currency }: AssetOverviewProps) {
+export function AssetOverview({ currency, displayData }: AssetOverviewProps) {
   // 실제 구현에서는 API나 상태 관리 라이브러리에서 데이터를 가져올 수 있습니다
   const assetData = {
-    principal: 50000000,
-    currentValue: 57500000,
-    profit: 7500000,
-    returnRate: 15,
     dividends: 1200000,
   };
 
   // formatCurrency 함수 수정
   function formatCurrency(amount: number): string {
-    if (currency === 'USD') {
+    if (currency === 'usd') {
       // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
       const usdValue = amount / 1350;
       return new Intl.NumberFormat('en-US', {
@@ -42,20 +40,20 @@ export function AssetOverview({ currency }: AssetOverviewProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AssetCard
           title="총 자산"
-          value={formatCurrency(assetData.currentValue)}
-          description="현재 평가 금액"
+          value={formatCurrency(displayData.currentValue)}
+          description={`원금: ${formatCurrency(displayData.principal)}`}
         />
         <AssetCard
           title="수익금"
-          value={formatCurrency(assetData.profit)}
-          description={`수익률: ${assetData.returnRate}%`}
+          value={formatCurrency(displayData.profit)}
+          description={`수익률: ${displayData.returnRate}%`}
           valueClassName={
-            assetData.profit >= 0 ? 'text-red-600' : 'text-blue-600'
+            displayData.profit >= 0 ? 'text-red-600' : 'text-blue-600'
           }
         />
         <AssetCard
           title="원금"
-          value={formatCurrency(assetData.principal)}
+          value={formatCurrency(displayData.principal)}
           description="총 투자 금액"
         />
         <AssetCard

@@ -18,9 +18,10 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { Currency } from '@/types';
 
 interface StockChartsProps {
-  currency: 'KRW' | 'USD';
+  currency: Currency;
 }
 
 export function StockCharts({ currency }: StockChartsProps) {
@@ -74,7 +75,7 @@ export function StockCharts({ currency }: StockChartsProps) {
 
   // 통화 포맷팅 함수
   const formatCurrency = (value: number) => {
-    if (currency === 'USD') {
+    if (currency === 'usd') {
       const usdValue = value / 1350;
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -173,7 +174,7 @@ export function StockCharts({ currency }: StockChartsProps) {
                 />
                 <YAxis
                   tickFormatter={(value) =>
-                    currency === 'USD'
+                    currency === 'usd'
                       ? `$${(value / 1350).toLocaleString()}`
                       : `₩${value.toLocaleString()}`
                   }
@@ -205,7 +206,7 @@ export function StockCharts({ currency }: StockChartsProps) {
                 />
                 <YAxis
                   tickFormatter={(value) =>
-                    currency === 'USD'
+                    currency === 'usd'
                       ? `$${(value / 1350 / 1000000).toFixed(1)}M`
                       : `${(value / 1000000).toFixed(1)}백만`
                   }

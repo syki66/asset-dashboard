@@ -17,6 +17,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
+import { Currency } from '@/types';
 
 // 배당금 데이터 (샘플) - 월별, 분기별, 연도별 데이터 추가
 const dividendData = {
@@ -51,7 +52,7 @@ const dividendData = {
 
 interface DividendChartProps {
   dateRange: DateRange | undefined;
-  currency: 'KRW' | 'USD';
+  currency: Currency;
   className?: string;
 }
 
@@ -64,7 +65,7 @@ export function DividendChart({
     useState<keyof typeof dividendData>('monthly');
 
   const formatCurrency = (value: number) => {
-    if (currency === 'USD') {
+    if (currency === 'usd') {
       // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
       const usdValue = value / 1350;
       return new Intl.NumberFormat('en-US', {
@@ -154,7 +155,7 @@ export function DividendChart({
               />
               <YAxis
                 tickFormatter={(value) => {
-                  if (currency === 'USD') {
+                  if (currency === 'usd') {
                     return `$${(value / 1350 / 1000).toFixed(0)}K`;
                   }
                   return `${(value / 10000).toFixed(0)}만`;

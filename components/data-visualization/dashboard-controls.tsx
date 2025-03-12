@@ -34,7 +34,7 @@ import { DateRangePicker } from '@/components/data-visualization/date-range-pick
 import { useQuery } from '@tanstack/react-query';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { createAccountData, mergeAccountData } from '@/utils/converter';
-import { AccountProps } from '@/types';
+import { AccountProps, Currency } from '@/types';
 
 // 샘플 계좌 데이터 위에 환율 상수 추가
 const EXCHANGE_RATE = 1350; // 1 USD = 1,350 KRW (예시 환율)
@@ -59,8 +59,8 @@ const readFile = async (file: File) => {
 interface DashboardControlsProps {
   dateRange: DateRange | undefined;
   onDateRangeChange: (range: DateRange | undefined) => void;
-  currency: 'KRW' | 'USD';
-  onCurrencyChange: (currency: 'KRW' | 'USD') => void;
+  currency: Currency;
+  onCurrencyChange: (currency: Currency) => void;
   onAccountDataChange: (accountData: AccountProps[]) => void;
 }
 
@@ -263,16 +263,16 @@ export function DashboardControls({
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="currency-mode"
-                        checked={currency === 'USD'}
+                        checked={currency === 'usd'}
                         onCheckedChange={(checked) =>
-                          onCurrencyChange(checked ? 'USD' : 'KRW')
+                          onCurrencyChange(checked ? 'usd' : 'krw')
                         }
                       />
                       <Label
                         htmlFor="currency-mode"
                         className="flex items-center"
                       >
-                        {currency === 'USD' ? (
+                        {currency === 'usd' ? (
                           <>
                             <DollarSign className="h-4 w-4 mr-1" />
                             <span>달러 (USD) 표시</span>
@@ -286,7 +286,7 @@ export function DashboardControls({
                       </Label>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {currency === 'USD'
+                      {currency === 'usd'
                         ? `모든 금액은 달러(USD)로 표시됩니다. 적용 환율: 1 USD = ${EXCHANGE_RATE.toLocaleString()} KRW`
                         : '모든 금액은 원화(KRW)로 표시됩니다.'}
                     </p>

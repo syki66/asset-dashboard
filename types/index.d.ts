@@ -35,6 +35,7 @@ export type StockProps = {
 export type DividendProps = {
   date: string;
   price: number;
+  fxRate: number;
 };
 
 export type Currency = 'krw' | 'usd';
@@ -44,4 +45,11 @@ export type StockHistoryProps = {
   close: number;
   adjClose: number;
   dividend?: number;
+};
+
+export type DisplayDataProps = {
+  currentValue: number;
+  principal: number;
+  profit: number;
+  returnRate: number;
 };

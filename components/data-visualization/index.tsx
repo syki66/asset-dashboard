@@ -8,20 +8,53 @@ import { DashboardSummary } from './dashboard-summary';
 import { DashboardDetail } from './dashboard-detail';
 import { Disclaimer } from './disclaimer';
 import type { DateRange } from 'react-day-picker';
-import { AccountProps } from '@/types';
+import { AccountProps, Currency, DisplayDataProps } from '@/types';
 
 export default function DataVisualization() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [currency, setCurrency] = useState<'KRW' | 'USD'>('KRW');
-  const [accountData, setAccountData] = useState<AccountProps[]>([]);
+  const [currency, setCurrency] = useState<Currency>('krw');
+  const [displayData, setDisplayData] = useState<DisplayDataProps>({
+    currentValue: 0,
+    principal: 0,
+    profit: 0,
+    returnRate: 0,
+  });
 
   const handleAccountDataChange = (newAccountData: AccountProps[]) => {
-    setAccountData(newAccountData);
-  };
+    // 화면 표시용 데이터 가공하기
+    const data = newAccountData.at(-1);
+    console.log(data);
 
-  useEffect(() => {
-    console.log('Account data updated:', accountData);
-  }, [accountData]);
+    if (!data) {
+      return;
+    }
+
+    // USD 주식 총 금액 계산
+    const totalUsdStockAmount = data.usd.stocks.reduce(
+      (acc, stock) => acc + stock.price * stock.balance.length,
+      0
+    );
+
+    // 평가 금액
+    const currentValue =
+      data.krw.cash +
+      data.usd.cash * data.fxRate +
+      totalUsdStockAmount * data.fxRate;
+
+    // 원금
+    const principal = data.krw.principalAmount;
+
+    // 수익금
+    const profit = currentValue - principal;
+
+    // 수익률
+    const returnRate = Number(((profit / principal) * 100).toFixed(2));
+
+    // 배당금
+    const dividends = data.krw.dividend;
+
+    setDisplayData({ currentValue, principal, profit, returnRate });
+  };
 
   return (
     <>
@@ -52,24 +85,30 @@ export default function DataVisualization() {
             onAccountDataChange={handleAccountDataChange}
           />
 
-          <div className="grid gap-8 dashboard-content">
-            <Tabs defaultValue="summary" className="w-full">
-              <TabsList className="w-full max-w-md grid grid-cols-2 mb-6">
-                <TabsTrigger value="summary">요약</TabsTrigger>
-                <TabsTrigger value="detail">상세</TabsTrigger>
-              </TabsList>
+          {displayData && (
+            <div className="grid gap-8 dashboard-content">
+              <Tabs defaultValue="summary" className="w-full">
+                <TabsList className="w-full max-w-md grid grid-cols-2 mb-6">
+                  <TabsTrigger value="summary">요약</TabsTrigger>
+                  <TabsTrigger value="detail">상세</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="summary">
-                <DashboardSummary dateRange={dateRange} currency={currency} />
-              </TabsContent>
+                <TabsContent value="summary">
+                  <DashboardSummary
+                    dateRange={dateRange}
+                    currency={currency}
+                    displayData={displayData}
+                  />
+                </TabsContent>
 
-              <TabsContent value="detail">
-                <DashboardDetail dateRange={dateRange} currency={currency} />
-              </TabsContent>
-            </Tabs>
+                <TabsContent value="detail">
+                  <DashboardDetail dateRange={dateRange} currency={currency} />
+                </TabsContent>
+              </Tabs>
 
-            <Disclaimer />
-          </div>
+              <Disclaimer />
+            </div>
+          )}
         </div>
       </>
     </>

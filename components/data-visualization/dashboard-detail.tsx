@@ -6,10 +6,11 @@ import { DividendChart } from '@/components/data-visualization/dividend-chart';
 import { StockHoldings } from '@/components/data-visualization/stock-holdings';
 import { StockCharts } from '@/components/data-visualization/stock-charts';
 import { AssetDetail } from '@/components/data-visualization/asset-detail';
+import { Currency } from '@/types';
 
 interface DashboardDetailProps {
   dateRange: DateRange | undefined;
-  currency: 'KRW' | 'USD';
+  currency: Currency;
 }
 
 export function DashboardDetail({ dateRange, currency }: DashboardDetailProps) {
