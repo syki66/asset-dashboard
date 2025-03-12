@@ -18,6 +18,9 @@ export default function DataVisualization() {
     principal: 0,
     profit: 0,
     returnRate: 0,
+    dividends: 0,
+    yieldOnCost: 0,
+    dividendYield: 0,
   });
 
   const handleAccountDataChange = (
@@ -74,19 +77,28 @@ export default function DataVisualization() {
         const dividendDate = new Date(dividend.date);
         return dividendDate >= oneYearAgo;
       })
-      .reduce((acc, dividend) => acc + dividend.price, 0);
+      .reduce(
+        (acc, dividend) =>
+          currency === 'usd'
+            ? acc + dividend.price / dividend.fxRate
+            : acc + dividend.price,
+        0
+      );
 
     const dividendsUsd = data.usd.dividends
       .filter((dividend) => {
         const dividendDate = new Date(dividend.date);
         return dividendDate >= oneYearAgo;
       })
-      .reduce((acc, dividend) => acc + dividend.price, 0);
-
-    const dividends =
+      .reduce(
+        (acc, dividend) =>
       currency === 'usd'
-        ? dividendsUsd + dividendsKrw / data.fxRate
-        : dividendsUsd * data.fxRate + dividendsKrw;
+            ? acc + dividend.price
+            : acc + dividend.price * dividend.fxRate,
+        0
+      );
+
+    const dividends = dividendsUsd + dividendsKrw; // 위에서 이미 환전처리 되어있음
 
     // 원금대비배당률
     const yieldOnCost = Number(((dividends / principal) * 100).toFixed(2));
