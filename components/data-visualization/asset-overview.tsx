@@ -18,13 +18,11 @@ export function AssetOverview({ currency, displayData }: AssetOverviewProps) {
   // formatCurrency 함수 수정
   function formatCurrency(amount: number): string {
     if (currency === 'usd') {
-      // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
-      const usdValue = amount / 1350;
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         maximumFractionDigits: 0,
-      }).format(usdValue);
+      }).format(amount);
     } else {
       return new Intl.NumberFormat('ko-KR', {
         style: 'currency',

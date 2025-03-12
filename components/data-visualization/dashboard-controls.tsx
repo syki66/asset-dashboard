@@ -61,7 +61,10 @@ interface DashboardControlsProps {
   onDateRangeChange: (range: DateRange | undefined) => void;
   currency: Currency;
   onCurrencyChange: (currency: Currency) => void;
-  onAccountDataChange: (accountData: AccountProps[]) => void;
+  onAccountDataChange: (
+    accountData: AccountProps[],
+    currency: Currency
+  ) => void;
 }
 
 export function DashboardControls({
@@ -199,8 +202,8 @@ export function DashboardControls({
 
   // 계좌 데이터가 변경될 때마다 부모 컴포넌트로 데이터 전달
   useEffect(() => {
-    onAccountDataChange(mergedAccountData);
-  }, [mergedAccountData]);
+    onAccountDataChange(mergedAccountData, currency);
+  }, [mergedAccountData, currency]);
 
   return (
     <div className="relative mb-8">

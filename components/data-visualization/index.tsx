@@ -20,29 +20,44 @@ export default function DataVisualization() {
     returnRate: 0,
   });
 
-  const handleAccountDataChange = (newAccountData: AccountProps[]) => {
+  const handleAccountDataChange = (
+    newAccountData: AccountProps[],
+    currency: Currency
+  ) => {
     // 화면 표시용 데이터 가공하기
     const data = newAccountData.at(-1);
-    console.log(data);
 
     if (!data) {
       return;
     }
 
     // USD 주식 총 금액 계산
-    const totalUsdStockAmount = data.usd.stocks.reduce(
+    const usdStockValue = data.usd.stocks.reduce(
       (acc, stock) => acc + stock.price * stock.balance.length,
       0
     );
 
+    // KRW 주식 총 금액 계산
+    const krwStockValue = data.krw.stocks.reduce(
+      (acc, stock) => acc + stock.price * stock.balance.length,
+      0
+    );
+
+    // 주식 평가금액 총합
+    const stockValue =
+      currency === 'usd'
+        ? usdStockValue + krwStockValue / data.fxRate
+        : usdStockValue * data.fxRate + krwStockValue;
+
     // 평가 금액
     const currentValue =
-      data.krw.cash +
-      data.usd.cash * data.fxRate +
-      totalUsdStockAmount * data.fxRate;
+      currency === 'usd'
+        ? stockValue + data.usd.cash + data.krw.cash / data.fxRate
+        : stockValue + data.krw.cash + data.usd.cash * data.fxRate;
 
     // 원금
-    const principal = data.krw.principalAmount;
+    const principal =
+      currency === 'usd' ? data.usd.principalAmount : data.krw.principalAmount;
 
     // 수익금
     const profit = currentValue - principal;
