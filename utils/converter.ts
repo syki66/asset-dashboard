@@ -5,50 +5,117 @@ import {
   DividendProps,
   StockHistoryProps,
   transactionProps,
+  DashboardProps,
 } from '@/types';
 import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { USD_KRW_SYMBOL, DEFAULT_FX_RATE } from '@/constants/keywords';
 
-export const formatJsonForGraph = (json: transactionProps[]) => {
-  let _currency = 1;
-  let evaluationAmount = 0; // 평가금액
-  let principalAmount = 0; // 원금
+// 대시보드 표시용 데이터로 가공하는 함수
+export const convertToDashboardData = (
+  accountData: AccountProps[],
+  currency: Currency
+): DashboardProps[] => {
+  // let _maximunDrawdown = 0;
+  // let _dailyMaxDrawdown = 0;
 
-  return json.map((item: transactionProps) => {
-    // 환율 계산
-    if (item.currency === 'KRW') {
-      _currency = 1; // 원화 기준 계산
-    } else if (item.currency === 'USD') {
-      _currency = 1350; // 달러원 환율
-    }
+  // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
+  const dashboardData = accountData.map((account: AccountProps) => {
+    // USD 주식 총 금액 계산
+    const usdStockValue = account.usd.stocks.reduce(
+      (acc, stock) => acc + stock.price * stock.balance.length,
+      0
+    );
 
-    // 원금 계산
-    if (item.type === 'deposit') {
-      principalAmount += item.price * item.quantity * _currency;
-    }
-    if (item.type === 'withdraw') {
-      principalAmount -= item.price * item.quantity * _currency;
-    }
+    // KRW 주식 총 금액 계산
+    const krwStockValue = account.krw.stocks.reduce(
+      (acc, stock) => acc + stock.price * stock.balance.length,
+      0
+    );
 
-    // 평가금액 계산
-    if (item.type === 'buy') {
-      evaluationAmount += item.price * item.quantity * _currency;
-    }
-    if (item.type === 'sell') {
-      evaluationAmount -= item.price * item.quantity * _currency;
-    }
+    // 주식 평가금액 총합
+    const stockValue =
+      currency === 'usd'
+        ? usdStockValue + krwStockValue / account.fxRate
+        : usdStockValue * account.fxRate + krwStockValue;
 
-    // 예수금 계산
-    const escrow = item.usdCash * 1350 + item.krwCash;
+    // 평가 금액
+    const currentValue =
+      currency === 'usd'
+        ? stockValue + account.usd.cash + account.krw.cash / account.fxRate
+        : stockValue + account.krw.cash + account.usd.cash * account.fxRate;
+
+    // 원금
+    const principal =
+      currency === 'usd'
+        ? account.usd.principalAmount
+        : account.krw.principalAmount;
+
+    // 수익금
+    const profit = currentValue - principal;
+
+    // 수익률
+    const returnRate = Number(((profit / principal) * 100).toFixed(2));
+
+    // 배당금 (최근 1년간)
+    const oneYearAgo = new Date(account.date);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const dividendsKrw = account.krw.dividends
+      .filter((dividend) => {
+        const dividendDate = new Date(dividend.date);
+        return dividendDate >= oneYearAgo;
+      })
+      .reduce(
+        (acc, dividend) =>
+          currency === 'usd'
+            ? acc + dividend.price / dividend.fxRate
+            : acc + dividend.price,
+        0
+      );
+
+    const dividendsUsd = account.usd.dividends
+      .filter((dividend) => {
+        const dividendDate = new Date(dividend.date);
+        return dividendDate >= oneYearAgo;
+      })
+      .reduce(
+        (acc, dividend) =>
+          currency === 'usd'
+            ? acc + dividend.price
+            : acc + dividend.price * dividend.fxRate,
+        0
+      );
+
+    const dividends = dividendsUsd + dividendsKrw; // 위에서 이미 환전처리 되어있음
+
+    // 원금대비배당률
+    const yieldOnCost = Number(((dividends / principal) * 100).toFixed(2));
+
+    // 평가금대비배당률
+    const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
+
+    // // MDD (최대 손실 낙폭)
+    // const maximumDrawdown = 0;
+
+    // // 하루 최대 손실 낙폭
+    // const dailyMaxDrawdown = 0;
 
     return {
-      date: item.date,
-      principalAmount: Math.round(principalAmount),
-      evaluationAmount: Math.round(evaluationAmount + escrow),
+      date: account.date,
+      fxRate: account.fxRate,
+      currentValue,
+      principal,
+      profit,
+      returnRate,
+      dividends,
+      yieldOnCost,
+      dividendYield,
     };
   });
+
+  return dashboardData;
 };
 
 // 계좌의 원금(principalAmount)을 업데이트 합니다.

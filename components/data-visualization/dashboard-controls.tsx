@@ -33,8 +33,12 @@ import { toast } from 'sonner';
 import { DateRangePicker } from '@/components/data-visualization/date-range-picker';
 import { useQuery } from '@tanstack/react-query';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
-import { createAccountData, mergeAccountData } from '@/utils/converter';
-import { AccountProps, Currency } from '@/types';
+import {
+  convertToDashboardData,
+  createAccountData,
+  mergeAccountData,
+} from '@/utils/converter';
+import { AccountProps, Currency, DashboardProps } from '@/types';
 
 // 샘플 계좌 데이터 위에 환율 상수 추가
 const EXCHANGE_RATE = 1350; // 1 USD = 1,350 KRW (예시 환율)
@@ -61,10 +65,7 @@ interface DashboardControlsProps {
   onDateRangeChange: (range: DateRange | undefined) => void;
   currency: Currency;
   onCurrencyChange: (currency: Currency) => void;
-  onAccountDataChange: (
-    accountData: AccountProps[],
-    currency: Currency
-  ) => void;
+  onDashboardDataChange: (dashboardData: DashboardProps[]) => void;
 }
 
 export function DashboardControls({
@@ -72,7 +73,7 @@ export function DashboardControls({
   onDateRangeChange,
   currency,
   onCurrencyChange,
-  onAccountDataChange,
+  onDashboardDataChange,
 }: DashboardControlsProps) {
   const [isPostTax, setIsPostTax] = useState(false);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
@@ -202,7 +203,8 @@ export function DashboardControls({
 
   // 계좌 데이터가 변경될 때마다 부모 컴포넌트로 데이터 전달
   useEffect(() => {
-    onAccountDataChange(mergedAccountData, currency);
+    const dashboardData = convertToDashboardData(mergedAccountData, currency);
+    onDashboardDataChange(dashboardData);
   }, [mergedAccountData, currency]);
 
   return (

@@ -1,15 +1,15 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Currency, DisplayDataProps } from '@/types';
+import { Currency, DashboardProps } from '@/types';
 
 // 함수 선언부 업데이트
 interface AssetOverviewProps {
   currency: Currency;
-  displayData: DisplayDataProps;
+  data: DashboardProps;
 }
 
-export function AssetOverview({ currency, displayData }: AssetOverviewProps) {
+export function AssetOverview({ currency, data }: AssetOverviewProps) {
   // 실제 구현에서는 API나 상태 관리 라이브러리에서 데이터를 가져올 수 있습니다
   const assetData = {
     dividends: 1200000,
@@ -38,26 +38,24 @@ export function AssetOverview({ currency, displayData }: AssetOverviewProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AssetCard
           title="총 자산"
-          value={formatCurrency(displayData.currentValue)}
-          description={`원금: ${formatCurrency(displayData.principal)}`}
+          value={formatCurrency(data.currentValue)}
+          description={`원금: ${formatCurrency(data.principal)}`}
         />
         <AssetCard
           title="수익금"
-          value={formatCurrency(displayData.profit)}
-          description={`수익률: ${displayData.returnRate}%`}
-          valueClassName={
-            displayData.profit >= 0 ? 'text-red-600' : 'text-blue-600'
-          }
+          value={formatCurrency(data.profit)}
+          description={`수익률: ${data.returnRate}%`}
+          valueClassName={data.profit >= 0 ? 'text-red-600' : 'text-blue-600'}
         />
         <AssetCard
           title="배당금 (최근 1년)"
-          value={formatCurrency(displayData.dividends)}
-          description={`배당률: ${displayData.dividendYield}% (원금대비: ${displayData.yieldOnCost}%)`}
+          value={formatCurrency(data.dividends)}
+          description={`배당률: ${data.dividendYield}% (원금대비: ${data.yieldOnCost}%)`}
         />
         <AssetCard
-          title="배당금"
+          title="최대 손실 낙폭 (MDD)"
           value={formatCurrency(assetData.dividends)}
-          description="올해 받은 배당금"
+          description="하루 최대 손실 낙폭: ??"
           valueClassName="text-red-600"
         />
       </div>

@@ -47,7 +47,9 @@ export type StockHistoryProps = {
   dividends?: number;
 };
 
-export type DisplayDataProps = {
+export type DashboardProps = {
+  date: string;
+  fxRate: number;
   currentValue: number;
   principal: number;
   profit: number;
