@@ -183,11 +183,11 @@ export const createAccountData = async (transactions: transactionProps[]) => {
             }
             break;
           case 'dividend': // 매년 배당금 누적 계산 (세전)
-            const foundDividend = account[currency].dividend.find(
+            const foundDividend = account[currency].dividends.find(
               (dividend) => dividend.date === transaction.date
             );
             if (!foundDividend) {
-              account[currency].dividend.push({
+              account[currency].dividends.push({
                 date: transaction.date,
                 price: transaction.price,
                 fxRate: currentFxRate,
@@ -208,13 +208,13 @@ export const createAccountData = async (transactions: transactionProps[]) => {
           fxRate: DEFAULT_FX_RATE,
           krw: {
             principalAmount: 0,
-            dividend: [],
+            dividends: [],
             cash: 0,
             stocks: [],
           },
           usd: {
             principalAmount: 0,
-            dividend: [],
+            dividends: [],
             cash: 0,
             stocks: [],
           },
@@ -384,9 +384,9 @@ export const mergeAccountData = (
         (['usd', 'krw'] as const).forEach((currency) => {
           merged[currency].principalAmount += data[currency].principalAmount;
           merged[currency].cash += data[currency].cash;
-          merged[currency].dividend = mergeDividends(
-            merged[currency].dividend,
-            data[currency].dividend
+          merged[currency].dividends = mergeDividends(
+            merged[currency].dividends,
+            data[currency].dividends
           );
           merged[currency].stocks = mergeStocks(
             merged[currency].stocks,

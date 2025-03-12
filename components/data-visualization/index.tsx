@@ -51,7 +51,7 @@ export default function DataVisualization() {
     const returnRate = Number(((profit / principal) * 100).toFixed(2));
 
     // 배당금
-    const dividends = data.krw.dividend;
+    const dividends = data.krw.dividends;
 
     setDisplayData({ currentValue, principal, profit, returnRate });
   };

@@ -18,7 +18,7 @@ export type AccountProps = {
 
 type AccountDetails = {
   principalAmount: number;
-  dividend: DividendProps[];
+  dividends: DividendProps[];
   cash: number;
   stocks: StockProps[];
 };
@@ -44,7 +44,7 @@ export type StockHistoryProps = {
   date: string;
   close: number;
   adjClose: number;
-  dividend?: number;
+  dividends?: number;
 };
 
 export type DisplayDataProps = {
