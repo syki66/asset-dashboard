@@ -25,7 +25,7 @@ export default function DataVisualization() {
     currency: Currency
   ) => {
     // 화면 표시용 데이터 가공하기
-    const data = newAccountData.at(-1);
+    const data = newAccountData.at(-1); // 날짜가 바뀌면 해당 날짜 1개의 원소만 가져오면 됨
 
     if (!data) {
       return;
@@ -65,10 +65,44 @@ export default function DataVisualization() {
     // 수익률
     const returnRate = Number(((profit / principal) * 100).toFixed(2));
 
-    // 배당금
-    const dividends = data.krw.dividends;
+    // 배당금 (최근 1년간)
+    const oneYearAgo = new Date(data.date);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-    setDisplayData({ currentValue, principal, profit, returnRate });
+    const dividendsKrw = data.krw.dividends
+      .filter((dividend) => {
+        const dividendDate = new Date(dividend.date);
+        return dividendDate >= oneYearAgo;
+      })
+      .reduce((acc, dividend) => acc + dividend.price, 0);
+
+    const dividendsUsd = data.usd.dividends
+      .filter((dividend) => {
+        const dividendDate = new Date(dividend.date);
+        return dividendDate >= oneYearAgo;
+      })
+      .reduce((acc, dividend) => acc + dividend.price, 0);
+
+    const dividends =
+      currency === 'usd'
+        ? dividendsUsd + dividendsKrw / data.fxRate
+        : dividendsUsd * data.fxRate + dividendsKrw;
+
+    // 원금대비배당률
+    const yieldOnCost = Number(((dividends / principal) * 100).toFixed(2));
+
+    // 평가금대비배당률
+    const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
+
+    setDisplayData({
+      currentValue,
+      principal,
+      profit,
+      returnRate,
+      dividends,
+      yieldOnCost,
+      dividendYield,
+    });
   };
 
   return (

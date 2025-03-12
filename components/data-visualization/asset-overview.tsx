@@ -50,9 +50,9 @@ export function AssetOverview({ currency, displayData }: AssetOverviewProps) {
           }
         />
         <AssetCard
-          title="원금"
-          value={formatCurrency(displayData.principal)}
-          description="총 투자 금액"
+          title="배당금 (최근 1년)"
+          value={formatCurrency(displayData.dividends)}
+          description={`배당률: ${displayData.dividendYield}% (원금대비: ${displayData.yieldOnCost}%)`}
         />
         <AssetCard
           title="배당금"

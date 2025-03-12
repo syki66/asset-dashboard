@@ -52,4 +52,7 @@ export type DisplayDataProps = {
   principal: number;
   profit: number;
   returnRate: number;
+  dividends: number;
+  dividendYield: number;
+  yieldOnCost: number;
 };
