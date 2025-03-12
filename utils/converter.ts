@@ -190,6 +190,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
               account[currency].dividend.push({
                 date: transaction.date,
                 price: transaction.price,
+                fxRate: currentFxRate,
               });
             } else {
               foundDividend.price += transaction.price;
@@ -336,6 +337,10 @@ export const mergeAccountData = (
     return Array.from(dividendMap.entries()).map(([date, price]) => ({
       date,
       price,
+      fxRate:
+        arr1.find((d) => d.date === date)?.fxRate ||
+        arr2.find((d) => d.date === date)?.fxRate ||
+        DEFAULT_FX_RATE,
     }));
   };
 
