@@ -22,6 +22,11 @@ const defaultDashboardData: DashboardProps = {
   dividends: 0,
   yieldOnCost: 0,
   dividendYield: 0,
+  cash: 0,
+  usdCash: 0,
+  krwCash: 0,
+  maxDrawdown: 0,
+  maxDailyDrawdown: 0,
 };
 
 export default function DataVisualization() {

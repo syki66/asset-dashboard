@@ -17,8 +17,12 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
   };
 
   // formatCurrency 함수 수정
-  function formatCurrency(amount: number): string {
-    if (currency === 'usd') {
+  function formatCurrency(
+    amount: number,
+    currencyOverride?: 'usd' | 'krw'
+  ): string {
+    const selectedCurrency = currencyOverride || currency;
+    if (selectedCurrency === 'usd') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -63,9 +67,32 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
           valueClassName={'text-yellow-600'}
         />
         <AssetCard
-          title="최대 손실 낙폭 (MDD)"
+          title="환율"
+          value={data.fxRate.toLocaleString()}
+          description="USD/KRW"
+        />
+        <AssetCard
+          title="역대 최대 손실 낙폭 (${})"
+          value={formatCurrency(data.maxDrawdown)}
+          description={`하루 최대 낙폭: ${formatCurrency(
+            data.maxDailyDrawdown
+          )}`}
+          valueClassName="text-blue-600"
+          descClassName={'text-blue-600'}
+        />
+        <AssetCard
+          title="세금 및 제비용"
           value={formatCurrency(assetData.dividends)}
-          description="하루 최대 손실 낙폭: ??"
+          description="매도시 예상 세금"
+          valueClassName="text-red-600"
+        />
+        <AssetCard
+          title="현금"
+          value={formatCurrency(data.cash)}
+          description={`${formatCurrency(
+            data.usdCash,
+            'usd'
+          )} + ${formatCurrency(data.krwCash, 'krw')}`}
           valueClassName="text-red-600"
         />
       </div>

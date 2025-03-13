@@ -19,6 +19,10 @@ export const convertToDashboardData = (
 ): DashboardProps[] => {
   // let _maximunDrawdown = 0;
   // let _dailyMaxDrawdown = 0;
+  let peakValue = 0; // 평가자산 최고점
+  let maxDrawdown = 0; // 최대 낙폭 (금액)
+  let maxDailyDrawdown = 0; // 하루 최대 낙폭 (금액)
+  let prevValue = 0; // 전날 평가 자산
   let _lastUpdated = ''; // 마지막 업데이트 날짜
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
@@ -41,11 +45,14 @@ export const convertToDashboardData = (
         ? usdStockValue + krwStockValue / account.fxRate
         : usdStockValue * account.fxRate + krwStockValue;
 
-    // 평가 금액
-    const currentValue =
+    // 달러, 원화 현금 잔고 계산
+    const cashValue =
       currency === 'usd'
-        ? stockValue + account.usd.cash + account.krw.cash / account.fxRate
-        : stockValue + account.krw.cash + account.usd.cash * account.fxRate;
+        ? account.usd.cash + account.krw.cash / account.fxRate
+        : account.krw.cash + account.usd.cash * account.fxRate;
+
+    // 평가 금액
+    const currentValue = stockValue + cashValue;
 
     // 원금
     const principal =
@@ -106,10 +113,23 @@ export const convertToDashboardData = (
     // 마지막 업데이트 날짜
     _lastUpdated = account.date;
 
+    // MDD 계산
+    peakValue = Math.max(peakValue, currentValue); // 최고점 갱신
+    const drawdown = peakValue - currentValue; // 금액 기준
+
+    maxDrawdown = Math.max(maxDrawdown, drawdown);
+
+    // 하루 최대 낙폭 계산
+    const dailyDrawdown = prevValue - currentValue; // 금액 기준
+
+    maxDailyDrawdown = Math.max(maxDailyDrawdown, dailyDrawdown);
+
+    prevValue = currentValue;
+
     return {
       date: account.date,
       lastUpdated: _lastUpdated,
-      fxRate: account.fxRate,
+      fxRate: Number(account.fxRate.toFixed(2)),
       currentValue,
       principal,
       profit,
@@ -117,6 +137,11 @@ export const convertToDashboardData = (
       dividends,
       yieldOnCost,
       dividendYield,
+      krwCash: account.krw.cash,
+      usdCash: account.usd.cash,
+      cash: cashValue,
+      maxDrawdown,
+      maxDailyDrawdown,
     };
   });
 

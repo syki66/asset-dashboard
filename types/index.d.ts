@@ -58,4 +58,9 @@ export type DashboardProps = {
   dividends: number;
   dividendYield: number;
   yieldOnCost: number;
+  krwCash: number;
+  usdCash: number;
+  cash: number;
+  maxDrawdown: number;
+  maxDailyDrawdown: number;
 };
