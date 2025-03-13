@@ -63,4 +63,6 @@ export type DashboardProps = {
   cash: number;
   maxDrawdown: number;
   maxDailyDrawdown: number;
+  maxDrawdownDate: string;
+  maxDailyDrawdownDate: string;
 };

@@ -22,7 +22,10 @@ export const convertToDashboardData = (
   let peakValue = 0; // 평가자산 최고점
   let maxDrawdown = 0; // 최대 낙폭 (금액)
   let maxDailyDrawdown = 0; // 하루 최대 낙폭 (금액)
+  let maxDrawdownDate = ''; // 최대 낙폭 발생 날짜
+  let maxDailyDrawdownDate = ''; // 하루 최대 낙폭 발생 날짜
   let prevValue = 0; // 전날 평가 자산
+
   let _lastUpdated = ''; // 마지막 업데이트 날짜
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
@@ -104,27 +107,30 @@ export const convertToDashboardData = (
     // 평가금대비배당률
     const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
 
-    // // MDD (최대 손실 낙폭)
-    // const maximumDrawdown = 0;
-
-    // // 하루 최대 손실 낙폭
-    // const dailyMaxDrawdown = 0;
-
-    // 마지막 업데이트 날짜
-    _lastUpdated = account.date;
-
     // MDD 계산
-    peakValue = Math.max(peakValue, currentValue); // 최고점 갱신
+    if (currentValue > peakValue) {
+      peakValue = currentValue; // 최고점 갱신
+    }
     const drawdown = peakValue - currentValue; // 금액 기준
 
-    maxDrawdown = Math.max(maxDrawdown, drawdown);
+    if (drawdown > maxDrawdown) {
+      maxDrawdown = drawdown;
+      maxDrawdownDate = account.date;
+    }
 
-    // 하루 최대 낙폭 계산
+    // 하루 MDD 계산
     const dailyDrawdown = prevValue - currentValue; // 금액 기준
 
-    maxDailyDrawdown = Math.max(maxDailyDrawdown, dailyDrawdown);
+    if (dailyDrawdown > maxDailyDrawdown) {
+      maxDailyDrawdown = dailyDrawdown;
+      maxDailyDrawdownDate = account.date;
+    }
 
+    // `prevValue` 및 `prevDate` 갱신
     prevValue = currentValue;
+
+    // 마지막 업데이트 날짜 갱신
+    _lastUpdated = account.date;
 
     return {
       date: account.date,
@@ -141,7 +147,9 @@ export const convertToDashboardData = (
       usdCash: account.usd.cash,
       cash: cashValue,
       maxDrawdown,
+      maxDrawdownDate,
       maxDailyDrawdown,
+      maxDailyDrawdownDate,
     };
   });
 

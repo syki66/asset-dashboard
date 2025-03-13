@@ -27,6 +27,8 @@ const defaultDashboardData: DashboardProps = {
   krwCash: 0,
   maxDrawdown: 0,
   maxDailyDrawdown: 0,
+  maxDrawdownDate: '',
+  maxDailyDrawdownDate: '',
 };
 
 export default function DataVisualization() {
