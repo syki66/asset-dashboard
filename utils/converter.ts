@@ -187,7 +187,10 @@ const updatePrincipal = (
 const updateStockPrice = (
   stock: { code: string; price: number },
   date: string,
-  stockData: { code: string; prices: { date: string; close: number }[] }[]
+  stockData: {
+    code: string;
+    prices: { date: string; preSplitClose: number }[];
+  }[]
 ) => {
   // 주식 코드에 해당하는 데이터 찾기
   const stockInfo = stockData.find((item) => item.code === stock.code);
@@ -196,13 +199,13 @@ const updateStockPrice = (
   // 해당 날짜의 가격이 있는지 확인
   const currentPrice = stockInfo.prices.find((price) => price.date === date);
   if (currentPrice) {
-    stock.price = currentPrice.close;
+    stock.price = currentPrice.preSplitClose;
   } else {
     // 찾지 못하면, 과거 데이터 중 가장 최근 데이터를 가져옵니다.
     const pastPrices = stockInfo.prices
       .filter((price) => price.date < date)
       .sort((a, b) => b.date.localeCompare(a.date));
-    stock.price = pastPrices[0]?.close ?? stock.price;
+    stock.price = pastPrices[0]?.preSplitClose ?? stock.price;
   }
 };
 
