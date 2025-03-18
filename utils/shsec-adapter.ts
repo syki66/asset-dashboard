@@ -90,6 +90,7 @@ export const createShsecTransactions = (json: any[]) => {
     // 입금고 데이터 대입
     const isDeposit = [
       '은행이체입금',
+      '계좌입금',
       '계좌대체입금',
       '(펌뱅킹)입금',
       '은행이체외화입금', // USD
@@ -98,6 +99,7 @@ export const createShsecTransactions = (json: any[]) => {
     // 출금고 데이터 대입
     const isWithdrawal = [
       '은행이체출금',
+      '계좌출금',
       '계좌대체출금',
       '(펌뱅킹)출금',
       '체크카드승인',
