@@ -508,6 +508,7 @@ export const mergeAccountData = (
         (['usd', 'krw'] as const).forEach((currency) => {
           merged[currency].principalAmount += data[currency].principalAmount;
           merged[currency].cash += data[currency].cash;
+          merged[currency].stocksProfit += data[currency].stocksProfit;
           merged[currency].dividends = mergeDividends(
             merged[currency].dividends,
             data[currency].dividends
