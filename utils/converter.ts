@@ -389,9 +389,8 @@ export const getStockInfo = async (
   const stockData = await Promise.allSettled(
     stockCodes.map(async (code) => {
       try {
-        const searchResponse = await axios.get(
-          `/api/search/${code.split('A').at(-1)}`
-        );
+        const parsedCode = code.startsWith('A') ? code.split('A').at(-1) : code;
+        const searchResponse = await axios.get(`/api/search/${parsedCode}`);
         const { symbol, shortName, longName } = searchResponse.data;
 
         const priceResponse = await axios.get(
