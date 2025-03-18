@@ -11,19 +11,19 @@ import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { USD_KRW_SYMBOL, DEFAULT_FX_RATE } from '@/constants/keywords';
+import { getAverage } from './math';
 
 // 대시보드 표시용 데이터로 가공하는 함수
 export const convertToDashboardData = (
   accountData: AccountProps[],
   currency: Currency
 ): DashboardProps[] => {
-  // let _maximunDrawdown = 0;
-  // let _dailyMaxDrawdown = 0;
+  let maxDrawdown = 0; // 역대 MDD (금액)
   let peakValue = 0; // 평가자산 최고점
-  let maxDrawdown = 0; // 최대 낙폭 (금액)
-  let maxDailyDrawdown = 0; // 하루 최대 낙폭 (금액)
-  let maxDrawdownDate = ''; // 최대 낙폭 발생 날짜
-  let maxDailyDrawdownDate = ''; // 하루 최대 낙폭 발생 날짜
+  let peakDate = ''; // mdd 시작 날짜
+  let maxDrawdownPeriod = ''; // mdd 기간
+  let maxDailyDrawdown = 0; // 하루 MDD (금액)
+  let maxDailyDrawdownDate = ''; // 하루 mdd 낙폭 날짜
   let prevValue = 0; // 전날 평가 자산
 
   let _lastUpdated = ''; // 마지막 업데이트 날짜
@@ -107,19 +107,26 @@ export const convertToDashboardData = (
     // 평가금대비배당률
     const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
 
-    // MDD 계산
-    if (currentValue > peakValue) {
-      peakValue = currentValue; // 최고점 갱신
+    // MDD 계산 (현금량 딜레이 때문에 주식 수익금으로만 계산함)
+
+    const stocksProfit =
+      currency === 'usd'
+        ? account.usd.stocksProfit + account.krw.stocksProfit / account.fxRate
+        : account.usd.stocksProfit * account.fxRate + account.krw.stocksProfit;
+
+    if (stocksProfit > peakValue) {
+      peakValue = stocksProfit; // 최고점 갱신
+      peakDate = account.date;
     }
-    const drawdown = peakValue - currentValue; // 금액 기준
+    const drawdown = peakValue - stocksProfit; // 금액 기준
 
     if (drawdown > maxDrawdown) {
       maxDrawdown = drawdown;
-      maxDrawdownDate = account.date;
+      maxDrawdownPeriod = `${peakDate} > ${account.date}`;
     }
 
     // 하루 MDD 계산
-    const dailyDrawdown = prevValue - currentValue; // 금액 기준
+    const dailyDrawdown = prevValue - stocksProfit; // 금액 기준
 
     if (dailyDrawdown > maxDailyDrawdown) {
       maxDailyDrawdown = dailyDrawdown;
@@ -127,7 +134,7 @@ export const convertToDashboardData = (
     }
 
     // `prevValue` 및 `prevDate` 갱신
-    prevValue = currentValue;
+    prevValue = stocksProfit;
 
     // 마지막 업데이트 날짜 갱신
     _lastUpdated = account.date;
@@ -147,7 +154,7 @@ export const convertToDashboardData = (
       usdCash: account.usd.cash,
       cash: cashValue,
       maxDrawdown,
-      maxDrawdownDate,
+      maxDrawdownPeriod,
       maxDailyDrawdown,
       maxDailyDrawdownDate,
     };
@@ -316,12 +323,14 @@ export const createAccountData = async (transactions: transactionProps[]) => {
             dividends: [],
             cash: 0,
             stocks: [],
+            stocksProfit: 0,
           },
           usd: {
             principalAmount: 0,
             dividends: [],
             cash: 0,
             stocks: [],
+            stocksProfit: 0,
           },
         },
       ] as AccountProps[]
@@ -344,13 +353,20 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     }
   );
 
-  // 날짜별 현재가 업데이트
+  // 날짜별 현재가 및 MDD 업데이트
   const updatedAccountData = filledAccountData.map((data) => {
     // usd와 krw 두 통화를 한 번에 처리합니다.
     (['usd', 'krw'] as const).forEach((currency) => {
       data[currency].stocks.forEach((stock) => {
         updateStockPrice(stock, data.date, stockData);
       });
+      data[currency].stocksProfit = data[currency].stocks.reduce(
+        (acc, stock) =>
+          acc +
+          stock.price * stock.balance.length -
+          getAverage(stock.balance) * stock.balance.length,
+        0
+      );
     });
     return data;
   });

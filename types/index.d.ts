@@ -20,6 +20,7 @@ type AccountDetails = {
   principalAmount: number;
   dividends: DividendProps[];
   cash: number;
+  stocksProfit: number;
   stocks: StockProps[];
 };
 
@@ -62,7 +63,7 @@ export type DashboardProps = {
   usdCash: number;
   cash: number;
   maxDrawdown: number;
+  maxDrawdownPeriod: string;
   maxDailyDrawdown: number;
-  maxDrawdownDate: string;
   maxDailyDrawdownDate: string;
 };

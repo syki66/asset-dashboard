@@ -72,7 +72,7 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
           description="USD/KRW"
         />
         <AssetCard
-          title={`역대 최대 손실 낙폭 (${data.maxDrawdownDate})`}
+          title={`역대 최대 손실 낙폭 (${data.maxDrawdownPeriod})`}
           value={formatCurrency(data.maxDrawdown)}
           description={`하루 최대 낙폭: ${formatCurrency(
             data.maxDailyDrawdown
@@ -83,7 +83,7 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
         <AssetCard
           title="세금 및 제비용"
           value={formatCurrency(assetData.dividends)}
-          description="매도시 예상 세금"
+          description="세후 수익금: "
           valueClassName="text-red-600"
         />
         <AssetCard
