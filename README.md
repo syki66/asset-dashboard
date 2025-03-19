@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Asset Visualizer
 
-## Getting Started
+신한투자증권의 거래내역 데이터를 활용하여, 계좌 정보를 대시보드와 그래프를 이용하여 시각화해주는 웹사이트
 
-First, run the development server:
+## Screenshots/Live Demo
+
+| img1  | img2  |
+| :---: | :---: |
+| ![]() | ![]() |
+
+## Built With
+
+- Next.js (App Router)
+- React
+- Typescript
+- TanStack Query
+- Tailwind CSS
+- shadcn/ui
+- Recharts
+  <!-- - Autoprefixer -->
+  <!-- - Husky -->
+  <!-- - React Hook Form -->
+  <!-- - Zod -->
+
+## Features
+
+- 계좌 정보 시각화 (평가금, 원금, 배당금, MDD, 제비용, 자산 추이, 배당금 내역, 주식 등)
+- 여러개의 계좌 정보 합산 및 계좌 선택 표시
+- 달러, 원화 전환 표시 <!-- 세전, 세후 표시 -->
+- Next.js에서 프록시 서버를 만들고, Yahoo Finance API 데이터를 가공하여 활용
+- 각 단계별로 성공, 실패 상세 내역을 Toast 메세지로 표시
+- Drag N Drop으로 계좌 데이터 불러오기
+- useMemo로 렌더링 속도 최적화
+
+## Usage/Examples
+
+- 신한알파 HTS -> 자산현황 -> [1750] 계좌별 거래내역(원장) -> MMW내역 체크 -> 기간선택 후 조회 -> 마우스 오른쪽 버튼 -> 엑셀로 내보내기 -> CSV
+
+## Caution
+
+- 현금 잔고는 딜레이가 존재하여 특정 기간에 부정확할 수 있음 (ex. 현금량이 찍힌 거래내역 사이에 다른 통화를 환전할 경우 중복 집계됨)
+- 현금 정보가 비정확하기 때문에 MDD는 주식의 수익금으로만 계산함 (MDD는 해당 시점 환율로 일괄 계산하기에 실제와 오차가 클 수 있음)
+- 배당 정보는 별개로 계산되어 표시됨 (배당금은 평가금에 이미 반영되어있음)
+- 외화RP의 경우 이자 계산이 불가능하여 배당정보에서 제외 (`외화RP매도입금`과 `외화RP원천징수`만으로는 이자 계산이 불가능하며 `예치 기간` 또는 `배당금` 정보가 더 주어져야 계산 가능)
+- Yahoo Finance API 가져오기에 실패한다면(상장폐지 등), Toast 알림이 뜨며, 매수가를 현재가로 취급하여 진행됨
+- 양도소득세 공제인 250만원은 계산하지 않음
+- 한국, 미국을 제외한 주식은 계산 불가능 할 수 있음
+- 소수점 주식은 무시
+- KRX 금 현물 거래 계좌는 추적 불가능
+
+## 계산 방식
+
+- 환율 기본값 = 1400원 (데이터가 없다면 사용)
+- 원금 = 총 출금 - 총 입금
+- 평가금 = 주식 현재가 \* 주식 수량 + 현금 _(원화RP, mmw, 달러RP)_
+- 수익금 = 평가금 - 원금
+- MDD = 주식 평가금 기반 기간 최대 낙폭 (환율은 계좌 표시 당일 환율로 일괄 적용)
+
+## Structure
+
+## Requirements
+
+## Installation
+
+```bash
+npm install
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Build & Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Vercel 자동 배포 이용
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Todo List
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 거래내역 CSV 파일에 액면분할과 액면병합 데이터가 생기면 수정 필요함. _(해당 날짜부터 잔고 가격들과 주식 수량 변경)_
+- `은행이체외화출금` 데이터가 없어서 값을 추정하여 작업함. 추후 확인하기
