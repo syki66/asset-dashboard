@@ -18,6 +18,7 @@ export const convertToDashboardData = (
   accountData: AccountProps[],
   currency: Currency
 ): DashboardProps[] => {
+  // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
   let peakValue = 0; // 평가자산 최고점
   let peakDate = ''; // mdd 시작 날짜
@@ -26,7 +27,8 @@ export const convertToDashboardData = (
   let maxDailyDrawdownDate = ''; // 하루 mdd 낙폭 날짜
   let prevValue = 0; // 전날 평가 자산
 
-  let _lastUpdated = ''; // 마지막 업데이트 날짜
+  // 계좌 데이터 중 가장 최신 날짜
+  let _lastUpdated = '';
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -107,8 +109,7 @@ export const convertToDashboardData = (
     // 평가금대비배당률
     const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
 
-    // MDD 계산 (현금량 딜레이 때문에 주식 수익금으로만 계산함)
-
+    // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
     const stocksProfit =
       currency === 'usd'
         ? account.usd.stocksProfit + account.krw.stocksProfit / account.fxRate
@@ -118,22 +119,23 @@ export const convertToDashboardData = (
       peakValue = stocksProfit; // 최고점 갱신
       peakDate = account.date;
     }
-    const drawdown = peakValue - stocksProfit; // 금액 기준
+    const drawdown = peakValue - stocksProfit;
 
+    // 최고 낙폭을 갱신하면 업데이트
     if (drawdown > maxDrawdown) {
       maxDrawdown = drawdown;
       maxDrawdownPeriod = `${peakDate} > ${account.date}`;
     }
 
     // 하루 MDD 계산
-    const dailyDrawdown = prevValue - stocksProfit; // 금액 기준
+    const dailyDrawdown = prevValue - stocksProfit;
 
     if (dailyDrawdown > maxDailyDrawdown) {
       maxDailyDrawdown = dailyDrawdown;
       maxDailyDrawdownDate = account.date;
     }
 
-    // `prevValue` 및 `prevDate` 갱신
+    // 하루 MDD 계산을 위한 비교를 위해 이전 값으로 대입
     prevValue = stocksProfit;
 
     // 마지막 업데이트 날짜 갱신
