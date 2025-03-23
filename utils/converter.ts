@@ -10,7 +10,18 @@ import {
 import { dateToTimestamp, generateDateObjects } from './format';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { USD_KRW_SYMBOL, DEFAULT_FX_RATE } from '@/constants/keywords';
+import {
+  USD_KRW_SYMBOL,
+  DEFAULT_FX_RATE,
+  usBrokerFee,
+  usSecFee,
+  usCapitalGainsTax,
+  krBrokerFee,
+  krRegulatoryFee,
+  krTransferTax,
+  exchangeSpread,
+  exchangeFee,
+} from '@/constants/keywords';
 import { getAverage } from './math';
 
 // 대시보드 표시용 데이터로 가공하는 함수
@@ -70,6 +81,22 @@ export const convertToDashboardData = (
 
     // 수익률
     const returnRate = Number(((profit / principal) * 100).toFixed(2));
+
+    // 세금 및 제비용
+    // 국내
+    const krTaxFee =
+      krwStockValue * (krBrokerFee + krRegulatoryFee + krTransferTax);
+
+    // 미국
+    const usFee = usdStockValue * (usBrokerFee + usSecFee); // 매도 수수료
+    const usTax = account.usd.stocksProfit * usCapitalGainsTax; // 양도소득세
+    const usFxFee =
+      (usdStockValue + account.usd.cash) *
+      account.fxRate *
+      exchangeSpread *
+      exchangeFee; // 환전 수수료
+
+    console.log(krTaxFee, usFee, usTax, usFxFee);
 
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);

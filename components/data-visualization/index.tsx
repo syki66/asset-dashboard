@@ -19,6 +19,7 @@ const defaultDashboardData: DashboardProps = {
   principal: 0,
   profit: 0,
   returnRate: 0,
+  totalTaxFee: 0,
   dividends: 0,
   yieldOnCost: 0,
   dividendYield: 0,

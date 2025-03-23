@@ -57,6 +57,7 @@ export type DashboardProps = {
   principal: number;
   profit: number;
   returnRate: number;
+  totalTaxFee: number;
   dividends: number;
   dividendYield: number;
   yieldOnCost: number;
