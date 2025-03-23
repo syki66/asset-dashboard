@@ -87,16 +87,14 @@ export const convertToDashboardData = (
     const krTaxFee =
       krwStockValue * (krBrokerFee + krRegulatoryFee + krTransferTax);
 
-    // 미국
-    const usFee = usdStockValue * (usBrokerFee + usSecFee); // 매도 수수료
-    const usTax = account.usd.stocksProfit * usCapitalGainsTax; // 양도소득세
+    // 미국 (원화로 계산)
+    const usFee = usdStockValue * (usBrokerFee + usSecFee) * account.fxRate; // 매도 수수료
+    const usTax = account.usd.stocksProfit * usCapitalGainsTax * account.fxRate; // 양도소득세
     const usFxFee =
-      (usdStockValue + account.usd.cash) *
-      account.fxRate *
-      exchangeSpread *
-      exchangeFee; // 환전 수수료
+      (usdStockValue + account.usd.cash) /
+      (account.fxRate * exchangeSpread * exchangeFee); // 환전 수수료 (원화)
 
-    console.log(krTaxFee, usFee, usTax, usFxFee);
+    const totalTaxFee = krTaxFee + usFee + usTax + usFxFee;
 
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
@@ -176,6 +174,7 @@ export const convertToDashboardData = (
       principal,
       profit,
       returnRate,
+      totalTaxFee,
       dividends,
       yieldOnCost,
       dividendYield,
