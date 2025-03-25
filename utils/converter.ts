@@ -7,7 +7,11 @@ import {
   transactionProps,
   DashboardProps,
 } from '@/types';
-import { dateToTimestamp, generateDateObjects } from './format';
+import {
+  dateToTimestamp,
+  generateDateObjects,
+  timestampToDate,
+} from './format';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
@@ -37,9 +41,6 @@ export const convertToDashboardData = (
   let maxDailyDrawdown = 0; // 하루 MDD (금액)
   let maxDailyDrawdownDate = ''; // 하루 mdd 낙폭 날짜
   let prevValue = 0; // 전날 평가 자산
-
-  // 계좌 데이터 중 가장 최신 날짜
-  let _lastUpdated = '';
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -94,7 +95,7 @@ export const convertToDashboardData = (
       (usdStockValue + account.usd.cash) /
       (account.fxRate * exchangeSpread * exchangeFee); // 환전 수수료 (원화)
 
-    const totalTaxFee = krTaxFee + usFee + usTax + usFxFee;
+    const totalTaxFee = krTaxFee + usFee + usTax + usFxFee; // 총 세금 및 수수료 (원화)
 
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
@@ -163,12 +164,9 @@ export const convertToDashboardData = (
     // 하루 MDD 계산을 위한 비교를 위해 이전 값으로 대입
     prevValue = stocksProfit;
 
-    // 마지막 업데이트 날짜 갱신
-    _lastUpdated = account.date;
-
     return {
       date: account.date,
-      lastUpdated: _lastUpdated,
+      lastUpdated: account.lastUpdated,
       fxRate: Number(account.fxRate.toFixed(2)),
       currentValue,
       principal,
@@ -241,7 +239,8 @@ const updateStockPrice = (
 export const createAccountData = async (transactions: transactionProps[]) => {
   // api 호출용 날짜 범위 추출
   const startDate = transactions[0]?.date;
-  const endDate = transactions[transactions.length - 1]?.date;
+  // 계좌 병합 시 계좌들의 날짜값들이 안 맞으면 값이 틀어짐. 병합할때 부족분을 더미로 넣는다면 환율과 주가정보 등 최신정보 반영이 불가능함. 따라서 여기서 당일 날짜로 받고 endDate를 줄이고 싶다면 데이터를 잘라서 쓰는게 맞을듯
+  const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000));
 
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
   const stockCodes = [
@@ -261,6 +260,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
         const currency: Currency = transaction.currency as Currency; // 통화 타입 지정
 
         account.date = transaction.date; // 날짜 업데이트
+        account.lastUpdated = transaction.date; // 최근 업데이트 날짜 추가
 
         // 환율이 존재하면 가져오고 없다면 이전 환율 사용
         const currentFxRate = fxRates.find(
@@ -348,6 +348,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
       [
         {
           date: '',
+          lastUpdated: '',
           fxRate: DEFAULT_FX_RATE,
           krw: {
             principalAmount: 0,

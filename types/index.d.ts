@@ -11,6 +11,7 @@ export type transactionProps = {
 
 export type AccountProps = {
   date: string;
+  lastUpdated: string;
   fxRate: number;
   krw: AccountDetails;
   usd: AccountDetails;
