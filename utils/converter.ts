@@ -10,6 +10,7 @@ import {
 import {
   dateToTimestamp,
   generateDateObjects,
+  getLatestDate,
   timestampToDate,
 } from './format';
 import axios from 'axios';
@@ -241,6 +242,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
   const startDate = transactions[0]?.date;
   // 계좌 병합 시 계좌들의 날짜값들이 안 맞으면 값이 틀어짐. 병합할때 부족분을 더미로 넣는다면 환율과 주가정보 등 최신정보 반영이 불가능함. 따라서 여기서 당일 날짜로 받고 endDate를 줄이고 싶다면 데이터를 잘라서 쓰는게 맞을듯
   const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000));
+  const lastUpdated = transactions[transactions.length - 1]?.date; // 최근 업데이트 날짜
 
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
   const stockCodes = [
@@ -260,7 +262,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
         const currency: Currency = transaction.currency as Currency; // 통화 타입 지정
 
         account.date = transaction.date; // 날짜 업데이트
-        account.lastUpdated = transaction.date; // 최근 업데이트 날짜 추가
+        account.lastUpdated = lastUpdated; // 최근 업데이트 날짜 추가
 
         // 환율이 존재하면 가져오고 없다면 이전 환율 사용
         const currentFxRate = fxRates.find(
@@ -532,6 +534,10 @@ export const mergeAccountData = (
       } else {
         // 이미 있는 날짜의 데이터가 있으면, 해당 데이터를 가져와서 새로운 데이터와 합침
         const merged = mergedMap.get(date)!;
+        merged.lastUpdated = getLatestDate(
+          merged.lastUpdated,
+          data.lastUpdated
+        );
 
         (['usd', 'krw'] as const).forEach((currency) => {
           merged[currency].principalAmount += data[currency].principalAmount;

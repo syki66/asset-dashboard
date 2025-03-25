@@ -49,3 +49,10 @@ export const formatDateKr = (dateString: string): string => {
 
   return `${year}년 ${month}월 ${day}일`;
 };
+
+// 둘 중 최신 날짜 반환 (입력 형식: YYYY-MM-DD)
+export const getLatestDate = (date1: string, date2: string): string => {
+  const timestamp1 = dateToTimestamp(date1);
+  const timestamp2 = dateToTimestamp(date2);
+  return timestamp1 > timestamp2 ? date1 : date2;
+};
