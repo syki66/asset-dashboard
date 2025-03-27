@@ -27,7 +27,7 @@ const defaultDashboardData: DashboardProps = {
   usdCash: 0,
   krwCash: 0,
   maxDrawdown: 0,
-  maxDrawdownPeriod: '1970-01-01 > 1970-01-01',
+  maxDrawdownPeriod: '1970-01-01 ~ 1970-01-01',
   maxDailyDrawdown: 0,
   maxDailyDrawdownDate: '1970-01-01',
 };

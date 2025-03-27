@@ -151,7 +151,7 @@ export const convertToDashboardData = (
     // 최고 낙폭을 갱신하면 업데이트
     if (drawdown > maxDrawdown) {
       maxDrawdown = drawdown;
-      maxDrawdownPeriod = `${peakDate} > ${account.date}`;
+      maxDrawdownPeriod = `${peakDate} ~ ${account.date}`;
     }
 
     // 하루 MDD 계산

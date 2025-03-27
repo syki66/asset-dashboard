@@ -72,7 +72,7 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
           description="USD/KRW"
         />
         <AssetCard
-          title={`역대 최대 손실 낙폭 (${data.maxDrawdownPeriod})`}
+          title={`최대 손실 낙폭 (${data.maxDrawdownPeriod})`}
           value={formatCurrency(data.maxDrawdown)}
           description={`하루 최대 낙폭: ${formatCurrency(
             data.maxDailyDrawdown
