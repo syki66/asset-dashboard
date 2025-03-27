@@ -197,16 +197,15 @@ const updatePrincipal = (
   multiplier: number
 ) => {
   const currency: Currency = transaction.currency as Currency;
+  const amount = transaction.price * transaction.quantity;
   if (currency === 'usd') {
     // USD 통화인 경우, USD 계좌는 원래 금액, KRW는 환율을 곱한 금액 적용
-    account.usd.principalAmount += multiplier * transaction.price;
-    account.krw.principalAmount +=
-      multiplier * (transaction.price * account.fxRate);
+    account.usd.principalAmount += multiplier * amount;
+    account.krw.principalAmount += multiplier * (amount * account.fxRate);
   } else if (currency === 'krw') {
     // KRW 통화인 경우, KRW 계좌는 원래 금액, USD는 환율로 나눈 금액 적용
-    account.krw.principalAmount += multiplier * transaction.price;
-    account.usd.principalAmount +=
-      multiplier * (transaction.price / account.fxRate);
+    account.krw.principalAmount += multiplier * amount;
+    account.usd.principalAmount += multiplier * (amount / account.fxRate);
   }
 };
 
