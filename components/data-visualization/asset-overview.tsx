@@ -11,11 +11,6 @@ interface AssetOverviewProps {
 }
 
 export function AssetOverview({ currency, data }: AssetOverviewProps) {
-  // 실제 구현에서는 API나 상태 관리 라이브러리에서 데이터를 가져올 수 있습니다
-  const assetData = {
-    dividends: 1200000,
-  };
-
   // formatCurrency 함수 수정
   function formatCurrency(
     amount: number,
@@ -82,8 +77,10 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
         />
         <AssetCard
           title="세금 및 제비용"
-          value={formatCurrency(assetData.dividends)}
-          description="세후 수익금: "
+          value={formatCurrency(data.totalTaxFee, 'krw')}
+          description={`세후 수익금: ${formatCurrency(
+            data.profit - data.totalTaxFee
+          )}`}
           valueClassName="text-red-600"
         />
         <AssetCard

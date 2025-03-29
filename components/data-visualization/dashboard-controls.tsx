@@ -40,17 +40,6 @@ import {
 } from '@/utils/converter';
 import { AccountProps, Currency, DashboardProps } from '@/types';
 
-// 샘플 계좌 데이터 위에 환율 상수 추가
-const EXCHANGE_RATE = 1350; // 1 USD = 1,350 KRW (예시 환율)
-
-// 샘플 계좌 데이터
-const accounts = [
-  { id: '1', name: '증권계좌 A', balance: 25000000 },
-  { id: '2', name: '증권계좌 B', balance: 15000000 },
-  { id: '3', name: '은행계좌', balance: 10000000 },
-  { id: '4', name: '연금계좌', balance: 7500000 },
-];
-
 const readFile = async (file: File) => {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -292,7 +281,7 @@ export function DashboardControls({
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {currency === 'usd'
-                        ? `모든 금액은 달러(USD)로 표시됩니다. 적용 환율: 1 USD = ${EXCHANGE_RATE.toLocaleString()} KRW`
+                        ? `모든 금액은 달러(USD)로 표시됩니다.`
                         : '모든 금액은 원화(KRW)로 표시됩니다.'}
                     </p>
                   </div>
