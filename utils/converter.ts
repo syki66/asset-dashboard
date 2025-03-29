@@ -298,13 +298,21 @@ export const createAccountData = async (transactions: transactionProps[]) => {
                 longName: stockInfo?.longName,
                 symbol: stockInfo?.symbol,
                 code: transaction.ISIN,
-                balance: Array(transaction.quantity).fill(transaction.price),
+                balance: Array(transaction.quantity).fill({
+                  date: transaction.date,
+                  price: transaction.price,
+                  fxRate: currentFxRate,
+                }),
                 price: transaction.price, // 기본값으로 매수 가격 넣기
               });
             } else {
               // 종목이 있으면 추가적인 정보만 삽입
               for (let i = 0; i < transaction.quantity; i++) {
-                stockToBuy.balance.push(transaction.price);
+                stockToBuy.balance.push({
+                  date: transaction.date,
+                  price: transaction.price,
+                  fxRate: currentFxRate,
+                });
               }
             }
             break;
@@ -313,7 +321,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
               (stock) => stock.code === transaction.ISIN
             );
 
-            // 잔고가 있으면 마지막 값 제거
+            // 잔고가 있으면 첫번째 값 제거
             if (stockToSell) {
               for (let i = 0; i < transaction.quantity; i++) {
                 stockToSell.balance.shift();
@@ -397,7 +405,8 @@ export const createAccountData = async (transactions: transactionProps[]) => {
         (acc, stock) =>
           acc +
           stock.price * stock.balance.length -
-          getAverage(stock.balance) * stock.balance.length,
+          getAverage(stock.balance.map((item) => item.price)) *
+            stock.balance.length,
         0
       );
     });

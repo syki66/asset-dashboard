@@ -19,7 +19,11 @@ export type AccountProps = {
 
 type AccountDetails = {
   principalAmount: number;
-  dividends: DividendProps[];
+  dividends: {
+    date: string;
+    price: number;
+    fxRate: number;
+  }[];
   cash: number;
   stocksProfit: number;
   stocks: StockProps[];
@@ -30,14 +34,12 @@ export type StockProps = {
   longName: string;
   symbol: string;
   code: string;
-  balance: number[];
+  balance: {
+    date: string;
+    price: number;
+    fxRate: number;
+  }[];
   price: number;
-};
-
-export type DividendProps = {
-  date: string;
-  price: number;
-  fxRate: number;
 };
 
 export type Currency = 'krw' | 'usd';
