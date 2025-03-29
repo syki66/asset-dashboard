@@ -84,17 +84,31 @@ export const convertToDashboardData = (
     // 수익률
     const returnRate = Number(((profit / principal) * 100).toFixed(2));
 
-    // 세금 및 제비용
-    // 국내
+    // 세금 및 제비용 (원화로만 계산)
     const krTaxFee =
-      krwStockValue * (krBrokerFee + krRegulatoryFee + krTransferTax);
+      krwStockValue * (krBrokerFee + krRegulatoryFee + krTransferTax); // 국내 주식 세금 및 제비용
 
-    // 미국 (원화로 계산)
-    const usFee = usdStockValue * (usBrokerFee + usSecFee) * account.fxRate; // 매도 수수료
-    const usTax = account.usd.stocksProfit * usCapitalGainsTax * account.fxRate; // 양도소득세
+    const usEstimatedProfit = account.usd.stocks.reduce(
+      (acc, stock) =>
+        acc +
+        stock.balance
+          .map((item) => {
+            const profit =
+              stock.price * account.fxRate - item.price * item.fxRate;
+            const fee =
+              (stock.price * account.fxRate + item.price * item.fxRate) *
+              (usBrokerFee + usSecFee);
+            return profit - fee;
+          })
+          .reduce((a, b) => a + b, 0),
+      0
+    ); // 미국주식 양도소득세 계산을 위한 추정손익 (원화로 계산, 거래수수료 비용 제외 적용)
+
+    const usFee = usdStockValue * (usBrokerFee + usSecFee) * account.fxRate; // 미국주식 매도 수수료
     const usFxFee =
       (usdStockValue + account.usd.cash) /
-      (account.fxRate * exchangeSpread * exchangeFee); // 환전 수수료 (원화)
+      (account.fxRate * exchangeSpread * exchangeFee); // 환전 수수료 (원화로 계산)
+    const usTax = usEstimatedProfit * usCapitalGainsTax; // 미국주식 양도소득세 계산
 
     const totalTaxFee = krTaxFee + usFee + usTax + usFxFee; // 총 세금 및 수수료 (원화)
 
