@@ -64,7 +64,6 @@ export function DashboardControls({
   onCurrencyChange,
   onDashboardDataChange,
 }: DashboardControlsProps) {
-  const [isPostTax, setIsPostTax] = useState(false);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -233,25 +232,6 @@ export function DashboardControls({
               <TabsContent value="settings" className="space-y-6">
                 {/* 세금 설정과 통화 설정을 가로로 배치 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">세금 설정</h3>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="tax-mode"
-                        checked={isPostTax}
-                        onCheckedChange={setIsPostTax}
-                      />
-                      <Label htmlFor="tax-mode">
-                        {isPostTax ? '세후 금액 표시' : '세전 금액 표시'}
-                      </Label>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {isPostTax
-                        ? '모든 금액은 세금이 공제된 후의 금액으로 표시됩니다.'
-                        : '모든 금액은 세금이 공제되기 전의 금액으로 표시됩니다.'}
-                    </p>
-                  </div>
-
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">통화 설정</h3>
                     <div className="flex items-center space-x-2">
