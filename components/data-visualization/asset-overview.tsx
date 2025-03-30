@@ -48,12 +48,9 @@ export function AssetOverview({ currency, data }: AssetOverviewProps) {
         />
         <AssetCard
           title="수익금"
-          value={formatCurrency(data.profit)}
-          description={`수익률: ${data.returnRate}%`}
+          value={`${formatCurrency(data.profit)} (${data.returnRate}%)`}
+          description={`지표 대비 초과수익 (세후): 000,000,000원`}
           valueClassName={data.profit >= 0 ? 'text-red-600' : 'text-blue-600'}
-          descClassName={
-            data.returnRate >= 0 ? 'text-red-600' : 'text-blue-600'
-          }
         />
         <AssetCard
           title="배당금 (최근 1년)"
