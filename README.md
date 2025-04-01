@@ -12,6 +12,7 @@
 
 - Next.js (App Router)
 - React
+- Zustand
 - Typescript
 - TanStack Query
 - Tailwind CSS

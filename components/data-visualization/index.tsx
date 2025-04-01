@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
+import CsvStep from './stepper/csv-step';
 
 const steps = [
   {
@@ -34,8 +35,8 @@ const steps = [
   },
   {
     id: 'step-3',
-    label: '벤치마크 설정',
-    description: 'Set benchmark',
+    label: '비교 지표 설정',
+    description: 'Set Benchmark',
   },
 ];
 
@@ -117,6 +118,7 @@ export default function DataVisualization() {
                 <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
                   Form fields for personal information
                 </div>
+                <CsvStep />
               </div>
             )}
 
