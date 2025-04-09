@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
 import CsvStep from './stepper/csv-step';
+import BenchmarkStep from './stepper/benchmark-step';
+import DateStep from './stepper/date-step';
 
 const steps = [
   {
@@ -69,6 +71,8 @@ export default function DataVisualization() {
 
   const [activeStep, setActiveStep] = useState(0);
 
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
   const handleNext = () => {
     setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
@@ -115,23 +119,27 @@ export default function DataVisualization() {
                   application.
                 </p>
                 {/* Form fields would go here */}
-                <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
+                {/* <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
                   Form fields for personal information
-                </div>
-                <CsvStep />
+                </div> */}
+                <CsvStep
+                  uploadedFiles={uploadedFiles}
+                  setUploadedFiles={setUploadedFiles}
+                />
               </div>
             )}
 
             {activeStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Account Setup</h3>
+                <h3 className="text-lg font-medium">Personal Information</h3>
                 <p className="text-muted-foreground">
-                  Create your account credentials and preferences.
+                  Enter your personal details to get started with your
+                  application.
                 </p>
-                {/* Form fields would go here */}
-                <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
-                  Form fields for account setup
-                </div>
+                <DateStep
+                  dateRange={dateRange}
+                  onDateRangeChange={setDateRange}
+                />
               </div>
             )}
 
@@ -145,6 +153,7 @@ export default function DataVisualization() {
                 <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
                   Summary of submitted information
                 </div>
+                <BenchmarkStep />
               </div>
             )}
           </div>

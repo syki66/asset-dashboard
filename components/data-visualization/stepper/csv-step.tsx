@@ -16,9 +16,16 @@ const readFile = async (file: File) => {
   });
 };
 
-export default function CsvStep() {
+interface CsvStepProps {
+  uploadedFiles: File[];
+  setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>;
+}
+
+export default function CsvStep({
+  uploadedFiles,
+  setUploadedFiles,
+}: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const setTotalAccountData = useAccountStore(
     (state) => state.setTotalAccountData
@@ -122,7 +129,6 @@ export default function CsvStep() {
   return (
     <>
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">데이터 가져오기</h3>
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center ${
             isDragging
@@ -180,11 +186,6 @@ export default function CsvStep() {
                 </Button>
               </div>
             ))}
-            <div className="flex justify-end mt-2">
-              <Button onClick={handleFileSubmit} disabled={isLoading}>
-                {isLoading ? '가져오는중' : '계좌 불러오기'}
-              </Button>
-            </div>
           </div>
         )}
       </div>
