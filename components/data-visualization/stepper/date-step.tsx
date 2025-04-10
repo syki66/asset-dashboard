@@ -92,7 +92,7 @@ export default function DateStep({
           </p>
         </div>
 
-        {dateRange?.from && dateRange?.to && (
+        {/* {dateRange?.from && dateRange?.to && (
           <div className="mt-4 p-4 bg-muted rounded-md">
             <div className="flex items-center">
               <CalendarRange className="h-5 w-5 mr-2 text-primary" />
@@ -103,7 +103,7 @@ export default function DateStep({
               {format(dateRange.to, 'yyyy년 MM월 dd일')}
             </p>
           </div>
-        )}
+        )} */}
       </div>
     </>
   );

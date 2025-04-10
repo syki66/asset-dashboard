@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardControls } from './dashboard-controls';
@@ -23,6 +23,11 @@ import { Stepper } from '@/components/ui/stepper';
 import CsvStep from './stepper/csv-step';
 import BenchmarkStep from './stepper/benchmark-step';
 import DateStep from './stepper/date-step';
+import { useAccountStore } from '@/store/account';
+import { useQuery } from '@tanstack/react-query';
+import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
+import { createAccountData } from '@/utils/converter';
+import { toast } from 'sonner';
 
 const steps = [
   {
@@ -63,8 +68,16 @@ const defaultDashboardData: DashboardProps = {
   maxDailyDrawdownDate: '1970-01-01',
 };
 
+const readFile = async (file: File) => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('파일을 읽는 데 실패했습니다.'));
+    reader.readAsText(file); // 파일을 텍스트로 읽음 (필요에 따라 readAsArrayBuffer 등 변경 가능)
+  });
+};
+
 export default function DataVisualization() {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currency, setCurrency] = useState<Currency>('krw');
   const [selectedDashboardData, setSelectedDashboardData] =
     useState<DashboardProps>(defaultDashboardData);
@@ -72,9 +85,46 @@ export default function DataVisualization() {
   const [activeStep, setActiveStep] = useState(0);
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+  const setTotalAccountData = useAccountStore(
+    (state) => state.setTotalAccountData
+  );
+
+  const {
+    data: totalAccountData,
+    refetch,
+    isLoading,
+    isSuccess,
+    isError,
+  } = useQuery({
+    queryKey: ['accountData'],
+    queryFn: async () => {
+      const totalAccountData = await Promise.all(
+        uploadedFiles.map(async (file) => {
+          const fileContent = await readFile(file); // 파일 내용 읽기
+          const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
+          const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
+          const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
+          return { name: file.name, accountData };
+        })
+      );
+
+      return totalAccountData;
+    },
+    enabled: false, // refetch를 이용해서 수동으로만 가져올 수 있도록 함
+  });
+
+  if (totalAccountData) {
+    setTotalAccountData(totalAccountData);
+  }
 
   const handleNext = () => {
-    setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
+    if (activeStep === steps.length - 1) {
+      refetch(); // 제출
+    } else {
+      setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }
   };
 
   const handlePrevious = () => {
@@ -91,6 +141,24 @@ export default function DataVisualization() {
   const handleDashboardDataChange = (dashboardData: DashboardProps[]) => {
     setSelectedDashboardData(dashboardData.at(-1) || defaultDashboardData); // 선택된 날짜에 맞는 데이터 넣으면 됨
   };
+
+  useEffect(() => {
+    console.log(dateRange);
+    console.log(uploadedFiles);
+  }, [dateRange]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success('계좌 불러오기 성공', {
+        description: '계좌 데이터를 성공적으로 불러왔습니다.',
+      });
+    }
+    if (isError) {
+      toast.error('계좌 불러오기 실패', {
+        description: '계좌 데이터를 불러오는 데 실패했습니다.',
+      });
+    }
+  }, [isSuccess, isError]);
 
   return (
     <>
@@ -166,11 +234,12 @@ export default function DataVisualization() {
           >
             Previous
           </Button>
-          <Button
-            onClick={handleNext}
-            disabled={activeStep === steps.length - 1}
-          >
-            {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+          <Button onClick={handleNext} disabled={isLoading}>
+            {activeStep === steps.length - 1
+              ? isLoading
+                ? 'Loading...'
+                : 'Submit'
+              : 'Next'}
           </Button>
         </CardFooter>
       </Card>

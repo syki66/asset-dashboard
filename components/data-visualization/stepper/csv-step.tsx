@@ -1,20 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
-import { createAccountData } from '@/utils/converter';
+import { useState } from 'react';
+
 import { toast } from 'sonner';
 import { Check, FileUp, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAccountStore } from '@/store/account';
-
-const readFile = async (file: File) => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error('파일을 읽는 데 실패했습니다.'));
-    reader.readAsText(file); // 파일을 텍스트로 읽음 (필요에 따라 readAsArrayBuffer 등 변경 가능)
-  });
-};
 
 interface CsvStepProps {
   uploadedFiles: File[];
@@ -26,38 +14,6 @@ export default function CsvStep({
   setUploadedFiles,
 }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
-
-  const setTotalAccountData = useAccountStore(
-    (state) => state.setTotalAccountData
-  );
-
-  const {
-    data: totalAccountData,
-    refetch,
-    isLoading,
-    isSuccess,
-    isError,
-  } = useQuery({
-    queryKey: ['accountData'],
-    queryFn: async () => {
-      const totalAccountData = await Promise.all(
-        uploadedFiles.map(async (file) => {
-          const fileContent = await readFile(file); // 파일 내용 읽기
-          const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
-          const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
-          const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
-          return { name: file.name, accountData };
-        })
-      );
-
-      return totalAccountData;
-    },
-    enabled: false, // refetch를 이용해서 수동으로만 가져올 수 있도록 함
-  });
-
-  if (totalAccountData) {
-    setTotalAccountData(totalAccountData);
-  }
 
   const handleFiles = (files: File[]) => {
     // 파일 확장자 검증 (CSV, XLSX만 허용)
@@ -108,23 +64,6 @@ export default function CsvStep({
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
-
-  const handleFileSubmit = () => {
-    refetch();
-  };
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success('계좌 불러오기 성공', {
-        description: '계좌 데이터를 성공적으로 불러왔습니다.',
-      });
-    }
-    if (isError) {
-      toast.error('계좌 불러오기 실패', {
-        description: '계좌 데이터를 불러오는 데 실패했습니다.',
-      });
-    }
-  }, [isSuccess, isError]);
 
   return (
     <>
