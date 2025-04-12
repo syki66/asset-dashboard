@@ -92,10 +92,6 @@ export default function DataVisualization() {
     enabled: false, // refetch를 이용해서 수동으로만 가져올 수 있도록 함
   });
 
-  if (totalAccountData) {
-    setTotalAccountData(totalAccountData);
-  }
-
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
       refetch(); // 제출
@@ -119,6 +115,12 @@ export default function DataVisualization() {
     console.log(dateRange);
     console.log(uploadedFiles);
   }, [dateRange]);
+
+  useEffect(() => {
+    if (totalAccountData) {
+      setTotalAccountData(totalAccountData);
+    }
+  }, [totalAccountData, setTotalAccountData]);
 
   useEffect(() => {
     if (isSuccess) {
