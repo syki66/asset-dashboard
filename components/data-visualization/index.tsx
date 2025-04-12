@@ -47,27 +47,6 @@ const steps = [
   },
 ];
 
-const defaultDashboardData: DashboardProps = {
-  date: '1970-01-01',
-  lastUpdated: '1970-01-01',
-  fxRate: DEFAULT_FX_RATE,
-  currentValue: 0,
-  principal: 0,
-  profit: 0,
-  returnRate: 0,
-  totalTaxFee: 0,
-  dividends: 0,
-  yieldOnCost: 0,
-  dividendYield: 0,
-  cash: 0,
-  usdCash: 0,
-  krwCash: 0,
-  maxDrawdown: 0,
-  maxDrawdownPeriod: '1970-01-01 ~ 1970-01-01',
-  maxDailyDrawdown: 0,
-  maxDailyDrawdownDate: '1970-01-01',
-};
-
 const readFile = async (file: File) => {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -79,8 +58,6 @@ const readFile = async (file: File) => {
 
 export default function DataVisualization() {
   const [currency, setCurrency] = useState<Currency>('krw');
-  const [selectedDashboardData, setSelectedDashboardData] =
-    useState<DashboardProps>(defaultDashboardData);
 
   const [activeStep, setActiveStep] = useState(0);
 
@@ -136,10 +113,6 @@ export default function DataVisualization() {
     if (step <= activeStep + 1) {
       setActiveStep(step);
     }
-  };
-
-  const handleDashboardDataChange = (dashboardData: DashboardProps[]) => {
-    setSelectedDashboardData(dashboardData.at(-1) || defaultDashboardData); // 선택된 날짜에 맞는 데이터 넣으면 됨
   };
 
   useEffect(() => {
@@ -263,11 +236,8 @@ export default function DataVisualization() {
           <h1 className="text-3xl font-bold mb-8">자산 대시보드</h1>
 
           <DashboardControls
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
             currency={currency}
             onCurrencyChange={setCurrency}
-            onDashboardDataChange={handleDashboardDataChange}
           />
 
           <div className="grid gap-8 dashboard-content">
@@ -278,11 +248,7 @@ export default function DataVisualization() {
               </TabsList>
 
               <TabsContent value="summary">
-                <DashboardSummary
-                  dateRange={dateRange}
-                  currency={currency}
-                  data={selectedDashboardData}
-                />
+                <DashboardSummary dateRange={dateRange} currency={currency} />
               </TabsContent>
 
               <TabsContent value="detail">

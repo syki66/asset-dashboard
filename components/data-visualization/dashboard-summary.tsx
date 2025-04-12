@@ -10,17 +10,15 @@ import { Currency, DashboardProps } from '@/types';
 interface DashboardSummaryProps {
   dateRange: DateRange | undefined;
   currency: Currency;
-  data: DashboardProps;
 }
 
 export function DashboardSummary({
   dateRange,
   currency,
-  data,
 }: DashboardSummaryProps) {
   return (
     <div className="grid gap-8">
-      <AssetOverview currency={currency} data={data} />
+      <AssetOverview currency={currency} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <AssetCharts dateRange={dateRange} currency={currency} view="summary" />

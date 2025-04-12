@@ -1,16 +1,44 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DEFAULT_FX_RATE } from '@/constants/keywords';
+import { useDashboardStore } from '@/store/account';
 import { Currency, DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
+
+const initialDashboardData: DashboardProps = {
+  date: '1970-01-01',
+  lastUpdated: '1970-01-01',
+  fxRate: DEFAULT_FX_RATE,
+  currentValue: 0,
+  principal: 0,
+  profit: 0,
+  returnRate: 0,
+  totalTaxFee: 0,
+  dividends: 0,
+  yieldOnCost: 0,
+  dividendYield: 0,
+  cash: 0,
+  usdCash: 0,
+  krwCash: 0,
+  maxDrawdown: 0,
+  maxDrawdownPeriod: '1970-01-01 ~ 1970-01-01',
+  maxDailyDrawdown: 0,
+  maxDailyDrawdownDate: '1970-01-01',
+};
 
 // 함수 선언부 업데이트
 interface AssetOverviewProps {
   currency: Currency;
-  data: DashboardProps;
 }
 
-export function AssetOverview({ currency, data }: AssetOverviewProps) {
+export function AssetOverview({ currency }: AssetOverviewProps) {
+  const dashboardData =
+    useDashboardStore((state) => state.dashboardData) ?? initialDashboardData;
+  const data = Object.keys(dashboardData).length
+    ? dashboardData
+    : initialDashboardData;
+
   // formatCurrency 함수 수정
   function formatCurrency(
     amount: number,

@@ -25,28 +25,22 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DateRangePicker } from '@/components/data-visualization/date-range-picker';
 
 import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
-import { AccountProps, Currency, DashboardProps } from '@/types';
-import { useAccountStore } from '@/store/account';
+import { Currency, DashboardProps } from '@/types';
+import { useAccountStore, useDashboardStore } from '@/store/account';
 
 interface DashboardControlsProps {
-  dateRange: DateRange | undefined;
-  onDateRangeChange: (range: DateRange | undefined) => void;
   currency: Currency;
   onCurrencyChange: (currency: Currency) => void;
-  onDashboardDataChange: (dashboardData: DashboardProps[]) => void;
 }
 
 export function DashboardControls({
-  dateRange,
-  onDateRangeChange,
   currency,
   onCurrencyChange,
-  onDashboardDataChange,
 }: DashboardControlsProps) {
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
+  const setDashboardData = useDashboardStore((state) => state.setDashboardData);
 
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -80,10 +74,10 @@ export function DashboardControls({
     return mergeAccountData(filteredData);
   }, [totalAccountData, selectedAccounts]);
 
-  // 계좌 데이터가 변경될 때마다 부모 컴포넌트로 데이터 전달
+  // 계좌 데이터가 변경될 때마다 전역 상태관리로 데이터 전달
   useEffect(() => {
     const dashboardData = convertToDashboardData(mergedAccountData, currency);
-    onDashboardDataChange(dashboardData);
+    setDashboardData(dashboardData.at(-1) as DashboardProps);
   }, [mergedAccountData, currency]);
 
   return (
@@ -200,107 +194,6 @@ export function DashboardControls({
                   <p className="text-sm text-muted-foreground">
                     선택한 계좌의 데이터만 대시보드에 표시됩니다.
                   </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="date" className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">날짜 범위 설정</h3>
-                  <p className="text-sm text-muted-foreground">
-                    대시보드에 표시할 데이터의 날짜 범위를 선택하세요. 이 설정은
-                    모든 차트와 데이터에 적용됩니다.
-                  </p>
-
-                  <div className="mt-4">
-                    <DateRangePicker
-                      dateRange={dateRange}
-                      onDateRangeChange={onDateRangeChange}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        onDateRangeChange({
-                          from: addDays(today, -30),
-                          to: today,
-                        });
-                      }}
-                    >
-                      최근 1개월
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        onDateRangeChange({
-                          from: addDays(today, -90),
-                          to: today,
-                        });
-                      }}
-                    >
-                      최근 3개월
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        onDateRangeChange({
-                          from: addDays(today, -180),
-                          to: today,
-                        });
-                      }}
-                    >
-                      최근 6개월
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        onDateRangeChange({
-                          from: addDays(today, -365),
-                          to: today,
-                        });
-                      }}
-                    >
-                      최근 1년
-                    </Button>
-                  </div>
-
-                  <div className="mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        onDateRangeChange(undefined);
-                      }}
-                    >
-                      날짜 범위 초기화
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      날짜 범위를 초기화하면 모든 데이터가 표시됩니다.
-                    </p>
-                  </div>
-
-                  {dateRange?.from && dateRange?.to && (
-                    <div className="mt-4 p-4 bg-muted rounded-md">
-                      <div className="flex items-center">
-                        <CalendarRange className="h-5 w-5 mr-2 text-primary" />
-                        <span className="font-medium">
-                          현재 선택된 날짜 범위:
-                        </span>
-                      </div>
-                      <p className="mt-1">
-                        {format(dateRange.from, 'yyyy년 MM월 dd일')} -{' '}
-                        {format(dateRange.to, 'yyyy년 MM월 dd일')}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </TabsContent>
             </Tabs>
