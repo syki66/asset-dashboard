@@ -24,3 +24,14 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   dashboardData: [],
   setDashboardData: (data) => set({ dashboardData: data }),
 }));
+
+// 환율 상태 관리
+interface CurrencyState {
+  currency: string;
+  setCurrency: (currency: string) => void;
+}
+
+export const useCurrencyStore = create<CurrencyState>((set) => ({
+  currency: 'krw',
+  setCurrency: (currency) => set({ currency }),
+}));

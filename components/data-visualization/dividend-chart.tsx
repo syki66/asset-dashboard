@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Currency } from '@/types';
+import { useCurrencyStore } from '@/store/account';
 
 // 배당금 데이터 (샘플) - 월별, 분기별, 연도별 데이터 추가
 const dividendData = {
@@ -52,15 +53,12 @@ const dividendData = {
 
 interface DividendChartProps {
   dateRange: DateRange | undefined;
-  currency: Currency;
   className?: string;
 }
 
-export function DividendChart({
-  dateRange,
-  currency,
-  className,
-}: DividendChartProps) {
+export function DividendChart({ dateRange, className }: DividendChartProps) {
+  const currency = useCurrencyStore((state) => state.currency);
+
   const [dividendTimeRange, setDividendTimeRange] =
     useState<keyof typeof dividendData>('monthly');
 

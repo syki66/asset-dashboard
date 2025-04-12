@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DEFAULT_FX_RATE } from '@/constants/keywords';
-import { useDashboardStore } from '@/store/account';
+import { useCurrencyStore, useDashboardStore } from '@/store/account';
 import { Currency, DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
 import { useEffect, useState } from 'react';
@@ -28,13 +28,9 @@ const initialDashboardData: DashboardProps = {
   maxDailyDrawdownDate: '1970-01-01',
 };
 
-// 함수 선언부 업데이트
-interface AssetOverviewProps {
-  currency: Currency;
-}
-
-export function AssetOverview({ currency }: AssetOverviewProps) {
+export function AssetOverview() {
   const totalDashboardData = useDashboardStore((state) => state.dashboardData);
+  const currency = useCurrencyStore((state) => state.currency);
 
   const [dashboardData, setDashboardData] =
     useState<DashboardProps>(initialDashboardData);

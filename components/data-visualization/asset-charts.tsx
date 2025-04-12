@@ -18,7 +18,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
-import { Currency } from '@/types';
+import { useCurrencyStore } from '@/store/account';
 
 // 다양한 기간별 자산 변화 데이터 (샘플)
 const assetHistoryData = {
@@ -132,17 +132,13 @@ const allAssetData = Object.values(assetHistoryData)
 
 interface AssetChartsProps {
   dateRange: DateRange | undefined;
-  currency: Currency;
   view: 'summary' | 'detail';
   className?: string;
 }
 
-export function AssetCharts({
-  dateRange,
-  currency,
-  view,
-  className,
-}: AssetChartsProps) {
+export function AssetCharts({ dateRange, view, className }: AssetChartsProps) {
+  const currency = useCurrencyStore((state) => state.currency);
+
   const [timeRange, setTimeRange] =
     useState<keyof typeof assetHistoryData>('1y');
   const [customData, setCustomData] = useState<

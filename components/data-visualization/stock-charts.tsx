@@ -19,12 +19,11 @@ import {
   Legend,
 } from 'recharts';
 import { Currency } from '@/types';
+import { useCurrencyStore } from '@/store/account';
 
-interface StockChartsProps {
-  currency: Currency;
-}
+export function StockCharts() {
+  const currency = useCurrencyStore((state) => state.currency);
 
-export function StockCharts({ currency }: StockChartsProps) {
   const [activeTab, setActiveTab] = useState<'quantity' | 'price' | 'value'>(
     'quantity'
   );

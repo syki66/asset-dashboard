@@ -10,28 +10,18 @@ import { Currency } from '@/types';
 
 interface DashboardDetailProps {
   dateRange: DateRange | undefined;
-  currency: Currency;
 }
 
-export function DashboardDetail({ dateRange, currency }: DashboardDetailProps) {
+export function DashboardDetail({ dateRange }: DashboardDetailProps) {
   return (
     <div className="grid gap-8">
       <div className="grid gap-6 md:grid-cols-2">
-        <AssetDetail currency={currency} />
+        <AssetDetail />
       </div>
-      <AssetCharts
-        dateRange={dateRange}
-        currency={currency}
-        view="detail"
-        className="w-full"
-      />
-      <DividendChart
-        dateRange={dateRange}
-        currency={currency}
-        className="w-full"
-      />
-      <StockHoldings currency={currency} />
-      <StockCharts currency={currency} />
+      <AssetCharts dateRange={dateRange} view="detail" className="w-full" />
+      <DividendChart dateRange={dateRange} className="w-full" />
+      <StockHoldings />
+      <StockCharts />
     </div>
   );
 }

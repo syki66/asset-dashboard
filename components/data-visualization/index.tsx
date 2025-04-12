@@ -8,8 +8,7 @@ import { DashboardSummary } from './dashboard-summary';
 import { DashboardDetail } from './dashboard-detail';
 import { Disclaimer } from './disclaimer';
 import type { DateRange } from 'react-day-picker';
-import { Currency, DashboardProps } from '@/types';
-import { DEFAULT_FX_RATE } from '@/constants/keywords';
+import { Currency } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -57,8 +56,6 @@ const readFile = async (file: File) => {
 };
 
 export default function DataVisualization() {
-  const [currency, setCurrency] = useState<Currency>('krw');
-
   const [activeStep, setActiveStep] = useState(0);
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -237,10 +234,7 @@ export default function DataVisualization() {
         <div className="container mx-auto py-8 px-4 relative">
           <h1 className="text-3xl font-bold mb-8">자산 대시보드</h1>
 
-          <DashboardControls
-            currency={currency}
-            onCurrencyChange={setCurrency}
-          />
+          <DashboardControls />
 
           <div className="grid gap-8 dashboard-content">
             <Tabs defaultValue="summary" className="w-full">
@@ -250,11 +244,11 @@ export default function DataVisualization() {
               </TabsList>
 
               <TabsContent value="summary">
-                <DashboardSummary dateRange={dateRange} currency={currency} />
+                <DashboardSummary dateRange={dateRange} />
               </TabsContent>
 
               <TabsContent value="detail">
-                <DashboardDetail dateRange={dateRange} currency={currency} />
+                <DashboardDetail dateRange={dateRange} />
               </TabsContent>
             </Tabs>
 

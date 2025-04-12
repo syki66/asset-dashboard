@@ -28,19 +28,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
 import { Currency, DashboardProps } from '@/types';
-import { useAccountStore, useDashboardStore } from '@/store/account';
+import {
+  useAccountStore,
+  useCurrencyStore,
+  useDashboardStore,
+} from '@/store/account';
 
-interface DashboardControlsProps {
-  currency: Currency;
-  onCurrencyChange: (currency: Currency) => void;
-}
-
-export function DashboardControls({
-  currency,
-  onCurrencyChange,
-}: DashboardControlsProps) {
+export function DashboardControls() {
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const setDashboardData = useDashboardStore((state) => state.setDashboardData);
+  const { currency, setCurrency } = useCurrencyStore() as {
+    currency: Currency;
+    setCurrency: (currency: Currency) => void;
+  };
 
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -124,7 +124,7 @@ export function DashboardControls({
                         id="currency-mode"
                         checked={currency === 'usd'}
                         onCheckedChange={(checked) =>
-                          onCurrencyChange(checked ? 'usd' : 'krw')
+                          setCurrency(checked ? 'usd' : 'krw')
                         }
                       />
                       <Label

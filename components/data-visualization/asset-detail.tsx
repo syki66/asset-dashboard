@@ -7,13 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useCurrencyStore } from '@/store/account';
 import { Currency } from '@/types';
 
-interface AssetDetailProps {
-  currency: Currency;
-}
+export function AssetDetail() {
+  const currency = useCurrencyStore((state) => state.currency);
 
-export function AssetDetail({ currency }: AssetDetailProps) {
   // 실제 구현에서는 API나 상태 관리 라이브러리에서 데이터를 가져올 수 있습니다
   const assetData = {
     principal: 50000000,

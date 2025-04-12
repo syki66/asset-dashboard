@@ -15,13 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useCurrencyStore } from '@/store/account';
 import { Currency } from '@/types';
 
-interface StockHoldingsSummaryProps {
-  currency: Currency;
-}
+export function StockHoldingsSummary() {
+  const currency = useCurrencyStore((state) => state.currency);
 
-export function StockHoldingsSummary({ currency }: StockHoldingsSummaryProps) {
   // 실제 구현에서는 API나 상태 관리 라이브러리에서 데이터를 가져올 수 있습니다
   const stockData = [
     {

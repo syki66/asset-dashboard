@@ -25,6 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Currency } from '@/types';
+import { useCurrencyStore } from '@/store/account';
 
 interface Stock {
   id: string;
@@ -38,12 +39,9 @@ interface Stock {
   returnRate: number;
 }
 
-// 함수 선언부 업데이트
-interface StockHoldingsProps {
-  currency: Currency;
-}
+export function StockHoldings() {
+  const currency = useCurrencyStore((state) => state.currency);
 
-export function StockHoldings({ currency }: StockHoldingsProps) {
   // 실제 구현에서는 API나 상태 관리 라이브러리에서 데이터를 가져올 수 있습니다
   const stockData: Stock[] = [
     {
