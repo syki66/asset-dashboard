@@ -392,8 +392,9 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     )
     .slice(1); // 첫번째 빈 데이터 제거
 
-  // 데이터가 없으면 직전 데이터를 넣고, 같은 날짜가 여러번 반복되는 경우는 마지막 데이터만 넣기
+  // 데이터가 없으면 직전 데이터를 넣고, 같은 날짜가 여러번 반복되는 경우는 마지막 데이터만 넣고 환율은 해당 날짜 환율로 업데이트
   let prevData = accountData[0];
+  let prevFxRate = DEFAULT_FX_RATE;
   const filledAccountData = generateDateObjects(startDate, endDate).map(
     (date) => {
       const found = accountData.filter((item) => item.date === date.date);
@@ -404,6 +405,18 @@ export const createAccountData = async (transactions: transactionProps[]) => {
       // 가장 최근의 데이터 가져오기
       const dummyData = structuredClone(prevData);
       dummyData.date = date.date;
+
+      // 환율 업데이트 (데이터 사이에 빈 날짜가 있을 경우 환율도 그대로 복사되는데, 이때 환율을 업데이트)
+      const foundFxRate = fxRates.find(
+        (data: StockHistoryProps) => data.date === date.date
+      )?.close;
+      if (foundFxRate) {
+        dummyData.fxRate = foundFxRate;
+        prevFxRate = foundFxRate;
+      } else {
+        dummyData.fxRate = prevFxRate;
+      }
+
       return dummyData;
     }
   );
