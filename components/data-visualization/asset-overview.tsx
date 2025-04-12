@@ -5,6 +5,7 @@ import { DEFAULT_FX_RATE } from '@/constants/keywords';
 import { useDashboardStore } from '@/store/account';
 import { Currency, DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
+import { useEffect, useState } from 'react';
 
 const initialDashboardData: DashboardProps = {
   date: '1970-01-01',
@@ -33,11 +34,10 @@ interface AssetOverviewProps {
 }
 
 export function AssetOverview({ currency }: AssetOverviewProps) {
-  const dashboardData =
-    useDashboardStore((state) => state.dashboardData) ?? initialDashboardData;
-  const data = Object.keys(dashboardData).length
-    ? dashboardData
-    : initialDashboardData;
+  const totalDashboardData = useDashboardStore((state) => state.dashboardData);
+
+  const [dashboardData, setDashboardData] =
+    useState<DashboardProps>(initialDashboardData);
 
   // formatCurrency 함수 수정
   function formatCurrency(
@@ -60,61 +60,72 @@ export function AssetOverview({ currency }: AssetOverviewProps) {
     }
   }
 
+  useEffect(() => {
+    // 데이터가 존재하면 대시보드 데이터 업데이트
+    if (totalDashboardData && totalDashboardData.length > 0) {
+      setDashboardData(totalDashboardData.at(-1) as DashboardProps);
+    }
+  }, [totalDashboardData]);
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">자산 현황</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AssetCard
           title="날짜"
-          value={formatDateKr(data.date)}
-          description={`최근 업데이트: ${data.lastUpdated}`}
+          value={formatDateKr(dashboardData.date)}
+          description={`최근 업데이트: ${dashboardData.lastUpdated}`}
         />
         <AssetCard
           title="총 자산"
-          value={formatCurrency(data.currentValue)}
-          description={`원금: ${formatCurrency(data.principal)}`}
+          value={formatCurrency(dashboardData.currentValue)}
+          description={`원금: ${formatCurrency(dashboardData.principal)}`}
         />
         <AssetCard
           title="수익금"
-          value={`${formatCurrency(data.profit)} (${data.returnRate}%)`}
+          value={`${formatCurrency(dashboardData.profit)} (${
+            dashboardData.returnRate
+          }%)`}
           description={`지표 대비 초과수익 (세후): 000,000,000원`}
-          valueClassName={data.profit >= 0 ? 'text-red-600' : 'text-blue-600'}
+          valueClassName={
+            dashboardData.profit >= 0 ? 'text-red-600' : 'text-blue-600'
+          }
         />
         <AssetCard
           title="배당금 (최근 1년)"
-          value={formatCurrency(data.dividends)}
-          description={`배당률: ${data.dividendYield}% (원금대비: ${data.yieldOnCost}%)`}
+          value={formatCurrency(dashboardData.dividends)}
+          description={`배당률: ${dashboardData.dividendYield}% (원금대비: ${dashboardData.yieldOnCost}%)`}
           valueClassName={'text-yellow-600'}
         />
         <AssetCard
           title="환율"
-          value={data.fxRate.toLocaleString()}
+          value={dashboardData.fxRate.toLocaleString()}
           description="USD/KRW"
         />
         <AssetCard
-          title={`최대 손실 낙폭 (${data.maxDrawdownPeriod})`}
-          value={formatCurrency(data.maxDrawdown)}
+          title={`최대 손실 낙폭 (${dashboardData.maxDrawdownPeriod})`}
+          value={formatCurrency(dashboardData.maxDrawdown)}
           description={`하루 최대 낙폭: ${formatCurrency(
-            data.maxDailyDrawdown
-          )} (${data.maxDailyDrawdownDate})`}
+            dashboardData.maxDailyDrawdown
+          )} (${dashboardData.maxDailyDrawdownDate})`}
           valueClassName="text-blue-600"
           descClassName={'text-blue-600'}
         />
         <AssetCard
           title="세금 및 제비용"
-          value={formatCurrency(data.totalTaxFee, 'krw')}
+          value={formatCurrency(dashboardData.totalTaxFee, 'krw')}
           description={`세후 수익금: ${formatCurrency(
-            data.profit - data.totalTaxFee
+            dashboardData.profit - dashboardData.totalTaxFee
           )}`}
           valueClassName="text-red-600"
         />
         <AssetCard
           title="현금"
-          value={formatCurrency(data.cash)}
+          value={formatCurrency(dashboardData.cash)}
           description={`${formatCurrency(
-            data.usdCash,
+            dashboardData.usdCash,
             'usd'
-          )} + ${formatCurrency(data.krwCash, 'krw')}`}
+          )} + ${formatCurrency(dashboardData.krwCash, 'krw')}`}
           valueClassName="text-red-600"
         />
       </div>

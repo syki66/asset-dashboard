@@ -16,11 +16,11 @@ export const useAccountStore = create<AccountState>((set) => ({
 
 // 대시보드 데이터
 interface DashboardState {
-  dashboardData: {};
-  setDashboardData: (data: DashboardProps) => void;
+  dashboardData: DashboardProps[];
+  setDashboardData: (data: DashboardProps[]) => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
-  dashboardData: {},
+  dashboardData: [],
   setDashboardData: (data) => set({ dashboardData: data }),
 }));

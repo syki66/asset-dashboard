@@ -77,7 +77,7 @@ export function DashboardControls({
   // 계좌 데이터가 변경될 때마다 전역 상태관리로 데이터 전달
   useEffect(() => {
     const dashboardData = convertToDashboardData(mergedAccountData, currency);
-    setDashboardData(dashboardData.at(-1) as DashboardProps);
+    setDashboardData(dashboardData);
   }, [mergedAccountData, currency]);
 
   return (
