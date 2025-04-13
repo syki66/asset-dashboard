@@ -32,6 +32,7 @@ export const createShsecTransactions = (json: any[]) => {
   let _krwIpoDeposit: number = 0; // 공모주 청약 증거금 (원화)
   let _usdDeposit: number = 0; // USD 예수금
   let _usdRp: number = 0; // USD RP 잔고
+  let _usdRpPreTax = 0; // USD RP 이자 추적
 
   const transactions = json.map((item) => {
     // 새로운 데이터 객체 생성
@@ -49,6 +50,14 @@ export const createShsecTransactions = (json: any[]) => {
     // USD RP 계산은 이자를 포함한 금액이 출금되어서 실제 보다 적게 표시됨. 따라서 음수로 찍힐때마다 0으로 초기화해서 보정함.
     if (_usdRp < 0) {
       _usdRp = 0;
+    }
+
+    // USD RP 세전 이자 추적
+    if (
+      item['구분'] === '외화RP_재투자환매' ||
+      item['구분'] === '외화RP_매도'
+    ) {
+      _usdRpPreTax = Number(item['수량']);
     }
 
     // krw 예수금 값 업데이트
@@ -200,6 +209,14 @@ export const createShsecTransactions = (json: any[]) => {
         break;
       default:
         break;
+    }
+
+    // 외화 RP 이자 데이터 대입
+    if (item['구분'] === '외화RP매도입금') {
+      _itemData.type = 'dividend';
+      _itemData.currency = 'usd';
+      _itemData.quantity = 1;
+      _itemData.price = Number(item['거래대금']) - _usdRpPreTax;
     }
 
     // 타사대체입고 데이터는 buy, deposit 두 곳에 추가
