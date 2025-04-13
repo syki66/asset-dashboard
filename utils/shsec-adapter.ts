@@ -61,9 +61,12 @@ export const createShsecTransactions = (json: any[]) => {
       item['구분'] === '외화RP_재투자환매' ||
       item['구분'] === '외화RP_매수' ||
       item['구분'] === '외화RP_매도' ||
-      item['구분'] === '외화RP원천징수' ||
-      item['구분'] === '환전입금'
+      item['구분'] === '외화RP원천징수'
     ) {
+      _krwDeposit = Number(item['최종금액']);
+    }
+
+    if (item['종목번호'] === 'KRW') {
       _krwDeposit = Number(item['최종금액']);
     }
 
@@ -97,9 +100,12 @@ export const createShsecTransactions = (json: any[]) => {
       item['구분'] === '외화RP매도입금' ||
       item['구분'] === '해외증권_해외주식매수' ||
       item['구분'] === '해외증권_해외주식매도' ||
-      item['구분'] === '환전출금' ||
       item['구분'] === '외국납부세액'
     ) {
+      _usdDeposit = Number(item['최종금액']);
+    }
+
+    if (item['종목번호'] === 'USD') {
       _usdDeposit = Number(item['최종금액']);
     }
 
