@@ -85,12 +85,12 @@ export const createShsecTransactions = (json: any[]) => {
     }
 
     // USD_RP 잔고 업데이트
-    if (item['구분'] === '외화RP매수출금') {
-      _usdRp += Number(item['거래대금']); // USD RP 잔고 업데이트
+    if (item['구분'] === '외화RP_매수') {
+      _usdRp += Number(item['수량']); // USD RP 잔고 업데이트
       _usdRp = Number(_usdRp.toFixed(2));
     }
-    if (item['구분'] === '외화RP매도입금') {
-      _usdRp -= Number(item['거래대금']); // USD RP 잔고 업데이트
+    if (item['구분'] === '외화RP_매도') {
+      _usdRp -= Number(item['수량']); // USD RP 잔고 업데이트
       _usdRp = Number(_usdRp.toFixed(2));
     }
 
