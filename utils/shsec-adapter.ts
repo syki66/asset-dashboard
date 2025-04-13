@@ -47,11 +47,6 @@ export const createShsecTransactions = (json: any[]) => {
       usdCash: 0,
     };
 
-    // USD RP 계산은 이자를 포함한 금액이 출금되어서 실제 보다 적게 표시됨. 따라서 음수로 찍힐때마다 0으로 초기화해서 보정함.
-    if (_usdRp < 0) {
-      _usdRp = 0;
-    }
-
     // USD RP 세전 이자 추적
     if (
       item['구분'] === '외화RP_재투자환매' ||
@@ -166,6 +161,7 @@ export const createShsecTransactions = (json: any[]) => {
       '배당금',
       '증금예금_증금예금상환',
       'RP_매도',
+      'RP_재투자환매',
     ].some((keyword) => item['구분'] === keyword);
 
     // 공통 데이터
@@ -211,6 +207,8 @@ export const createShsecTransactions = (json: any[]) => {
         _itemData.price =
           item['구분'] === '배당금' || item['구분'] === '해외배당금'
             ? Number(item['거래대금'])
+            : item['구분'] === 'RP_재투자환매'
+            ? Number(item['거래대금'] - item['수량'])
             : Number(item['세전이자']);
         break;
       default:
