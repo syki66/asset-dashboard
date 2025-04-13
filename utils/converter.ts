@@ -325,7 +325,7 @@ export const createAccountData = async (
                 balance: Array(transaction.quantity).fill({
                   date: transaction.date,
                   price: transaction.price,
-                  fxRate: currentFxRate,
+                  fxRate: account.fxRate,
                 }),
                 price: transaction.price, // 기본값으로 매수 가격 넣기
               });
@@ -335,7 +335,7 @@ export const createAccountData = async (
                 stockToBuy.balance.push({
                   date: transaction.date,
                   price: transaction.price,
-                  fxRate: currentFxRate,
+                  fxRate: account.fxRate,
                 });
               }
             }
@@ -366,7 +366,7 @@ export const createAccountData = async (
               account[currency].dividends.push({
                 date: transaction.date,
                 price: transaction.price,
-                fxRate: currentFxRate,
+                fxRate: account.fxRate,
               });
             } else {
               foundDividend.price += transaction.price;
