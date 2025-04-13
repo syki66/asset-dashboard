@@ -267,9 +267,14 @@ export const createAccountData = async (
     endDate = today;
   }
 
+  // 시작 날짜 기준으로 transactions 자르기
+  const filteredTransactions = transactions.filter(
+    (transaction) => new Date(transaction.date) >= new Date(startDate)
+  );
+
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
   const stockCodes = [
-    ...new Set(transactions.map((transaction) => transaction.ISIN)),
+    ...new Set(filteredTransactions.map((transaction) => transaction.ISIN)),
   ].filter((code) => code !== '');
 
   const { stockData } = await getStockInfo(startDate, today, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
@@ -277,7 +282,7 @@ export const createAccountData = async (
     (stock) => stock.code === USD_KRW_SYMBOL
   )?.prices;
 
-  const accountData = transactions
+  const accountData = filteredTransactions
     .reduce(
       (acc, transaction) => {
         const account = structuredClone(acc[acc.length - 1]); // 직전 데이터 복사
