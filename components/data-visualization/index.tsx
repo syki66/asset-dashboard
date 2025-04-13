@@ -79,7 +79,11 @@ export default function DataVisualization() {
           const fileContent = await readFile(file); // 파일 내용 읽기
           const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
-          const accountData = await createAccountData(transactions); // 거래내역을 날짜별 계좌정보로 변환
+          const accountData = await createAccountData(
+            transactions,
+            dateRange?.from?.toISOString() || '',
+            dateRange?.to?.toISOString() || ''
+          ); // 거래내역을 날짜별 계좌정보로 변환
           return { name: file.name, accountData };
         })
       );

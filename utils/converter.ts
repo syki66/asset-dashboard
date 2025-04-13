@@ -250,19 +250,29 @@ const updateStockPrice = (
 };
 
 // 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
-export const createAccountData = async (transactions: transactionProps[]) => {
-  // api 호출용 날짜 범위 추출
-  const startDate = transactions[0]?.date;
+export const createAccountData = async (
+  transactions: transactionProps[],
+  startDate: string,
+  endDate: string
+) => {
   // 계좌 병합 시 계좌들의 날짜값들이 안 맞으면 값이 틀어짐. 병합할때 부족분을 더미로 넣는다면 환율과 주가정보 등 최신정보 반영이 불가능함. 따라서 여기서 당일 날짜로 받고 endDate를 줄이고 싶다면 데이터를 잘라서 쓰는게 맞을듯
-  const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000));
+  const today = timestampToDate(Math.floor(new Date().getTime() / 1000));
   const lastUpdated = transactions[transactions.length - 1]?.date; // 최근 업데이트 날짜
+
+  // 시작 날짜와 종료 날짜가 없으면 첫 거래의 날짜와 오늘 날짜로 설정
+  if (!startDate) {
+    startDate = transactions[0]?.date;
+  }
+  if (!endDate) {
+    endDate = today;
+  }
 
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
   const stockCodes = [
     ...new Set(transactions.map((transaction) => transaction.ISIN)),
   ].filter((code) => code !== '');
 
-  const { stockData } = await getStockInfo(startDate, endDate, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
+  const { stockData } = await getStockInfo(startDate, today, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
   const fxRates = stockData.find(
     (stock) => stock.code === USD_KRW_SYMBOL
   )?.prices;
@@ -421,7 +431,7 @@ export const createAccountData = async (transactions: transactionProps[]) => {
     }
   );
 
-  // 날짜별 현재가 및 MDD 업데이트
+  // 날짜별 주식 현재가 및 MDD를 위한 주식 수익값 업데이트
   const updatedAccountData = filledAccountData.map((data) => {
     // usd와 krw 두 통화를 한 번에 처리합니다.
     (['usd', 'krw'] as const).forEach((currency) => {

@@ -76,6 +76,15 @@ export default function DateStep({
           >
             최근 1년
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              onDateRangeChange(undefined);
+            }}
+          >
+            전체 기간
+          </Button>
         </div>
 
         <div className="mt-4">

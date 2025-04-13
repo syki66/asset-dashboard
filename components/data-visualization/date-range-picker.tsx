@@ -47,7 +47,7 @@ export function DateRangePicker({
                 format(dateRange.from, 'yyyy년 MM월 dd일', { locale: ko })
               )
             ) : (
-              <span>날짜 범위 선택</span>
+              <span>전체 기간</span>
             )}
           </Button>
         </PopoverTrigger>
