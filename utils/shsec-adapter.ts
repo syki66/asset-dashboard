@@ -70,7 +70,10 @@ export const createShsecTransactions = (json: any[]) => {
       _krwDeposit = Number(item['최종금액']);
     }
 
-    if (item['종목번호'] === 'KRW') {
+    if (
+      item['종목번호'] === 'KRW' &&
+      (item['구분'] === '환전입금' || item['구분'] === '환전출금')
+    ) {
       _krwDeposit = Number(item['최종금액']);
     }
 
@@ -115,7 +118,13 @@ export const createShsecTransactions = (json: any[]) => {
       _usdDeposit = Number(item['최종금액']);
     }
 
-    if (item['종목번호'] === 'USD') {
+    if (
+      item['종목번호'] === 'USD' &&
+      (item['구분'] === '환전입금' ||
+        item['구분'] === '환전출금' ||
+        item['구분'] === '해외배당금' ||
+        item['구분'] === '은행이체외화입금')
+    ) {
       _usdDeposit = Number(item['최종금액']);
     }
 

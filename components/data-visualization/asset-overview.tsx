@@ -3,9 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DEFAULT_FX_RATE } from '@/constants/keywords';
 import { useCurrencyStore, useDashboardStore } from '@/store/account';
-import { Currency, DashboardProps } from '@/types';
+import { DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
-import { useEffect, useState } from 'react';
 
 const initialDashboardData: DashboardProps = {
   date: '1970-01-01',
