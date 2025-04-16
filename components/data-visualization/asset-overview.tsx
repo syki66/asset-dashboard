@@ -6,6 +6,7 @@ import { useCurrencyStore, useDashboardStore } from '@/store/account';
 import { DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
 import AssetChart from './asset-charts';
+import DividendChart from './dividend-chart';
 
 const initialDashboardData: DashboardProps = {
   date: '1970-01-01',
@@ -39,6 +40,12 @@ const initialDashboardData: DashboardProps = {
     },
   ],
   profitChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
+  dividendHistoryChartData: [
     {
       date: '1970-01-01',
       value: 0,
@@ -158,6 +165,23 @@ export function AssetOverview() {
           title="자산 포트폴리오 차트"
           description="자산 클래스별 포트폴리오 변화 추이"
         />
+      </div>
+      <div className="mt-8">
+        <AssetChart
+          series={[
+            {
+              id: 'cash',
+              name: '현금',
+              color: '#F44336',
+              data: data.currentValueChartData,
+            },
+          ]}
+          title="현금 포트폴리오 차트"
+          description="자산 클래스별 포트폴리오 변화 추이"
+        />
+      </div>
+      <div className="mt-8">
+        <DividendChart dividendData={data.dividendHistoryChartData} />
       </div>
     </div>
   );

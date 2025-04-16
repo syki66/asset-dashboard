@@ -95,7 +95,11 @@ type TimeFilter =
   | '10y'
   | 'all';
 
-export default function DividendChart() {
+interface DividendChartProps {
+  dividendData: Array<{ date: string; value: number }>;
+}
+
+export default function DividendChart({ dividendData }: DividendChartProps) {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('1y');
 
   const filteredData = useMemo(() => {

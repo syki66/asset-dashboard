@@ -39,6 +39,7 @@ export const convertToDashboardData = (
   const principalChartData: ChartProps[] = [];
   const currentValueChartData: ChartProps[] = [];
   const profitChartData: ChartProps[] = [];
+  let dividendHistoryChartData: ChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -175,6 +176,30 @@ export const convertToDashboardData = (
       value: profit,
     });
 
+    // 배당금 기록 차트 데이터
+    const krwDividends = account.usd.dividends.map((dividend) => {
+      return {
+        date: dividend.date,
+        value:
+          currency === 'usd'
+            ? Math.round(dividend.price)
+            : Math.round(dividend.price * dividend.fxRate),
+      };
+    });
+
+    const usdDividends = account.krw.dividends.map((dividend) => {
+      return {
+        date: dividend.date,
+        value:
+          currency === 'usd'
+            ? Math.round(dividend.price / dividend.fxRate)
+            : Math.round(dividend.price),
+      };
+    });
+
+    dividendHistoryChartData = [...krwDividends, ...usdDividends];
+    dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
+
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
     const stocksProfit =
       currency === 'usd'
@@ -226,6 +251,7 @@ export const convertToDashboardData = (
       principalChartData,
       currentValueChartData,
       profitChartData,
+      dividendHistoryChartData,
     };
   });
 

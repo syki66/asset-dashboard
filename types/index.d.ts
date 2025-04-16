@@ -81,4 +81,5 @@ export type DashboardProps = {
   principalChartData: ChartProps[];
   currentValueChartData: ChartProps[];
   profitChartData: ChartProps[];
+  dividendHistoryChartData: ChartProps[];
 };
