@@ -3,10 +3,10 @@
 import type { DateRange } from 'react-day-picker';
 import { AssetOverview } from '@/components/data-visualization/asset-overview';
 
-import { DividendChart } from '@/components/data-visualization/dividend-chart';
 import { StockHoldingsSummary } from '@/components/data-visualization/stock-holdings-summary';
 import { Currency, DashboardProps } from '@/types';
 import AssetChart from './asset-charts';
+import DividendChart from './dividend-chart';
 
 interface DashboardSummaryProps {
   dateRange: DateRange | undefined;
@@ -18,7 +18,7 @@ export function DashboardSummary({ dateRange }: DashboardSummaryProps) {
       <AssetOverview />
 
       <div className="grid gap-6">
-        <DividendChart dateRange={dateRange} />
+        <DividendChart />
       </div>
 
       <StockHoldingsSummary />

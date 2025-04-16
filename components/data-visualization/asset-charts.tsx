@@ -646,7 +646,7 @@ export default function AssetChart({
           )}
         </div>
 
-        <div className="h-[500px]">
+        <div className="h-[600px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}

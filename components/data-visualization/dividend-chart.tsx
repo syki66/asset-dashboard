@@ -1,7 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import type { DateRange } from 'react-day-picker';
+import { useState, useMemo } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  format,
+  subMonths,
+  subYears,
+  isAfter,
+  parseISO,
+  getYear,
+  getMonth,
+  getQuarter,
+} from 'date-fns';
+import { ko } from 'date-fns/locale';
+
 import {
   Card,
   CardContent,
@@ -10,220 +30,383 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import { cn } from '@/lib/utils';
-import { Currency } from '@/types';
-import { useCurrencyStore } from '@/store/account';
+import { ChartContainer } from '@/components/ui/chart';
 
-// 배당금 데이터 (샘플) - 월별, 분기별, 연도별 데이터 추가
-const dividendData = {
-  monthly: [
-    { period: '2023-01', dividend: 0 },
-    { period: '2023-02', dividend: 120000 },
-    { period: '2023-03', dividend: 0 },
-    { period: '2023-04', dividend: 180000 },
-    { period: '2023-05', dividend: 0 },
-    { period: '2023-06', dividend: 0 },
-    { period: '2023-07', dividend: 250000 },
-    { period: '2023-08', dividend: 0 },
-    { period: '2023-09', dividend: 0 },
-    { period: '2023-10', dividend: 350000 },
-    { period: '2023-11', dividend: 0 },
-    { period: '2023-12', dividend: 300000 },
-  ],
-  quarterly: [
-    { period: '2023-Q1', dividend: 120000 },
-    { period: '2023-Q2', dividend: 180000 },
-    { period: '2023-Q3', dividend: 250000 },
-    { period: '2023-Q4', dividend: 650000 },
-  ],
-  yearly: [
-    { period: '2019', dividend: 450000 },
-    { period: '2020', dividend: 580000 },
-    { period: '2021', dividend: 720000 },
-    { period: '2022', dividend: 950000 },
-    { period: '2023', dividend: 1200000 },
-  ],
+// Generate more frequent dummy dividend data spanning 10 years
+const generateDummyData = () => {
+  const data = [];
+  const now = new Date();
+  const startDate = subYears(now, 10);
+
+  // Generate monthly dividends with some randomness
+  const currentDate = new Date(startDate);
+  while (isAfter(now, currentDate)) {
+    // Add some randomness to make the data more realistic
+    const month = currentDate.getMonth();
+    const year = currentDate.getFullYear();
+
+    // Monthly dividends with varying amounts
+    const baseValue = Math.floor(Math.random() * 800) + 200;
+
+    // Add some yearly trends - increasing over time
+    const yearsSinceStart = year - startDate.getFullYear();
+    const growthFactor = 1 + yearsSinceStart * 0.15;
+
+    // Add seasonal variations
+    const seasonalFactor = 1 + (month % 12) * 0.02;
+
+    // Add some randomness for realistic data
+    const randomFactor = 0.8 + Math.random() * 0.4;
+
+    const value = Math.floor(
+      baseValue * growthFactor * seasonalFactor * randomFactor
+    );
+
+    data.push({
+      date: format(currentDate, 'yyyy-MM-dd'),
+      value: value,
+    });
+
+    // Move to next month
+    currentDate.setMonth(currentDate.getMonth() + 1);
+  }
+
+  // Add the example data
+  data.push({ date: '2024-03-22', value: 5800 });
+  data.push({ date: '2024-04-11', value: 430 });
+
+  // Sort by date
+  return data.sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 };
 
-interface DividendChartProps {
-  dateRange: DateRange | undefined;
-  className?: string;
-}
+const dividendData = generateDummyData();
 
-export function DividendChart({ dateRange, className }: DividendChartProps) {
-  const currency = useCurrencyStore((state) => state.currency);
+type TimeFilter =
+  | '1m'
+  | '3m'
+  | '6m'
+  | '9m'
+  | '1y'
+  | '2y'
+  | '3y'
+  | '5y'
+  | '10y'
+  | 'all';
 
-  const [dividendTimeRange, setDividendTimeRange] =
-    useState<keyof typeof dividendData>('monthly');
+export default function DividendChart() {
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('1y');
 
-  const formatCurrency = (value: number) => {
-    if (currency === 'usd') {
-      // KRW에서 USD로 변환 (1350 KRW = 1 USD 가정)
-      const usdValue = value / 1350;
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        maximumFractionDigits: 0,
-      }).format(usdValue);
-    } else {
-      return new Intl.NumberFormat('ko-KR', {
-        style: 'currency',
-        currency: 'KRW',
-        maximumFractionDigits: 0,
-      }).format(value);
+  const filteredData = useMemo(() => {
+    const now = new Date();
+    let filterDate = now;
+
+    switch (timeFilter) {
+      case '1m':
+        filterDate = subMonths(now, 1);
+        break;
+      case '3m':
+        filterDate = subMonths(now, 3);
+        break;
+      case '6m':
+        filterDate = subMonths(now, 6);
+        break;
+      case '9m':
+        filterDate = subMonths(now, 9);
+        break;
+      case '1y':
+        filterDate = subYears(now, 1);
+        break;
+      case '2y':
+        filterDate = subYears(now, 2);
+        break;
+      case '3y':
+        filterDate = subYears(now, 3);
+        break;
+      case '5y':
+        filterDate = subYears(now, 5);
+        break;
+      case '10y':
+        filterDate = subYears(now, 10);
+        break;
+      case 'all':
+      default:
+        filterDate = new Date(0); // Beginning of time
     }
-  };
 
-  const chartConfig = {
-    dividend: {
-      label: '배당금',
-      color: 'hsl(var(--chart-2))',
-    },
+    return dividendData.filter((item) =>
+      isAfter(parseISO(item.date), filterDate)
+    );
+  }, [timeFilter]);
+
+  // Aggregate data based on time filter
+  const aggregatedData = useMemo(() => {
+    if (!filteredData.length) return [];
+
+    const aggregateByPeriod = (data, periodFn, formatFn) => {
+      const aggregated = {};
+
+      data.forEach((item) => {
+        const date = parseISO(item.date);
+        const periodKey = periodFn(date);
+
+        if (!aggregated[periodKey]) {
+          aggregated[periodKey] = {
+            periodKey,
+            displayLabel: formatFn(date),
+            totalValue: 0,
+            count: 0,
+            items: [],
+          };
+        }
+
+        aggregated[periodKey].totalValue += item.value;
+        aggregated[periodKey].count += 1;
+        aggregated[periodKey].items.push(item);
+      });
+
+      return Object.values(aggregated);
+    };
+
+    // Different aggregation strategies based on time filter
+    switch (timeFilter) {
+      case '1m':
+      case '3m':
+        // Show individual dividends for short periods
+        return filteredData.map((item) => ({
+          periodKey: item.date,
+          displayLabel: format(parseISO(item.date), 'MM월 dd일', {
+            locale: ko,
+          }),
+          totalValue: item.value,
+          count: 1,
+          items: [item],
+        }));
+
+      case '6m':
+      case '9m':
+        // Aggregate by month for medium-short periods
+        return aggregateByPeriod(
+          filteredData,
+          (date) => `${getYear(date)}-${getMonth(date)}`,
+          (date) => format(date, 'yyyy년 MM월', { locale: ko })
+        );
+
+      case '1y':
+        // Aggregate by month for 1 year
+        return aggregateByPeriod(
+          filteredData,
+          (date) => `${getYear(date)}-${getMonth(date)}`,
+          (date) => format(date, 'yyyy년 MM월', { locale: ko })
+        );
+
+      case '2y':
+      case '3y':
+        // Aggregate by quarter for 2-3 years
+        return aggregateByPeriod(
+          filteredData,
+          (date) => `${getYear(date)}-Q${getQuarter(date)}`,
+          (date) => `${getYear(date)}년 ${getQuarter(date)}분기`
+        );
+
+      case '5y':
+        // Aggregate by half-year for 5 years
+        return aggregateByPeriod(
+          filteredData,
+          (date) => `${getYear(date)}-${Math.floor(getMonth(date) / 6) + 1}`,
+          (date) =>
+            `${getYear(date)}년 ${Math.floor(getMonth(date) / 6) + 1}반기`
+        );
+
+      case '10y':
+      case 'all':
+        // Aggregate by year for 10 years or all
+        return aggregateByPeriod(
+          filteredData,
+          (date) => getYear(date),
+          (date) => `${getYear(date)}년`
+        );
+
+      default:
+        return filteredData;
+    }
+  }, [filteredData, timeFilter]);
+
+  const summaryData = useMemo(() => {
+    const total = filteredData.reduce((sum, item) => sum + item.value, 0);
+    const average =
+      filteredData.length > 0 ? Math.round(total / filteredData.length) : 0;
+
+    return {
+      total: total.toLocaleString(),
+      average: average.toLocaleString(),
+      count: filteredData.length,
+    };
+  }, [filteredData]);
+
+  const formatTooltipValue = (value: number) => {
+    return `${value.toLocaleString()}원`;
   };
 
   return (
-    <Card className={cn(className)}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>배당금 내역</CardTitle>
-          <CardDescription>
-            {dividendTimeRange === 'monthly'
-              ? '월별'
-              : dividendTimeRange === 'quarterly'
-              ? '분기별'
-              : '연도별'}{' '}
-            배당금 수령 내역
-          </CardDescription>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-red-600">
-            총 배당금:{' '}
-            {formatCurrency(
-              dividendData[dividendTimeRange].reduce(
-                (sum, item) => sum + item.dividend,
-                0
-              )
-            )}
-          </span>
-        </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>배당금 내역</CardTitle>
+        <CardDescription>기간별 배당금 내역을 확인하세요</CardDescription>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent>
         <Tabs
-          value={dividendTimeRange}
-          onValueChange={(v) =>
-            setDividendTimeRange(v as keyof typeof dividendData)
-          }
-          className="mb-4"
+          defaultValue="1y"
+          value={timeFilter}
+          onValueChange={(value) => setTimeFilter(value as TimeFilter)}
         >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="monthly">월별</TabsTrigger>
-            <TabsTrigger value="quarterly">분기별</TabsTrigger>
-            <TabsTrigger value="yearly">연도별</TabsTrigger>
+          <TabsList className="grid grid-cols-5 md:grid-cols-10 mb-4">
+            <TabsTrigger value="1m">1달</TabsTrigger>
+            <TabsTrigger value="3m">3개월</TabsTrigger>
+            <TabsTrigger value="6m">6개월</TabsTrigger>
+            <TabsTrigger value="9m">9개월</TabsTrigger>
+            <TabsTrigger value="1y">1년</TabsTrigger>
+            <TabsTrigger value="2y">2년</TabsTrigger>
+            <TabsTrigger value="3y">3년</TabsTrigger>
+            <TabsTrigger value="5y">5년</TabsTrigger>
+            <TabsTrigger value="10y">10년</TabsTrigger>
+            <TabsTrigger value="all">전체</TabsTrigger>
           </TabsList>
-        </Tabs>
 
-        <div className="h-[350px]">
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            <BarChart
-              data={dividendData[dividendTimeRange]}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              width={1000}
-              height={350}
-            >
-              <XAxis
-                dataKey="period"
-                tickFormatter={(period) => {
-                  if (dividendTimeRange === 'monthly') {
-                    const date = new Date(period);
-                    return `${date.getMonth() + 1}월`;
-                  } else if (dividendTimeRange === 'quarterly') {
-                    return period.replace('Q', '분기');
-                  } else {
-                    return period;
-                  }
-                }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={(value) => {
-                  if (currency === 'usd') {
-                    return `$${(value / 1350 / 1000).toFixed(0)}K`;
-                  }
-                  return `${(value / 10000).toFixed(0)}만`;
-                }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <Bar
-                dataKey="dividend"
-                fill="var(--color-dividend)"
-                radius={[4, 4, 0, 0]}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(value, name) => (
-                      <div className="flex min-w-[100px] items-center text-xs text-muted-foreground">
-                        {chartConfig[name as keyof typeof chartConfig]?.label ||
-                          name}
-                        <div className="ml-auto font-medium tabular-nums text-foreground">
-                          {formatCurrency(value as number)}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card>
+              <CardHeader className="py-2">
+                <CardTitle className="text-sm text-muted-foreground">
+                  총 배당금
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{summaryData.total}원</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="py-2">
+                <CardTitle className="text-sm text-muted-foreground">
+                  평균 배당금
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{summaryData.average}원</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="py-2">
+                <CardTitle className="text-sm text-muted-foreground">
+                  배당 횟수
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{summaryData.count}회</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <ChartContainer
+            config={{
+              dividend: {
+                label: '배당금',
+                color: 'hsl(var(--chart-1))',
+              },
+            }}
+            className="h-[400px]"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={aggregatedData.map((item) => ({
+                  periodKey: item.periodKey,
+                  displayLabel: item.displayLabel,
+                  dividend: item.totalValue,
+                  count: item.count,
+                  items: item.items,
+                }))}
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="displayLabel"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  tickMargin={10}
+                />
+                <YAxis
+                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                  width={50}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      const totalValue = data.dividend;
+                      const count = data.count;
+                      const label = data.displayLabel;
+
+                      return (
+                        <div className="rounded-lg border bg-background p-2 shadow-sm">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">{label}</span>
+                            <span className="font-bold">
+                              {formatTooltipValue(totalValue)}
+                            </span>
+                            {count > 1 && (
+                              <span className="text-xs text-muted-foreground">
+                                {count}회 배당 합계
+                              </span>
+                            )}
+                            {data.items &&
+                              data.items.length > 1 &&
+                              timeFilter !== '1m' &&
+                              timeFilter !== '3m' && (
+                                <div className="mt-1 pt-1 border-t text-xs">
+                                  <div className="font-medium mb-1">
+                                    상세 내역:
+                                  </div>
+                                  {data.items.slice(0, 5).map((item, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex justify-between"
+                                    >
+                                      <span>
+                                        {format(
+                                          parseISO(item.date),
+                                          'yyyy-MM-dd'
+                                        )}
+                                      </span>
+                                      <span>
+                                        {item.value.toLocaleString()}원
+                                      </span>
+                                    </div>
+                                  ))}
+                                  {data.items.length > 5 && (
+                                    <div className="text-center text-muted-foreground mt-1">
+                                      외 {data.items.length - 5}건
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  />
-                }
-              />
-            </BarChart>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="dividend"
+                  fill="var(--color-dividend)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={60}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </ChartContainer>
-        </div>
-        <div className="mt-4 text-sm text-muted-foreground">
-          <div className="flex justify-between">
-            <span>
-              {dividendTimeRange === 'monthly'
-                ? '연간'
-                : dividendTimeRange === 'quarterly'
-                ? '연간'
-                : '5년간'}{' '}
-              총 배당금:
-            </span>
-            <span className="font-medium text-red-600">
-              {formatCurrency(
-                dividendData[dividendTimeRange].reduce(
-                  (sum, item) => sum + item.dividend,
-                  0
-                )
-              )}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>
-              평균{' '}
-              {dividendTimeRange === 'monthly'
-                ? '월'
-                : dividendTimeRange === 'quarterly'
-                ? '분기'
-                : '연간'}{' '}
-              배당금:
-            </span>
-            <span className="font-medium">
-              {formatCurrency(
-                dividendData[dividendTimeRange].reduce(
-                  (sum, item) => sum + item.dividend,
-                  0
-                ) / dividendData[dividendTimeRange].length
-              )}
-            </span>
-          </div>
-        </div>
+        </Tabs>
       </CardContent>
     </Card>
   );
