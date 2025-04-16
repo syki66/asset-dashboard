@@ -98,7 +98,7 @@ export default function AssetChart({
   const [adjustForInflation, setAdjustForInflation] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
   const [activeSeries, setActiveSeries] = useState<string[]>([]);
-  const [showTotal, setShowTotal] = useState(true);
+  const [showTotal, setShowTotal] = useState(false); // 총합 표시 비활성화
 
   // 시리즈에 색상 할당
   const seriesWithColors = series.map((s, index) => ({
@@ -613,7 +613,7 @@ export default function AssetChart({
           {/* 시리즈 선택 체크박스 */}
           {seriesWithColors.length > 0 && (
             <div className="flex flex-wrap gap-4">
-              {seriesWithColors.length > 1 && (
+              {/* {seriesWithColors.length > 1 && (
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="total"
@@ -624,7 +624,7 @@ export default function AssetChart({
                     총합
                   </Label>
                 </div>
-              )}
+              )} */}
 
               {seriesWithColors.map((series) => (
                 <div key={series.id} className="flex items-center space-x-2">
@@ -646,7 +646,7 @@ export default function AssetChart({
           )}
         </div>
 
-        <div className="h-[300px]">
+        <div className="h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}

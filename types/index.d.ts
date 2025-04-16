@@ -80,4 +80,5 @@ export type DashboardProps = {
   maxDailyDrawdownDate: string;
   principalChartData: ChartProps[];
   currentValueChartData: ChartProps[];
+  profitChartData: ChartProps[];
 };

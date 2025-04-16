@@ -38,6 +38,12 @@ const initialDashboardData: DashboardProps = {
       value: 0,
     },
   ],
+  profitChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
 };
 
 export function AssetOverview() {
@@ -141,6 +147,12 @@ export function AssetOverview() {
               name: '평가금',
               color: '#F44336',
               data: data.currentValueChartData,
+            },
+            {
+              id: 'profit',
+              name: '수익금',
+              color: '#4CAF50',
+              data: data.profitChartData,
             },
           ]}
           title="자산 포트폴리오 차트"

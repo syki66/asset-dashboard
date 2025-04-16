@@ -38,6 +38,7 @@ export const convertToDashboardData = (
   // 자산 증감 내역 차트용 데이터
   const principalChartData: ChartProps[] = [];
   const currentValueChartData: ChartProps[] = [];
+  const profitChartData: ChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -156,14 +157,22 @@ export const convertToDashboardData = (
     const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
 
     // 자산 차트용 데이터 가공
+    // 원금 차트
     principalChartData.push({
       date: account.date,
       value: principal,
     });
 
+    // 평가금 차트
     currentValueChartData.push({
       date: account.date,
       value: currentValue,
+    });
+
+    // 수익금 차트
+    profitChartData.push({
+      date: account.date,
+      value: profit,
     });
 
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
@@ -216,6 +225,7 @@ export const convertToDashboardData = (
       maxDailyDrawdownDate,
       principalChartData,
       currentValueChartData,
+      profitChartData,
     };
   });
 
