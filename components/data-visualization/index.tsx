@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardControls } from './dashboard-controls';
 import { DashboardSummary } from './dashboard-summary';
-import { DashboardDetail } from './dashboard-detail';
 import { Disclaimer } from './disclaimer';
 import type { DateRange } from 'react-day-picker';
-import { Currency } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -219,20 +216,6 @@ export default function DataVisualization() {
           </Button>
         </CardFooter>
       </Card>
-      {/* <MainChart
-        chartData={chartData}
-        chartConfig={{
-          evaluationAmount: {
-            label: '평가금액',
-            color: 'hsl(var(--chart-1))',
-          },
-          principalAmount: {
-            label: '원금',
-            color: 'hsl(var(--chart-2))',
-          },
-        }}
-      /> */}
-      {/* <AccountInfo accountData={mergedAccountData} /> */}
 
       <>
         <div className="container mx-auto py-8 px-4 relative">
@@ -240,21 +223,8 @@ export default function DataVisualization() {
 
           <DashboardControls />
 
-          <div className="grid gap-8 dashboard-content">
-            <Tabs defaultValue="summary" className="w-full">
-              <TabsList className="w-full max-w-md grid grid-cols-2 mb-6">
-                <TabsTrigger value="summary">요약</TabsTrigger>
-                <TabsTrigger value="detail">상세</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="summary">
-                <DashboardSummary dateRange={dateRange} />
-              </TabsContent>
-
-              <TabsContent value="detail">
-                <DashboardDetail dateRange={dateRange} />
-              </TabsContent>
-            </Tabs>
+          <div className="grid gap-8">
+            <DashboardSummary dateRange={dateRange} />
 
             <Disclaimer />
           </div>

@@ -6,6 +6,7 @@ import {
   StockHistoryProps,
   transactionProps,
   DashboardProps,
+  ChartProps,
 } from '@/types';
 import {
   dateToTimestamp,
@@ -34,6 +35,10 @@ export const convertToDashboardData = (
   accountData: AccountProps[],
   currency: Currency
 ): DashboardProps[] => {
+  // 자산 증감 내역 차트용 데이터
+  const principalChartData: ChartProps[] = [];
+  const currentValueChartData: ChartProps[] = [];
+
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
   let peakValue = 0; // 평가자산 최고점
@@ -150,6 +155,17 @@ export const convertToDashboardData = (
     // 평가금대비배당률
     const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
 
+    // 자산 차트용 데이터 가공
+    principalChartData.push({
+      date: account.date,
+      value: principal,
+    });
+
+    currentValueChartData.push({
+      date: account.date,
+      value: currentValue,
+    });
+
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
     const stocksProfit =
       currency === 'usd'
@@ -198,6 +214,8 @@ export const convertToDashboardData = (
       maxDrawdownPeriod,
       maxDailyDrawdown,
       maxDailyDrawdownDate,
+      principalChartData,
+      currentValueChartData,
     };
   });
 

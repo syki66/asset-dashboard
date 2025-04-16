@@ -18,7 +18,6 @@ export function DashboardSummary({ dateRange }: DashboardSummaryProps) {
       <AssetOverview />
 
       <div className="grid gap-6">
-        <AssetChart />
         <DividendChart dateRange={dateRange} />
       </div>
 

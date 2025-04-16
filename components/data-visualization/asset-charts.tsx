@@ -118,7 +118,7 @@ const inflationRates = {
   2024: 2.8, // 예상치
 };
 
-export default function AssetChart() {
+export default function AssetChart({ chartData }: { chartData: any }) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
@@ -142,7 +142,7 @@ export default function AssetChart() {
   };
 
   // 데이터 처리
-  const processedData = rawAssetData.map((item) => {
+  const processedData = chartData.map((item) => {
     const adjustedValue = adjustForInflation
       ? adjustValueForInflation(item.value, item.date)
       : item.value;

@@ -5,6 +5,7 @@ import { DEFAULT_FX_RATE } from '@/constants/keywords';
 import { useCurrencyStore, useDashboardStore } from '@/store/account';
 import { DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
+import AssetChart from './asset-charts';
 
 const initialDashboardData: DashboardProps = {
   date: '1970-01-01',
@@ -25,6 +26,18 @@ const initialDashboardData: DashboardProps = {
   maxDrawdownPeriod: '1970-01-01 ~ 1970-01-01',
   maxDailyDrawdown: 0,
   maxDailyDrawdownDate: '1970-01-01',
+  principalChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
+  currentValueChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
 };
 
 export function AssetOverview() {
@@ -113,6 +126,9 @@ export function AssetOverview() {
           )} + ${formatCurrency(data.krwCash, 'krw')}`}
           valueClassName="text-red-600"
         />
+      </div>
+      <div className="mt-8">
+        <AssetChart chartData={data.currentValueChartData} />
       </div>
     </div>
   );

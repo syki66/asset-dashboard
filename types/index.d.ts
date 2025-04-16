@@ -54,6 +54,11 @@ export type StockHistoryProps = {
   dividends?: number;
 };
 
+export type ChartProps = {
+  date: string;
+  value: number;
+};
+
 export type DashboardProps = {
   date: string;
   lastUpdated: string;
@@ -73,4 +78,6 @@ export type DashboardProps = {
   maxDrawdownPeriod: string;
   maxDailyDrawdown: number;
   maxDailyDrawdownDate: string;
+  principalChartData: ChartProps[];
+  currentValueChartData: ChartProps[];
 };
