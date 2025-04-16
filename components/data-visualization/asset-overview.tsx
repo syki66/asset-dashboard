@@ -45,7 +45,25 @@ const initialDashboardData: DashboardProps = {
       value: 0,
     },
   ],
+  drawdownChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
   dividendHistoryChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
+  dividendYieldChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
+  yieldOnCostChartData: [
     {
       date: '1970-01-01',
       value: 0,
@@ -170,6 +188,21 @@ export function AssetOverview() {
         <AssetChart
           series={[
             {
+              id: 'drawdown',
+              name: '손실 낙폭',
+              color: '#F44336',
+              data: data.drawdownChartData,
+            },
+          ]}
+          title="최대 손실 낙폭 차트"
+          description="자산 클래스별 최대 손실 낙폭 변화 추이"
+          reverseYAxis={true}
+        />
+      </div>
+      <div className="mt-8">
+        <AssetChart
+          series={[
+            {
               id: 'cash',
               name: '현금',
               color: '#F44336',
@@ -182,6 +215,34 @@ export function AssetOverview() {
       </div>
       <div className="mt-8">
         <DividendChart dividendData={data.dividendHistoryChartData} />
+      </div>
+      <div className="mt-8">
+        <AssetChart
+          series={[
+            {
+              id: 'YoC',
+              name: '원금대비배당률',
+              color: '#F44336',
+              data: data.yieldOnCostChartData,
+            },
+          ]}
+          title="원금대비배당률 차트"
+          description="자산 클래스별 원금대비배당률 변화 추이"
+        />
+      </div>
+      <div className="mt-8">
+        <AssetChart
+          series={[
+            {
+              id: 'dividendYield',
+              name: '배당률',
+              color: '#F44336',
+              data: data.dividendYieldChartData,
+            },
+          ]}
+          title="배당률 차트"
+          description="자산 클래스별 배당률 변화 추이"
+        />
       </div>
     </div>
   );

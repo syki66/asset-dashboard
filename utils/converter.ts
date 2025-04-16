@@ -39,7 +39,10 @@ export const convertToDashboardData = (
   const principalChartData: ChartProps[] = [];
   const currentValueChartData: ChartProps[] = [];
   const profitChartData: ChartProps[] = [];
+  const drawdownChartData: ChartProps[] = [];
   let dividendHistoryChartData: ChartProps[] = [];
+  const yieldOnCostChartData: ChartProps[] = [];
+  const dividendYieldChartData: ChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -157,49 +160,6 @@ export const convertToDashboardData = (
     // 평가금대비배당률
     const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
 
-    // 자산 차트용 데이터 가공
-    // 원금 차트
-    principalChartData.push({
-      date: account.date,
-      value: principal,
-    });
-
-    // 평가금 차트
-    currentValueChartData.push({
-      date: account.date,
-      value: currentValue,
-    });
-
-    // 수익금 차트
-    profitChartData.push({
-      date: account.date,
-      value: profit,
-    });
-
-    // 배당금 기록 차트 데이터
-    const krwDividends = account.usd.dividends.map((dividend) => {
-      return {
-        date: dividend.date,
-        value:
-          currency === 'usd'
-            ? Math.round(dividend.price)
-            : Math.round(dividend.price * dividend.fxRate),
-      };
-    });
-
-    const usdDividends = account.krw.dividends.map((dividend) => {
-      return {
-        date: dividend.date,
-        value:
-          currency === 'usd'
-            ? Math.round(dividend.price / dividend.fxRate)
-            : Math.round(dividend.price),
-      };
-    });
-
-    dividendHistoryChartData = [...krwDividends, ...usdDividends];
-    dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
-
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
     const stocksProfit =
       currency === 'usd'
@@ -229,6 +189,68 @@ export const convertToDashboardData = (
     // 하루 MDD 계산을 위한 비교를 위해 이전 값으로 대입
     prevValue = stocksProfit;
 
+    ////////////////////////////////////
+    // 자산 차트용 데이터 가공
+    // 원금 차트
+    principalChartData.push({
+      date: account.date,
+      value: principal,
+    });
+
+    // 평가금 차트
+    currentValueChartData.push({
+      date: account.date,
+      value: currentValue,
+    });
+
+    // 수익금 차트
+    profitChartData.push({
+      date: account.date,
+      value: profit,
+    });
+
+    // MDD 차트
+    drawdownChartData.push({
+      date: account.date,
+      value: drawdown,
+    });
+
+    // 배당금 기록 차트 데이터
+    const krwDividends = account.usd.dividends.map((dividend) => {
+      return {
+        date: dividend.date,
+        value:
+          currency === 'usd'
+            ? Math.round(dividend.price)
+            : Math.round(dividend.price * dividend.fxRate),
+      };
+    });
+
+    const usdDividends = account.krw.dividends.map((dividend) => {
+      return {
+        date: dividend.date,
+        value:
+          currency === 'usd'
+            ? Math.round(dividend.price / dividend.fxRate)
+            : Math.round(dividend.price),
+      };
+    });
+
+    dividendHistoryChartData = [...krwDividends, ...usdDividends];
+    dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
+
+    // Yield on Cost 차트 데이터
+    yieldOnCostChartData.push({
+      date: account.date,
+      value: yieldOnCost,
+    });
+
+    // 배당금 수익률 차트 데이터
+    dividendYieldChartData.push({
+      date: account.date,
+      value: dividendYield,
+    });
+
     return {
       date: account.date,
       lastUpdated: account.lastUpdated,
@@ -251,7 +273,10 @@ export const convertToDashboardData = (
       principalChartData,
       currentValueChartData,
       profitChartData,
+      drawdownChartData,
       dividendHistoryChartData,
+      yieldOnCostChartData,
+      dividendYieldChartData,
     };
   });
 

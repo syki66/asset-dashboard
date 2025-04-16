@@ -87,12 +87,14 @@ interface AssetHistoryChartProps {
   series: AssetSeries[];
   title?: string;
   description?: string;
+  reverseYAxis?: boolean;
 }
 
 export default function AssetChart({
   series = [],
   title = '자산 내역 차트',
   description = '',
+  reverseYAxis = false,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -671,6 +673,7 @@ export default function AssetChart({
                     maximumFractionDigits: 1,
                   }).format(value)
                 }
+                reversed={reverseYAxis}
               />
               <Tooltip
                 formatter={(value, name) => {
