@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Line,
   LineChart,
@@ -434,6 +434,67 @@ export default function AssetChart({
     setShowTotal((prev) => !prev);
   };
 
+  // 시간 범위에 따른 틱 개수 결정
+  const getTickCountByTimeRange = () => {
+    switch (timeRange) {
+      case '1w':
+        return 7; // 매일
+      case '1m':
+        return 8; // 약 4일마다
+      case '3m':
+        return 6; // 약 2주마다
+      case '6m':
+        return 6; // 약 1개월마다
+      case '1y':
+      case 'ytd':
+        return 6; // 약 2개월마다
+      case '2y':
+      case '3y':
+        return 6; // 약 6개월마다
+      case '5y':
+        return 5; // 약 1년마다
+      case '10y':
+        return 5; // 약 2년마다
+      case 'all':
+        return 8; // 적절한 간격
+      default:
+        return 6;
+    }
+  };
+
+  // X축 틱 계산 - 중복 방지
+  const calculateXAxisTicks = useMemo(() => {
+    if (chartData.length === 0) return [];
+
+    const tickCount = getTickCountByTimeRange();
+    const step = Math.max(1, Math.floor(chartData.length / tickCount));
+
+    // 시간 범위에 따라 적절한 간격으로 틱 선택
+    const ticks: string[] = [];
+    let lastFormattedTick = '';
+
+    for (let i = 0; i < chartData.length; i += step) {
+      const date = chartData[i].date;
+      const formattedTick = getXAxisTickFormatter()(date);
+
+      // 중복 방지: 이전 틱과 다른 경우에만 추가
+      if (formattedTick !== lastFormattedTick) {
+        ticks.push(date);
+        lastFormattedTick = formattedTick;
+      }
+    }
+
+    // 마지막 데이터 포인트가 포함되어 있지 않으면 추가
+    const lastDate = chartData[chartData.length - 1].date;
+    const lastFormattedDate = getXAxisTickFormatter()(lastDate);
+
+    if (lastFormattedDate !== lastFormattedTick) {
+      ticks.push(lastDate);
+    }
+
+    return ticks;
+  }, [chartData, timeRange]);
+
   // 시리즈가 없을 경우 안내 메시지 표시
   if (series.length === 0) {
     return (
@@ -596,8 +657,9 @@ export default function AssetChart({
                 dataKey="date"
                 tickFormatter={getXAxisTickFormatter()}
                 type="category"
-                domain={['dataMin', 'dataMax']}
-                minTickGap={30} // 라벨 간 최소 간격 설정
+                ticks={calculateXAxisTicks}
+                interval={0}
+                padding={{ left: 10, right: 10 }}
               />
               <YAxis
                 scale={useLogScale ? 'log' : 'linear'}
