@@ -128,7 +128,24 @@ export function AssetOverview() {
         />
       </div>
       <div className="mt-8">
-        <AssetChart chartData={data.currentValueChartData} />
+        <AssetChart
+          series={[
+            {
+              id: 'principal',
+              name: '원금',
+              color: '#888888',
+              data: data.principalChartData,
+            },
+            {
+              id: 'currentValue',
+              name: '평가금',
+              color: '#F44336',
+              data: data.currentValueChartData,
+            },
+          ]}
+          title="자산 포트폴리오 차트"
+          description="자산 클래스별 포트폴리오 변화 추이"
+        />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Line,
   LineChart,
@@ -9,6 +9,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from 'recharts';
 import {
   format,
@@ -38,70 +39,34 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
-// 샘플 데이터 - 실제 데이터는 이 형식으로 제공될 것입니다
-const sampleData = [
-  {
-    date: '2024-03-21',
-    value: 244594339,
-  },
-  {
-    date: '2024-03-22',
-    value: 246554339,
-  },
-  // 실제 구현 시 더 많은 데이터가 여기에 들어갈 것입니다
+// 차트 시리즈 타입 정의
+interface AssetDataPoint {
+  date: string;
+  value: number;
+}
+
+interface AssetSeries {
+  id: string;
+  name: string;
+  color?: string;
+  data: AssetDataPoint[];
+}
+
+// 기본 색상 팔레트 - 더 많은 시리즈가 있을 경우 사용
+const DEFAULT_COLORS = [
+  '#6366f1', // 인디고
+  '#f59e0b', // 앰버
+  '#10b981', // 에메랄드
+  '#ef4444', // 레드
+  '#8b5cf6', // 바이올렛
+  '#3b82f6', // 블루
+  '#ec4899', // 핑크
+  '#14b8a6', // 틸
+  '#f97316', // 오렌지
+  '#84cc16', // 라임
+  '#06b6d4', // 사이안
+  '#d946ef', // 퓨시아
 ];
-
-// 더 많은 샘플 데이터 생성 (테스트용)
-const generateSampleData = () => {
-  const data = [];
-  const endDate = new Date('2024-03-22');
-  let currentValue = 246554339;
-
-  // 최근 1년치 데이터 생성
-  for (let i = 364; i >= 0; i--) {
-    const currentDate = subDays(endDate, i);
-    // 약간의 변동성 추가 (0.995 ~ 1.005 사이의 랜덤 변동)
-    const randomFactor = 0.995 + Math.random() * 0.01;
-
-    // 전날 데이터가 있으면 그 값에서 변동, 없으면 초기값에서 시작
-    if (i < 364) {
-      currentValue = Math.round(currentValue * randomFactor);
-    } else {
-      // 첫 데이터는 현재의 약 70%로 시작
-      currentValue = Math.round(currentValue * 0.7);
-    }
-
-    data.push({
-      date: format(currentDate, 'yyyy-MM-dd'),
-      value: currentValue,
-    });
-  }
-
-  // 이전 연도 데이터 생성 (월별 데이터로 간소화)
-  let previousDate = subYears(endDate, 1);
-  for (let year = 1; year <= 9; year++) {
-    for (let month = 11; month >= 0; month--) {
-      previousDate = new Date(endDate.getFullYear() - year, month, 15);
-
-      // 시간이 지날수록 자산이 감소하도록 (과거로 갈수록)
-      const yearFactor = 0.85 + (0.15 * (10 - year)) / 10; // 0.85 ~ 1.0
-      currentValue = Math.round(currentValue * yearFactor);
-
-      data.push({
-        date: format(previousDate, 'yyyy-MM-dd'),
-        value: currentValue,
-      });
-    }
-  }
-
-  // 날짜순으로 정렬
-  return data.sort((a, b) => {
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
-  });
-};
-
-// 실제 데이터가 충분하지 않을 경우 샘플 데이터로 보충
-const rawAssetData = generateSampleData();
 
 // 인플레이션 데이터 (연간 인플레이션율 %)
 const inflationRates = {
@@ -118,10 +83,33 @@ const inflationRates = {
   2024: 2.8, // 예상치
 };
 
-export default function AssetChart({ chartData }: { chartData: any }) {
+interface AssetHistoryChartProps {
+  series: AssetSeries[];
+  title?: string;
+  description?: string;
+}
+
+export default function AssetChart({
+  series = [],
+  title = '자산 내역 차트',
+  description = '',
+}: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
+  const [activeSeries, setActiveSeries] = useState<string[]>([]);
+  const [showTotal, setShowTotal] = useState(true);
+
+  // 시리즈에 색상 할당
+  const seriesWithColors = series.map((s, index) => ({
+    ...s,
+    color: s.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+  }));
+
+  // 컴포넌트 마운트 시 모든 시리즈 활성화
+  useEffect(() => {
+    setActiveSeries(seriesWithColors.map((s) => s.id));
+  }, [series]);
 
   // 인플레이션 조정 함수
   const adjustValueForInflation = (value: number, dateStr: string) => {
@@ -141,85 +129,217 @@ export default function AssetChart({ chartData }: { chartData: any }) {
     return adjustedValue;
   };
 
-  // 데이터 처리
-  const processedData = chartData.map((item) => {
-    const adjustedValue = adjustForInflation
-      ? adjustValueForInflation(item.value, item.date)
-      : item.value;
+  // 데이터 처리 - 각 시리즈별로 처리
+  const processedSeriesData = seriesWithColors.map((series) => {
+    const processedData = series.data.map((item) => {
+      const adjustedValue = adjustForInflation
+        ? adjustValueForInflation(item.value, item.date)
+        : item.value;
+
+      return {
+        date: item.date,
+        parsedDate: parseISO(item.date),
+        value: item.value,
+        adjustedValue: adjustedValue,
+        displayValue: adjustForInflation ? adjustedValue : item.value,
+      };
+    });
 
     return {
-      date: item.date,
-      parsedDate: parseISO(item.date), // 날짜 문자열을 Date 객체로 변환
-      value: item.value,
-      adjustedValue: adjustedValue,
-      displayValue: adjustForInflation ? adjustedValue : item.value,
+      ...series,
+      processedData,
     };
   });
 
   // 시간 범위에 따른 데이터 필터링
-  const filteredData = (() => {
-    if (timeRange === 'all') return processedData;
+  const getFilteredData = (data) => {
+    if (timeRange === 'all') return data;
+    if (data.length === 0) return [];
 
-    const now = new Date(); // 현재 날짜 사용
-    const latestDataDate =
-      processedData.length > 0
-        ? processedData[processedData.length - 1].parsedDate
-        : now;
+    // 가장 최근 날짜 찾기
+    const latestDate = new Date(
+      Math.max(...data.map((item) => item.parsedDate.getTime()))
+    );
 
     let cutoffDate;
     switch (timeRange) {
       case '1w':
-        cutoffDate = subDays(latestDataDate, 7);
+        cutoffDate = subDays(latestDate, 7);
         break;
       case '1m':
-        cutoffDate = subMonths(latestDataDate, 1);
+        cutoffDate = subMonths(latestDate, 1);
         break;
       case '3m':
-        cutoffDate = subMonths(latestDataDate, 3);
+        cutoffDate = subMonths(latestDate, 3);
         break;
       case '6m':
-        cutoffDate = subMonths(latestDataDate, 6);
+        cutoffDate = subMonths(latestDate, 6);
         break;
       case '1y':
-        cutoffDate = subYears(latestDataDate, 1);
+        cutoffDate = subYears(latestDate, 1);
         break;
       case 'ytd':
-        cutoffDate = startOfYear(latestDataDate);
+        cutoffDate = startOfYear(latestDate);
         break;
       case '2y':
-        cutoffDate = subYears(latestDataDate, 2);
+        cutoffDate = subYears(latestDate, 2);
         break;
       case '3y':
-        cutoffDate = subYears(latestDataDate, 3);
+        cutoffDate = subYears(latestDate, 3);
         break;
       case '5y':
-        cutoffDate = subYears(latestDataDate, 5);
+        cutoffDate = subYears(latestDate, 5);
         break;
       case '10y':
-        cutoffDate = subYears(latestDataDate, 10);
+        cutoffDate = subYears(latestDate, 10);
         break;
       default:
-        return processedData;
+        return data;
     }
 
-    return processedData.filter((item) => item.parsedDate >= cutoffDate);
-  })();
+    return data.filter((item) => item.parsedDate >= cutoffDate);
+  };
+
+  // 각 시리즈별로 필터링된 데이터
+  const filteredSeriesData = processedSeriesData.map((series) => ({
+    ...series,
+    filteredData: getFilteredData(series.processedData),
+  }));
+
+  // 활성화된 시리즈만 필터링
+  const activeSeriesData = filteredSeriesData.filter((series) =>
+    activeSeries.includes(series.id)
+  );
+
+  // 총합 데이터 계산
+  const calculateTotalData = () => {
+    if (activeSeriesData.length === 0) return [];
+
+    // 모든 날짜 추출
+    const allDates = new Set<string>();
+    activeSeriesData.forEach((series) => {
+      series.filteredData.forEach((item) => {
+        allDates.add(item.date);
+      });
+    });
+
+    // 날짜순으로 정렬
+    const sortedDates = Array.from(allDates).sort();
+
+    // 각 날짜별로 모든 시리즈의 값을 합산
+    return sortedDates.map((date) => {
+      let totalValue = 0;
+
+      activeSeriesData.forEach((series) => {
+        const dataPoint = series.filteredData.find(
+          (item) => item.date === date
+        );
+        if (dataPoint) {
+          totalValue += dataPoint.displayValue;
+        }
+      });
+
+      return {
+        date,
+        parsedDate: parseISO(date),
+        displayValue: totalValue,
+        totalValue,
+      };
+    });
+  };
+
+  const totalData = showTotal ? calculateTotalData() : [];
+
+  // 차트 데이터 준비 - 모든 시리즈의 데이터를 날짜별로 병합
+  const prepareChartData = () => {
+    if (activeSeriesData.length === 0 && !showTotal) return [];
+
+    // 모든 날짜 추출
+    const allDates = new Set<string>();
+
+    if (showTotal) {
+      totalData.forEach((item) => allDates.add(item.date));
+    }
+
+    activeSeriesData.forEach((series) => {
+      series.filteredData.forEach((item) => {
+        allDates.add(item.date);
+      });
+    });
+
+    // 날짜순으로 정렬
+    const sortedDates = Array.from(allDates).sort();
+
+    // 각 날짜별로 모든 시리즈의 값을 포함하는 객체 생성
+    return sortedDates.map((date) => {
+      const dataPoint: any = { date };
+
+      // 각 시리즈의 값 추가
+      activeSeriesData.forEach((series) => {
+        const seriesDataPoint = series.filteredData.find(
+          (item) => item.date === date
+        );
+        if (seriesDataPoint) {
+          dataPoint[series.id] = seriesDataPoint.displayValue;
+        }
+      });
+
+      // 총합 값 추가
+      if (showTotal) {
+        const totalDataPoint = totalData.find((item) => item.date === date);
+        if (totalDataPoint) {
+          dataPoint.total = totalDataPoint.displayValue;
+        }
+      }
+
+      return dataPoint;
+    });
+  };
+
+  const chartData = prepareChartData();
 
   // 차트 도메인 계산
-  const minValue = Math.min(...filteredData.map((d) => d.displayValue));
-  const maxValue = Math.max(...filteredData.map((d) => d.displayValue));
+  const calculateYDomain = () => {
+    if (chartData.length === 0) return [0, 100];
 
-  // 로그 스케일을 위한 도메인 조정 (0이나 음수 방지)
-  const yDomain = useLogScale
-    ? [Math.max(minValue, 1), maxValue * 1.1]
-    : [0, maxValue * 1.1];
+    let minValue = Number.POSITIVE_INFINITY;
+    let maxValue = Number.NEGATIVE_INFINITY;
 
-  // 수익률 및 수익금 계산
-  const calculateReturns = () => {
-    if (filteredData.length < 2) return { percentReturn: 0, absoluteReturn: 0 };
+    chartData.forEach((dataPoint) => {
+      // 각 시리즈의 값 확인
+      activeSeriesData.forEach((series) => {
+        if (dataPoint[series.id] !== undefined) {
+          minValue = Math.min(minValue, dataPoint[series.id]);
+          maxValue = Math.max(maxValue, dataPoint[series.id]);
+        }
+      });
 
-    const initialValue = filteredData[0].displayValue;
-    const currentValue = filteredData[filteredData.length - 1].displayValue;
+      // 총합 값 확인
+      if (showTotal && dataPoint.total !== undefined) {
+        minValue = Math.min(minValue, dataPoint.total);
+        maxValue = Math.max(maxValue, dataPoint.total);
+      }
+    });
+
+    // 무한대 값 처리
+    if (minValue === Number.POSITIVE_INFINITY) minValue = 0;
+    if (maxValue === Number.NEGATIVE_INFINITY) maxValue = 100;
+
+    // 로그 스케일을 위한 도메인 조정 (0이나 음수 방지)
+    return useLogScale
+      ? [Math.max(minValue, 1), maxValue * 1.1]
+      : [0, maxValue * 1.1];
+  };
+
+  const yDomain = calculateYDomain();
+
+  // 수익률 및 수익금 계산 - 각 시리즈별로 계산
+  const calculateReturns = (data) => {
+    if (!data || data.length < 2)
+      return { percentReturn: 0, absoluteReturn: 0 };
+
+    const initialValue = data[0].displayValue;
+    const currentValue = data[data.length - 1].displayValue;
 
     const absoluteReturn = currentValue - initialValue;
     const percentReturn = (absoluteReturn / initialValue) * 100;
@@ -230,8 +350,13 @@ export default function AssetChart({ chartData }: { chartData: any }) {
     };
   };
 
-  const { percentReturn, absoluteReturn } = calculateReturns();
-  const isPositiveReturn = percentReturn >= 0;
+  // 총 수익률 계산
+  const totalReturns =
+    showTotal && totalData.length >= 2
+      ? calculateReturns(totalData)
+      : { percentReturn: 0, absoluteReturn: 0 };
+
+  const isTotalPositiveReturn = totalReturns.percentReturn >= 0;
 
   // X축 포맷터 - 시간 범위에 따라 다른 형식 사용
   const getXAxisTickFormatter = () => {
@@ -252,7 +377,7 @@ export default function AssetChart({ chartData }: { chartData: any }) {
     }
   };
 
-  // 툴팁 라벨 포맷터 - 시간 범위에 따라 다른 형식 사용
+  // 툴팁 라벨 포맷터
   const getTooltipLabelFormatter = () => {
     return (dateStr) =>
       format(parseISO(dateStr), 'yyyy년 M월 d일', { locale: ko });
@@ -260,7 +385,7 @@ export default function AssetChart({ chartData }: { chartData: any }) {
 
   // 데이터 포인트 간격 조정 - 시간 범위에 따라 다르게 표시
   const getDataPointInterval = () => {
-    if (filteredData.length <= 30) return 1; // 데이터가 적으면 모든 포인트 표시
+    if (chartData.length <= 30) return 1; // 데이터가 적으면 모든 포인트 표시
 
     switch (timeRange) {
       case '1w':
@@ -290,18 +415,55 @@ export default function AssetChart({ chartData }: { chartData: any }) {
   // 데이터 포인트 표시 여부 결정
   const shouldShowDot = (index) => {
     const interval = getDataPointInterval();
-    return index % interval === 0 || index === filteredData.length - 1; // 마지막 포인트는 항상 표시
+    return index % interval === 0 || index === chartData.length - 1; // 마지막 포인트는 항상 표시
   };
+
+  // 시리즈 토글 핸들러
+  const toggleSeries = (seriesId: string) => {
+    setActiveSeries((prev) => {
+      if (prev.includes(seriesId)) {
+        return prev.filter((id) => id !== seriesId);
+      } else {
+        return [...prev, seriesId];
+      }
+    });
+  };
+
+  // 총합 토글 핸들러
+  const toggleTotal = () => {
+    setShowTotal((prev) => !prev);
+  };
+
+  // 시리즈가 없을 경우 안내 메시지 표시
+  if (series.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            {title}
+          </CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-[300px]">
+          <p className="text-muted-foreground">
+            데이터가 없습니다. 자산 데이터를 추가해주세요.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          자산 내역 차트
+          {title}
         </CardTitle>
         <CardDescription>
-          {adjustForInflation ? '인플레이션 조정 적용됨' : '실제 금액 기준'}
+          {description ||
+            (adjustForInflation ? '인플레이션 조정 적용됨' : '실제 금액 기준')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -349,47 +511,84 @@ export default function AssetChart({ chartData }: { chartData: any }) {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-              <div className="flex items-center">
-                <span className="text-sm font-medium mr-2">수익률:</span>
-                <span
-                  className={cn(
-                    'flex items-center font-semibold',
-                    isPositiveReturn ? 'text-green-600' : 'text-red-600'
-                  )}
-                >
-                  {isPositiveReturn ? (
-                    <ArrowUpRight className="h-4 w-4 mr-1" />
-                  ) : (
-                    <ArrowDownRight className="h-4 w-4 mr-1" />
-                  )}
-                  {percentReturn.toFixed(2)}%
-                </span>
-              </div>
+            {showTotal && totalData.length >= 2 && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium mr-2">수익률:</span>
+                  <span
+                    className={cn(
+                      'flex items-center font-semibold',
+                      isTotalPositiveReturn ? 'text-green-600' : 'text-red-600'
+                    )}
+                  >
+                    {isTotalPositiveReturn ? (
+                      <ArrowUpRight className="h-4 w-4 mr-1" />
+                    ) : (
+                      <ArrowDownRight className="h-4 w-4 mr-1" />
+                    )}
+                    {totalReturns.percentReturn.toFixed(2)}%
+                  </span>
+                </div>
 
-              <div className="flex items-center">
-                <span className="text-sm font-medium mr-2">수익금:</span>
-                <span
-                  className={cn(
-                    'font-semibold',
-                    isPositiveReturn ? 'text-green-600' : 'text-red-600'
-                  )}
-                >
-                  {new Intl.NumberFormat('ko-KR', {
-                    style: 'currency',
-                    currency: 'KRW',
-                    maximumFractionDigits: 0,
-                  }).format(absoluteReturn)}
-                </span>
+                <div className="flex items-center">
+                  <span className="text-sm font-medium mr-2">수익금:</span>
+                  <span
+                    className={cn(
+                      'font-semibold',
+                      isTotalPositiveReturn ? 'text-green-600' : 'text-red-600'
+                    )}
+                  >
+                    {new Intl.NumberFormat('ko-KR', {
+                      style: 'currency',
+                      currency: 'KRW',
+                      maximumFractionDigits: 0,
+                    }).format(totalReturns.absoluteReturn)}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+
+          {/* 시리즈 선택 체크박스 */}
+          {seriesWithColors.length > 0 && (
+            <div className="flex flex-wrap gap-4">
+              {seriesWithColors.length > 1 && (
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="total"
+                    checked={showTotal}
+                    onCheckedChange={toggleTotal}
+                  />
+                  <Label htmlFor="total" className="font-medium">
+                    총합
+                  </Label>
+                </div>
+              )}
+
+              {seriesWithColors.map((series) => (
+                <div key={series.id} className="flex items-center space-x-2">
+                  <Switch
+                    id={series.id}
+                    checked={activeSeries.includes(series.id)}
+                    onCheckedChange={() => toggleSeries(series.id)}
+                  />
+                  <Label
+                    htmlFor={series.id}
+                    className="font-medium"
+                    style={{ color: series.color }}
+                  >
+                    {series.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="h-[500px]">
+        <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={filteredData}
+              data={chartData}
               margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -412,67 +611,123 @@ export default function AssetChart({ chartData }: { chartData: any }) {
                 }
               />
               <Tooltip
-                formatter={(value) =>
-                  new Intl.NumberFormat('ko-KR', {
-                    style: 'currency',
-                    currency: 'KRW',
-                    maximumFractionDigits: 0,
-                  }).format(Number(value))
-                }
+                formatter={(value, name) => {
+                  // 시리즈 이름 한글화
+                  const seriesName =
+                    name === 'total'
+                      ? '총합'
+                      : seriesWithColors.find((s) => s.id === name)?.name ||
+                        name;
+
+                  return [
+                    new Intl.NumberFormat('ko-KR', {
+                      style: 'currency',
+                      currency: 'KRW',
+                      maximumFractionDigits: 0,
+                    }).format(Number(value)),
+                    seriesName,
+                  ];
+                }}
                 labelFormatter={getTooltipLabelFormatter()}
               />
-              <Line
-                type="monotone"
-                dataKey="displayValue"
-                stroke="#6366f1"
-                strokeWidth={2}
-                dot={(props) => {
-                  const { cx, cy, index } = props;
-                  return shouldShowDot(index) ? (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={3}
-                      fill="#6366f1"
-                      stroke="#6366f1"
-                    />
-                  ) : null;
-                }}
-                activeDot={{
-                  r: 6,
-                  stroke: '#6366f1',
-                  strokeWidth: 2,
-                  fill: '#6366f1',
+              <Legend
+                formatter={(value) => {
+                  // 시리즈 이름 한글화
+                  return value === 'total'
+                    ? '총합'
+                    : seriesWithColors.find((s) => s.id === value)?.name ||
+                        value;
                 }}
               />
+
+              {/* 각 시리즈별 라인 */}
+              {activeSeriesData.map((series) => (
+                <Line
+                  key={series.id}
+                  type="monotone"
+                  dataKey={series.id}
+                  name={series.id}
+                  stroke={series.color}
+                  strokeWidth={2}
+                  dot={(props) => {
+                    const { cx, cy, index } = props;
+                    return shouldShowDot(index) ? (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={3}
+                        fill={series.color}
+                        stroke={series.color}
+                      />
+                    ) : null;
+                  }}
+                  activeDot={{
+                    r: 6,
+                    stroke: series.color,
+                    strokeWidth: 2,
+                    fill: series.color,
+                  }}
+                />
+              ))}
+
+              {/* 총합 라인 */}
+              {showTotal && (
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  name="total"
+                  stroke="#000000"
+                  strokeWidth={3}
+                  dot={(props) => {
+                    const { cx, cy, index } = props;
+                    return shouldShowDot(index) ? (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#000000"
+                        stroke="#000000"
+                      />
+                    ) : null;
+                  }}
+                  activeDot={{
+                    r: 6,
+                    stroke: '#000000',
+                    strokeWidth: 2,
+                    fill: '#000000',
+                  }}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-4 flex justify-between text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <DollarSign className="mr-1 h-4 w-4" />
-            <span>
-              현재 자산:{' '}
-              {new Intl.NumberFormat('ko-KR', {
-                style: 'currency',
-                currency: 'KRW',
-                maximumFractionDigits: 0,
-              }).format(
-                filteredData[filteredData.length - 1]?.displayValue || 0
-              )}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <span>
-              초기 자산:{' '}
-              {new Intl.NumberFormat('ko-KR', {
-                style: 'currency',
-                currency: 'KRW',
-                maximumFractionDigits: 0,
-              }).format(filteredData[0]?.displayValue || 0)}
-            </span>
-          </div>
+        <div className="mt-4 flex flex-wrap justify-between text-sm text-muted-foreground gap-2">
+          {showTotal && totalData.length > 0 && (
+            <>
+              <div className="flex items-center">
+                <DollarSign className="mr-1 h-4 w-4" />
+                <span>
+                  현재 총자산:{' '}
+                  {new Intl.NumberFormat('ko-KR', {
+                    style: 'currency',
+                    currency: 'KRW',
+                    maximumFractionDigits: 0,
+                  }).format(totalData[totalData.length - 1]?.displayValue || 0)}
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span>
+                  초기 총자산:{' '}
+                  {new Intl.NumberFormat('ko-KR', {
+                    style: 'currency',
+                    currency: 'KRW',
+                    maximumFractionDigits: 0,
+                  }).format(totalData[0]?.displayValue || 0)}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
