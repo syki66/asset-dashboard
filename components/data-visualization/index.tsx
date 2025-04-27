@@ -81,7 +81,7 @@ export default function DataVisualization() {
             dateRange?.from?.toISOString() || '',
             dateRange?.to?.toISOString() || ''
           ); // 거래내역을 날짜별 계좌정보로 변환
-          return { name: file.name, accountData };
+          const benchmarkData = await createBenchmarkData(transactions); // 벤치마크 데이터 생성
         })
       );
 
