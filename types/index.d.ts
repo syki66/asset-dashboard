@@ -1,4 +1,4 @@
-export type transactionProps = {
+export type TransactionProps = {
   date: string;
   type: string;
   currency: string;

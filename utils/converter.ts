@@ -4,7 +4,7 @@ import {
   Currency,
   DividendProps,
   StockHistoryProps,
-  transactionProps,
+  TransactionProps,
   DashboardProps,
   ChartProps,
 } from '@/types';
@@ -286,7 +286,7 @@ export const convertToDashboardData = (
 // 계좌의 원금(principalAmount)을 업데이트 합니다.
 const updatePrincipal = (
   account: AccountProps,
-  transaction: transactionProps, // 1 (입금: deposit) 또는 -1 (출금: withdrawal)
+  transaction: TransactionProps, // 1 (입금: deposit) 또는 -1 (출금: withdrawal)
   multiplier: number
 ) => {
   const currency: Currency = transaction.currency as Currency;
@@ -330,7 +330,7 @@ const updateStockPrice = (
 
 // 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
 export const createAccountData = async (
-  transactions: transactionProps[],
+  transactions: TransactionProps[],
   startDate: string,
   endDate: string
 ) => {
