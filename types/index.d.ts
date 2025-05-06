@@ -86,3 +86,11 @@ export type DashboardProps = {
   dividendYieldChartData: ChartProps[];
   yieldOnCostChartData: ChartProps[];
 };
+
+export type TermsProps = {
+  startDate: string;
+  maturityDate: string;
+  principal: number;
+  interest: number;
+  interestRate: number;
+};

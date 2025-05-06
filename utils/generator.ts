@@ -1,7 +1,7 @@
-import { DepositProps, StockHistoryProps, TransactionProps } from '@/types';
+import { TermsProps, StockHistoryProps, TransactionProps } from '@/types';
 import { generateDateObjects, timestampToDate } from './format';
 import { getStockInfo } from './converter';
-import { DEFAULT_FX_RATE } from '@/constants/keywords';
+import { DEFAULT_FX_RATE, krDividendTax } from '@/constants/keywords';
 
 // 벤치마크 데이터 생성
 export const createBenchmarkData = async (transactions: TransactionProps[]) => {
@@ -17,7 +17,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000)); // 종료 날짜는 당일로 설정
 
   // 예금 상품 목록
-  let terms: DepositProps[] = [];
+  let terms: TermsProps[] = [];
 
   // 입출금 데이터 생성
   const cashFlowData: { date: string; deposit: number; withdrawal: number }[] =
@@ -54,12 +54,6 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   });
 
   cashFlowData.forEach((flow) => {
-    // 각 플로우를 돌면서 입금액에 대해서 예금 상품을 생성
-    // 각 플로우마다 해당 날짜 범위에 포함되는 예금 상품을 필터링 -> 이자 하루 단위 추가
-    // 만기 상품은 임금액과 합산하여 다시 예금 상품 생성
-    // withdrawal이 발생하면 가장 가까운 과거 terms를 찾아서 해당 상품을 찾아서 principal, currentValue를 차감, 0이되면 한 층더 과거 terms를 찾아서 차감
-    // 만기일이 지난 상품 또는 currentValue가 0인 상품은 삭제
-
     // 오늘 날짜에 걸쳐있는 terms는 제외하고, 그외 terms는 오늘이 올때까지 다시 생성해서 계산 (maturityDate를 startDate에 대입 후)
     if (flow.deposit > 0) {
       terms.push({
@@ -119,9 +113,9 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       if (term.maturityDate < flow.date) {
         term.startDate = flow.date;
         term.maturityDate = addOneYear(flow.date);
-        term.principal = term.principal + term.interest; // 만기일이 지난 상품은 이자와 원금을 합산하여 재예치
+        term.principal = term.principal + term.interest; // 원금에 이자 합산해서 재예치
         term.interest = 0; // 이자 초기화
-        term.interestRate = getCurrentRate(flow.date);
+        term.interestRate = getCurrentRate(flow.date) * (1 - krDividendTax); // 출금 이자 계산 로직이 복잡해져서 그냥 세후 이자율로 계산
       }
     });
 
