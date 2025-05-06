@@ -23,7 +23,7 @@ type AccountDetails = {
   cash: number;
   stocksProfit: number;
   stocks: StockProps[];
-  benchmarkValue?: number;
+  benchmarkValue: number;
 };
 
 export type DividendProps = {
@@ -75,6 +75,7 @@ export type DashboardProps = {
   krwCash: number;
   usdCash: number;
   cash: number;
+  benchmarkValue: number;
   maxDrawdown: number;
   maxDrawdownPeriod: string;
   maxDailyDrawdown: number;

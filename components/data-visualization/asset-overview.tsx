@@ -23,6 +23,7 @@ const initialDashboardData: DashboardProps = {
   cash: 0,
   usdCash: 0,
   krwCash: 0,
+  benchmarkValue: 0,
   maxDrawdown: 0,
   maxDrawdownPeriod: '1970-01-01 ~ 1970-01-01',
   maxDailyDrawdown: 0,
@@ -117,7 +118,11 @@ export function AssetOverview() {
         <AssetCard
           title="수익금"
           value={`${formatCurrency(data.profit)} (${data.returnRate}%)`}
-          description={`지표 대비 초과수익 (세후): 000,000,000원`}
+          description={`지표 대비 초과수익 (세후): ${formatCurrency(
+            data.profit -
+              data.totalTaxFee -
+              (data.benchmarkValue - data.principal)
+          )}`}
           valueClassName={data.profit >= 0 ? 'text-red-600' : 'text-blue-600'}
         />
         <AssetCard

@@ -189,6 +189,12 @@ export const convertToDashboardData = (
     // 하루 MDD 계산을 위한 비교를 위해 이전 값으로 대입
     prevValue = stocksProfit;
 
+    // 벤치마크
+    const benchmarkValue =
+      currency === 'usd'
+        ? account.usd.benchmarkValue
+        : account.krw.benchmarkValue;
+
     ////////////////////////////////////
     // 자산 차트용 데이터 가공
     // 원금 차트
@@ -266,6 +272,7 @@ export const convertToDashboardData = (
       krwCash: account.krw.cash,
       usdCash: account.usd.cash,
       cash: cashValue,
+      benchmarkValue,
       maxDrawdown,
       maxDrawdownPeriod,
       maxDailyDrawdown,
