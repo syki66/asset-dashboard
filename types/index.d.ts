@@ -23,6 +23,7 @@ type AccountDetails = {
   cash: number;
   stocksProfit: number;
   stocks: StockProps[];
+  benchmarkValue?: number;
 };
 
 export type DividendProps = {

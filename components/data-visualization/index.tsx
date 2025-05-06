@@ -23,6 +23,7 @@ import { useAccountStore } from '@/store/account';
 import { useQuery } from '@tanstack/react-query';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { createAccountData } from '@/utils/converter';
+import { createBenchmarkData } from '@/utils/generator';
 import { toast } from 'sonner';
 
 const steps = [
@@ -81,10 +82,13 @@ export default function DataVisualization() {
             dateRange?.from?.toISOString() || '',
             dateRange?.to?.toISOString() || ''
           ); // 거래내역을 날짜별 계좌정보로 변환
-          const benchmarkData = await createBenchmarkData(transactions); // 벤치마크 데이터 생성
+          const benchmarkData = await createBenchmarkData(
+            transactions // 벤치마크 데이터 생성
+          );
+
+          return { name: file.name, accountData, benchmarkData };
         })
       );
-
       return totalAccountData;
     },
     enabled: false, // refetch를 이용해서 수동으로만 가져올 수 있도록 함

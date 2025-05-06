@@ -16,9 +16,6 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   const startDate = transactions[0].date;
   const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000)); // 종료 날짜는 당일로 설정
 
-  // 예금 상품 목록
-  let terms: TermsProps[] = [];
-
   // 입출금 데이터 생성
   const cashFlowData: { date: string; deposit: number; withdrawal: number }[] =
     generateDateObjects(startDate, endDate).map((dateObj) => ({
@@ -52,6 +49,13 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       }
     }
   });
+
+  let terms: TermsProps[] = []; // 예금 상품
+  let result: {
+    date: string;
+    benchmarkValueKrw: number;
+    benchmarkValueUsd: number;
+  }[] = [];
 
   cashFlowData.forEach((flow) => {
     // 오늘 날짜에 걸쳐있는 terms는 제외하고, 그외 terms는 오늘이 올때까지 다시 생성해서 계산 (maturityDate를 startDate에 대입 후)
@@ -119,9 +123,16 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       }
     });
 
-    console.log(currentValue.toLocaleString());
-    // 원금과 이자 합으로 평가금액 계산하기
+    result.push({
+      date: flow.date,
+      benchmarkValueKrw: Math.round(currentValue),
+      benchmarkValueUsd: Math.round(
+        currentValue / getFxRate(fxTable.prices, flow.date)
+      ),
+    });
   });
+
+  return result;
 };
 
 // 가장 가까운 날짜의 환율 찾기

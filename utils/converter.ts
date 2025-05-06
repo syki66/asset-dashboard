@@ -602,6 +602,11 @@ export const mergeAccountData = (
   accountDataArray: {
     name: string;
     accountData: AccountProps[];
+    benchmarkData?: {
+      date: string;
+      benchmarkValueKrw: number;
+      benchmarkValueUsd: number;
+    }[];
   }[]
 ): AccountProps[] => {
   // Helper: merge two dividend arrays (같은 날짜의 dividend 데이터를 입력받아야 함)
@@ -683,6 +688,20 @@ export const mergeAccountData = (
         });
       }
     });
+
+    // Benchmark data 병합
+    if (account.benchmarkData) {
+      account.benchmarkData.forEach((benchmark) => {
+        const date = benchmark.date;
+        const merged = mergedMap.get(date)!; // merged는 반드시 존재해야 함
+
+        // benchmarkValue 값이 없으면 0으로 초기화 하고 누적 합산
+        merged['krw'].benchmarkValue =
+          (merged['krw'].benchmarkValue ?? 0) + benchmark.benchmarkValueKrw;
+        merged['usd'].benchmarkValue =
+          (merged['usd'].benchmarkValue ?? 0) + benchmark.benchmarkValueUsd;
+      });
+    }
   });
 
   const mergedArray: AccountProps[] = Array.from(mergedMap.values()).sort(
