@@ -6,15 +6,13 @@ export const createBenchmarkData = (transactions: TransactionProps[]) => {
   // 예금, s&p500, nasdaq, kospi, btc?
   // 입출금 환율 생각하기
 
-  // 비교 하는 것
-
   const startDate = transactions[0].date;
   const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000)); // 종료 날짜는 당일로 설정
 
-  // 예금들 목록
+  // 예금 상품 목록
   let terms: DepositProps[] = [];
 
-  // 입출금 데이터
+  // 입출금 데이터 생성
   const cashFlowData: { date: string; deposit: number; withdrawal: number }[] =
     generateDateObjects(startDate, endDate).map((dateObj) => ({
       ...dateObj,
@@ -28,32 +26,22 @@ export const createBenchmarkData = (transactions: TransactionProps[]) => {
     });
 
     if (foundData) {
-      if (transaction.type === 'deposit') {
-        foundData.deposit += transaction.quantity * transaction.price;
+      if (transaction.type === 'deposit' && transaction.currency === 'krw') {
+        foundData.deposit += Math.round(
+          transaction.quantity * transaction.price
+        );
         // console.log(transaction.currency, transaction); // usd 입금도 환율 고려해서 계산 필요
-      } else if (transaction.type === 'withdrawal') {
-        foundData.withdrawal += transaction.quantity * transaction.price;
+      } else if (
+        transaction.type === 'withdrawal' &&
+        transaction.currency === 'krw'
+      ) {
+        foundData.withdrawal += Math.round(
+          transaction.quantity * transaction.price
+        );
         // console.log(transaction.currency, transaction);
       }
     }
-
-    // 입금 시 예금 잔고에 추가
-    // if (transaction.type === 'deposit') {
-    //   deposits.push({
-    //     startDate: transaction.date,
-    //     maturityDate: addOneYear(transaction.date),
-    //     principal: transaction.quantity * transaction.price,
-    //     currentValue: transaction.quantity * transaction.price,
-    //     interestRate: getCurrentRate(transaction.date),
-    //   });
-    // }
   });
-
-  // 입출금 데이터 생성
-  console.log(cashFlowData);
-  // 예금 상품 데이터 푸시, 1년치 선입선출 해서 평가잔고 계산
-
-  let currentValue = 0; // 현재 평가금액
 
   cashFlowData.forEach((flow) => {
     // 각 플로우를 돌면서 입금액에 대해서 예금 상품을 생성
@@ -72,21 +60,43 @@ export const createBenchmarkData = (transactions: TransactionProps[]) => {
         interestRate: getCurrentRate(flow.date),
       });
     }
-    if (flow.withdrawal > 0) {
-      // 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal 차감 (출금액이 0이 될때까지 반복)
-      // 이자는 남겨도 됨 (어차피 원금이 0이라 더 이상 이자 발생 안하기 때문)
-      let idx = -1;
-      while (flow.withdrawal > 0) {
-        if (terms.at(idx)!.principal <= flow.withdrawal) {
-          terms.at(idx)!.principal = 0; // 원금 차감
-          flow.withdrawal -= terms.at(idx)!.principal; // 출금액 차감
-          idx--; // 다음 예금 상품으로 이동
+
+    // 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
+    while (flow.withdrawal > 0) {
+      // 예금 상품 역방향 정렬
+      terms.sort((a, b) => {
+        return (
+          new Date(b.maturityDate).getTime() -
+          new Date(a.maturityDate).getTime()
+        );
+      });
+
+      const findTerm = terms[0];
+      if (findTerm) {
+        // 출금액이 예금 상품의 원금+이자보다 크면 해당 상품 삭제
+        if (findTerm.principal + findTerm.interest <= flow.withdrawal) {
+          flow.withdrawal -= findTerm.principal + findTerm.interest; // 출금액 차감
+          terms.shift(); // 예금 상품 삭제
         } else {
-          terms.at(idx)!.principal -= flow.withdrawal; // 원금 차감
+          // 출금액이 원금+이자보다 작을 경우
+          if (findTerm.principal < flow.withdrawal) {
+            // 원금보다 크다면 원금 제거하고 이자만 남김
+            flow.withdrawal -= findTerm.principal; // 원금만큼 출금액 차감
+            findTerm.principal = 0; // 원금 차감
+            findTerm.interest -= flow.withdrawal; // 이자까지 차감
+          } else {
+            // 원금보다 작다면 원금만큼 차감
+            findTerm.principal -= flow.withdrawal; // 원금 차감
+          }
           flow.withdrawal = 0; // 출금액 0으로 초기화
+          break;
         }
+      } else {
+        break;
       }
     }
+
+    let currentValue = 0; // 현재 평가금액
 
     // 이자 지급
     terms.forEach((term) => {
@@ -105,14 +115,9 @@ export const createBenchmarkData = (transactions: TransactionProps[]) => {
       }
     });
 
-    console.log(flow.date);
-    console.log(terms);
     console.log(currentValue.toLocaleString());
     // 원금과 이자 합으로 평가금액 계산하기
   });
-
-  // 날짜를 쭉 돌면서 startDate와 maturityDate 사이에 있는 예금 상품을 찾아서
-  // 이자 추가
 };
 
 // 1년 뒤 날짜 반환
