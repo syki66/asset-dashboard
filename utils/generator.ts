@@ -1,217 +1,181 @@
-import { parseISO, addYears, differenceInCalendarDays } from 'date-fns';
-import { getStockInfo } from './converter';
-import { USD_KRW_SYMBOL } from '@/constants/keywords';
-import { timestampToDate } from './format';
+import { DepositProps, TransactionProps } from '@/types';
+import { generateDateObjects, timestampToDate } from './format';
 
-export type TransactionProps = {
-  date: string; // ISO 'YYYY-MM-DD'
-  type: 'deposit' | 'withdrawal' | string;
-  currency: 'KRW' | 'USD' | string;
-  ISIN: string;
-  quantity: number;
-  price: number;
-  krwCash: number;
-  usdCash: number;
-};
+// 벤치마크 데이터 생성
+export const createBenchmarkData = (transactions: TransactionProps[]) => {
+  // 예금, s&p500, nasdaq, kospi, btc?
+  // 입출금 환율 생각하기
 
-export interface RateEntry {
-  date: string;
-  interestRate: number; // 연이율 (%)
-}
+  // 비교 하는 것
 
-export interface FxEntry {
-  date: string; // 환율 기준일
-  fxRate: number; // USD→KRW 환율
-}
+  const startDate = transactions[0].date;
+  const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000)); // 종료 날짜는 당일로 설정
 
-export interface Evaluation {
-  date: string;
-  totalKRW: number; // 포트폴리오 총액 (KRW)
-  totalUSD: number; // 포트폴리오 총액 (USD)
-}
+  // 예금들 목록
+  let terms: DepositProps[] = [];
 
-interface Term {
-  startDate: Date;
-  maturityDate: Date;
-  principalKRW: number; // 내부 KRW 기준 원금
-}
+  // 입출금 데이터
+  const cashFlowData: { date: string; deposit: number; withdrawal: number }[] =
+    generateDateObjects(startDate, endDate).map((dateObj) => ({
+      ...dateObj,
+      deposit: 0,
+      withdrawal: 0,
+    }));
 
-type Event = {
-  date: Date;
-  type: 'deposit' | 'withdrawal' | 'maturity' | string;
-  tx?: TransactionProps;
-  term?: Term;
-};
-
-function findRateForDate(rateTable: RateEntry[], target: Date): number {
-  const eligibles = rateTable
-    .filter((r) => parseISO(r.date) <= target)
-    .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
-  if (!eligibles.length)
-    throw new Error(`No rate for ${target.toISOString().slice(0, 10)}`);
-  return eligibles[0].interestRate / 100;
-}
-
-function findFxRateForDate(fxTable: FxEntry[], target: Date): number {
-  const eligibles = fxTable
-    .filter((f) => parseISO(f.date) <= target)
-    .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
-  if (!eligibles.length)
-    throw new Error(`No fx rate for ${target.toISOString().slice(0, 10)}`);
-  return eligibles[0].fxRate;
-}
-
-function insertEvent(events: Event[], e: Event) {
-  const idx = events.findIndex((ev) => ev.date > e.date);
-  if (idx === -1) events.push(e);
-  else events.splice(idx, 0, e);
-}
-
-/**
- * 1년 만기 예금 계산: 입금→만기→재투자, 중도인출 처리
- * @param transactions 거래 목록
- * @param rateTable 금리 이력
- * @param simulationEnd optional simulation 종료일
- * @returns 각 이벤트 날짜별 KRW/USD 총액
- */
-export async function calculateEvaluationsTermDeposit(
-  transactions: TransactionProps[],
-  rateTable: RateEntry[],
-  simulationEnd?: Date // optional simulation 종료일
-): Promise<Evaluation[]> {
-  const { stockData } = await getStockInfo(
-    transactions[0].date,
-    timestampToDate(Math.floor(new Date().getTime() / 1000)),
-    []
-  );
-
-  const fxTable = stockData[0].prices.map(
-    (x: { date: string; close: number }) => ({
-      date: x.date,
-      fxRate: x.close,
-    })
-  );
-
-  const terms: Term[] = [];
-  const events: Event[] = [];
-  const evaluations: Evaluation[] = [];
-
-  // 종료일 미지정 시, 오늘을 종료일로 설정
-  const simEnd = simulationEnd || new Date();
-
-  // 1) 트랜잭션 이벤트 스케줄
-  for (const tx of transactions) {
-    const d = parseISO(tx.date);
-    events.push({ date: d, type: tx.type, tx });
-  }
-  events.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-  // 2) 이벤트 처리 루프
-  while (events.length) {
-    const ev = events.shift()!;
-    const today = ev.date;
-
-    // console.log(terms);
-
-    // 종료일 이후 이벤트는 무시
-    if (today > simEnd) break;
-
-    // -- 입금 --
-    if (ev.type === 'deposit' && ev.tx) {
-      const raw = ev.tx.quantity * ev.tx.price;
-      const fx =
-        ev.tx.currency === 'USD' ? findFxRateForDate(fxTable, today) : 1;
-      const amountKRW = raw * fx;
-
-      const term: Term = {
-        startDate: today,
-        maturityDate: addYears(today, 1),
-        principalKRW: amountKRW,
-      };
-      terms.push(term);
-      // 만기 이벤트가 종료일을 넘지 않을 때만 등록
-      if (term.maturityDate <= simEnd) {
-        insertEvent(events, {
-          date: term.maturityDate,
-          type: 'maturity',
-          term,
-        });
-      }
-    }
-
-    // -- 만기 --
-    if (ev.type === 'maturity' && ev.term) {
-      const term = ev.term;
-      const rate = findRateForDate(rateTable, term.startDate);
-      // 원리금 지급액 계산 시, 이자에 대해 15.4% 차감
-      const interest = term.principalKRW * rate;
-      const netInterest = interest * (1 - 0.154);
-      const payout = term.principalKRW + netInterest;
-      term.startDate = today;
-      term.maturityDate = addYears(today, 1);
-      term.principalKRW = payout;
-      // 재투자 시 만기 날짜가 종료일 이내인 경우에만 등록
-      if (term.maturityDate <= simEnd) {
-        insertEvent(events, {
-          date: term.maturityDate,
-          type: 'maturity',
-          term,
-        });
-      }
-    }
-
-    // -- 출금 --
-    if (ev.type === 'withdrawal' && ev.tx) {
-      let remaining = ev.tx.quantity * ev.tx.price;
-      if (ev.tx.currency === 'USD') {
-        const fx = findFxRateForDate(fxTable, today);
-        remaining *= fx;
-      }
-      // 만료 순으로 Term 정렬
-      const sorted = terms.sort(
-        (a, b) => a.maturityDate.getTime() - b.maturityDate.getTime()
-      );
-      for (const term of sorted) {
-        if (remaining <= 0) break;
-        const days = differenceInCalendarDays(today, term.startDate);
-        const rate = findRateForDate(rateTable, term.startDate);
-        // 원금에 대한 총 이자 (세전)
-        const interestGross = (term.principalKRW * (rate * days)) / 365;
-        // 출금 시 지급되는 이자: 15.4% 세금 차감 후
-        const netInterest = interestGross * (1 - 0.154);
-        const value = term.principalKRW + netInterest;
-        const take = Math.min(remaining, value);
-        remaining -= take;
-        const leftoverValue = Math.max(0, value - take);
-        // 남은 금액이 실제 원금에 해당하도록 역계산 (세후 이자 지급)
-        const leftoverPrincipal =
-          leftoverValue / (1 + ((rate * days) / 365) * (1 - 0.154));
-        term.principalKRW = leftoverPrincipal;
-        // 기존 startDate는 그대로 유지
-      }
-    }
-
-    // -- 평가금 계산 및 기록 --
-    const totalKRW = terms.reduce((sum, t) => {
-      // 각 Term의 시작일로부터 오늘(today)까지의 날짜 차이
-      const days = differenceInCalendarDays(today, t.startDate);
-      // 해당 Term의 금리: deposit 당시의 금리 적용
-      const rate = findRateForDate(rateTable, t.startDate);
-      // 현재 금액: 원금 + (원금 * (금리 * days / 365))
-      const accruedValue = t.principalKRW * (1 + (rate * days) / 365);
-      return sum + accruedValue;
-    }, 0);
-    const fxNow = findFxRateForDate(fxTable, today);
-    const totalUSD = totalKRW / fxNow;
-
-    evaluations.push({
-      date: today.toISOString().slice(0, 10),
-      totalKRW,
-      totalUSD,
+  transactions.forEach((transaction) => {
+    const foundData = cashFlowData.find((account) => {
+      return account.date === transaction.date;
     });
+
+    if (foundData) {
+      if (transaction.type === 'deposit') {
+        foundData.deposit += transaction.quantity * transaction.price;
+        // console.log(transaction.currency, transaction); // usd 입금도 환율 고려해서 계산 필요
+      } else if (transaction.type === 'withdrawal') {
+        foundData.withdrawal += transaction.quantity * transaction.price;
+        // console.log(transaction.currency, transaction);
+      }
+    }
+
+    // 입금 시 예금 잔고에 추가
+    // if (transaction.type === 'deposit') {
+    //   deposits.push({
+    //     startDate: transaction.date,
+    //     maturityDate: addOneYear(transaction.date),
+    //     principal: transaction.quantity * transaction.price,
+    //     currentValue: transaction.quantity * transaction.price,
+    //     interestRate: getCurrentRate(transaction.date),
+    //   });
+    // }
+  });
+
+  // 입출금 데이터 생성
+  console.log(cashFlowData);
+  // 예금 상품 데이터 푸시, 1년치 선입선출 해서 평가잔고 계산
+
+  let currentValue = 0; // 현재 평가금액
+
+  cashFlowData.forEach((flow) => {
+    // 각 플로우를 돌면서 입금액에 대해서 예금 상품을 생성
+    // 각 플로우마다 해당 날짜 범위에 포함되는 예금 상품을 필터링 -> 이자 하루 단위 추가
+    // 만기 상품은 임금액과 합산하여 다시 예금 상품 생성
+    // withdrawal이 발생하면 가장 가까운 과거 terms를 찾아서 해당 상품을 찾아서 principal, currentValue를 차감, 0이되면 한 층더 과거 terms를 찾아서 차감
+    // 만기일이 지난 상품 또는 currentValue가 0인 상품은 삭제
+
+    // 오늘 날짜에 걸쳐있는 terms는 제외하고, 그외 terms는 오늘이 올때까지 다시 생성해서 계산 (maturityDate를 startDate에 대입 후)
+    if (flow.deposit > 0) {
+      terms.push({
+        startDate: flow.date,
+        maturityDate: addOneYear(flow.date),
+        principal: flow.deposit,
+        interest: 0,
+        interestRate: getCurrentRate(flow.date),
+      });
+    }
+    if (flow.withdrawal > 0) {
+      // 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal 차감 (출금액이 0이 될때까지 반복)
+      // 이자는 남겨도 됨 (어차피 원금이 0이라 더 이상 이자 발생 안하기 때문)
+      let idx = -1;
+      while (flow.withdrawal > 0) {
+        if (terms.at(idx)!.principal <= flow.withdrawal) {
+          terms.at(idx)!.principal = 0; // 원금 차감
+          flow.withdrawal -= terms.at(idx)!.principal; // 출금액 차감
+          idx--; // 다음 예금 상품으로 이동
+        } else {
+          terms.at(idx)!.principal -= flow.withdrawal; // 원금 차감
+          flow.withdrawal = 0; // 출금액 0으로 초기화
+        }
+      }
+    }
+
+    // 이자 지급
+    terms.forEach((term) => {
+      currentValue += term.principal + term.interest; // 평가금액 계산
+
+      term.interest =
+        term.interest + term.principal * (term.interestRate / 100 / 365); // 이자 계산
+
+      // 만기일이 지난 상품은 재예치
+      if (term.maturityDate < flow.date) {
+        term.startDate = flow.date;
+        term.maturityDate = addOneYear(flow.date);
+        term.principal = term.principal + term.interest; // 만기일이 지난 상품은 이자와 원금을 합산하여 재예치
+        term.interest = 0; // 이자 초기화
+        term.interestRate = getCurrentRate(flow.date);
+      }
+    });
+
+    console.log(flow.date);
+    console.log(terms);
+    console.log(currentValue.toLocaleString());
+    // 원금과 이자 합으로 평가금액 계산하기
+  });
+
+  // 날짜를 쭉 돌면서 startDate와 maturityDate 사이에 있는 예금 상품을 찾아서
+  // 이자 추가
+};
+
+// 1년 뒤 날짜 반환
+const addOneYear = (date: string) => {
+  const newDate = new Date(date);
+  newDate.setFullYear(newDate.getFullYear() + 1);
+  return newDate.toISOString().split('T')[0];
+};
+
+// 과거 금리 중 입력된 날짜와 같거나 가장 가까운 과거 금리 반환
+const getCurrentRate = (date: string) => {
+  const interestRates = [
+    { date: '2025-02-25', interestRate: 2.75 },
+    { date: '2024-11-28', interestRate: 3.0 },
+    { date: '2024-10-11', interestRate: 3.25 },
+    { date: '2023-01-13', interestRate: 3.5 },
+    { date: '2022-11-24', interestRate: 3.25 },
+    { date: '2022-10-12', interestRate: 3.0 },
+    { date: '2022-08-25', interestRate: 2.5 },
+    { date: '2022-07-13', interestRate: 2.25 },
+    { date: '2022-05-26', interestRate: 1.75 },
+    { date: '2022-04-14', interestRate: 1.5 },
+    { date: '2022-01-14', interestRate: 1.25 },
+    { date: '2021-11-25', interestRate: 1.0 },
+    { date: '2021-08-26', interestRate: 0.75 },
+    { date: '2020-05-28', interestRate: 0.5 },
+    { date: '2020-03-17', interestRate: 0.75 },
+    { date: '2019-10-16', interestRate: 1.25 },
+    { date: '2018-01-01', interestRate: 1.5 },
+    { date: '2017-01-01', interestRate: 1.25 },
+    { date: '2016-01-01', interestRate: 1.0 },
+    { date: '2015-01-01', interestRate: 0.75 },
+    { date: '2014-01-01', interestRate: 0.5 },
+    { date: '2013-01-01', interestRate: 0.25 },
+    { date: '2012-01-01', interestRate: 0.25 },
+    { date: '2011-01-01', interestRate: 0.25 },
+    { date: '2010-01-01', interestRate: 0.25 },
+    { date: '2009-01-01', interestRate: 0.25 },
+    { date: '2008-01-01', interestRate: 3.0 },
+    { date: '2007-01-01', interestRate: 5.25 },
+    { date: '2006-01-01', interestRate: 4.25 },
+    { date: '2005-01-01', interestRate: 2.25 },
+    { date: '2004-01-01', interestRate: 1.0 },
+    { date: '2003-01-01', interestRate: 1.25 },
+    { date: '2002-01-01', interestRate: 1.75 },
+    { date: '2001-01-01', interestRate: 3.5 },
+    { date: '2000-01-01', interestRate: 5.5 },
+  ];
+  const dateObj = new Date(date);
+
+  // 과거(같거나 이전) 금리만 필터링
+  const pastRates = interestRates.filter(
+    (rate) => new Date(rate.date) <= dateObj
+  );
+
+  // 과거 금리가 없으면 가장 오래된 금리 반환
+  if (pastRates.length === 0) {
+    return interestRates[interestRates.length - 1].interestRate;
   }
 
-  console.log(evaluations);
-
-  return evaluations;
-}
+  // 가장 최근(가장 가까운 과거) 금리 반환
+  pastRates.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  return pastRates[0].interestRate;
+};
