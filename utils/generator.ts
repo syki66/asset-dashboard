@@ -1,10 +1,17 @@
-import { DepositProps, TransactionProps } from '@/types';
+import { DepositProps, StockHistoryProps, TransactionProps } from '@/types';
 import { generateDateObjects, timestampToDate } from './format';
+import { getStockInfo } from './converter';
+import { DEFAULT_FX_RATE } from '@/constants/keywords';
 
 // 벤치마크 데이터 생성
-export const createBenchmarkData = (transactions: TransactionProps[]) => {
-  // 예금, s&p500, nasdaq, kospi, btc?
-  // 입출금 환율 생각하기
+export const createBenchmarkData = async (transactions: TransactionProps[]) => {
+  const {
+    stockData: [fxTable],
+  } = await getStockInfo(
+    transactions[0].date,
+    timestampToDate(Math.floor(new Date().getTime() / 1000)),
+    []
+  );
 
   const startDate = transactions[0].date;
   const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000)); // 종료 날짜는 당일로 설정
@@ -26,19 +33,22 @@ export const createBenchmarkData = (transactions: TransactionProps[]) => {
     });
 
     if (foundData) {
-      if (transaction.type === 'deposit' && transaction.currency === 'krw') {
+      if (transaction.type === 'deposit') {
         foundData.deposit += Math.round(
-          transaction.quantity * transaction.price
+          transaction.currency === 'usd'
+            ? transaction.quantity *
+                transaction.price *
+                getFxRate(fxTable.prices, transaction.date)
+            : transaction.quantity * transaction.price
         );
-        // console.log(transaction.currency, transaction); // usd 입금도 환율 고려해서 계산 필요
-      } else if (
-        transaction.type === 'withdrawal' &&
-        transaction.currency === 'krw'
-      ) {
+      } else if (transaction.type === 'withdrawal') {
         foundData.withdrawal += Math.round(
-          transaction.quantity * transaction.price
+          transaction.currency === 'usd'
+            ? transaction.quantity *
+                transaction.price *
+                getFxRate(fxTable.prices, transaction.date)
+            : transaction.quantity * transaction.price
         );
-        // console.log(transaction.currency, transaction);
       }
     }
   });
@@ -119,6 +129,31 @@ export const createBenchmarkData = (transactions: TransactionProps[]) => {
     // 원금과 이자 합으로 평가금액 계산하기
   });
 };
+
+// 가장 가까운 날짜의 환율 찾기
+export function getFxRate(
+  entries: StockHistoryProps[],
+  targetDate: string
+): number {
+  const exact = entries.find((e) => e.date === targetDate);
+  if (exact) {
+    return exact.close;
+  }
+
+  const earlier = entries.filter((e) => e.date < targetDate);
+  if (earlier.length === 0) {
+    return DEFAULT_FX_RATE;
+  }
+
+  let closest = earlier[0];
+  for (let i = 1; i < earlier.length; i++) {
+    if (earlier[i].date > closest.date) {
+      closest = earlier[i];
+    }
+  }
+
+  return closest.close;
+}
 
 // 1년 뒤 날짜 반환
 const addOneYear = (date: string) => {
