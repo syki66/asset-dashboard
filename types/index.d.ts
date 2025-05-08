@@ -87,6 +87,8 @@ export type DashboardProps = {
   dividendHistoryChartData: ChartProps[];
   dividendYieldChartData: ChartProps[];
   yieldOnCostChartData: ChartProps[];
+  benchmarkChartData: ChartProps[];
+  benchmarkProfitChartData: ChartProps[];
 };
 
 export type TermsProps = {

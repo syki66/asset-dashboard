@@ -43,6 +43,8 @@ export const convertToDashboardData = (
   let dividendHistoryChartData: ChartProps[] = [];
   const yieldOnCostChartData: ChartProps[] = [];
   const dividendYieldChartData: ChartProps[] = [];
+  const benchmarkChartData: ChartProps[] = [];
+  const benchmarkProfitChartData: ChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -257,6 +259,18 @@ export const convertToDashboardData = (
       value: dividendYield,
     });
 
+    // 벤치마크 차트 데이터
+    benchmarkChartData.push({
+      date: account.date,
+      value: benchmarkValue,
+    });
+
+    // 벤치마크 수익률 차트 데이터
+    benchmarkProfitChartData.push({
+      date: account.date,
+      value: benchmarkValue - principal,
+    });
+
     return {
       date: account.date,
       lastUpdated: account.lastUpdated,
@@ -284,6 +298,8 @@ export const convertToDashboardData = (
       dividendHistoryChartData,
       yieldOnCostChartData,
       dividendYieldChartData,
+      benchmarkChartData,
+      benchmarkProfitChartData,
     };
   });
 
@@ -480,6 +496,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
+            benchmarkValue: 0,
           },
           usd: {
             principalAmount: 0,
@@ -487,6 +504,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
+            benchmarkValue: 0,
           },
         },
       ] as AccountProps[]

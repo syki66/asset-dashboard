@@ -70,6 +70,18 @@ const initialDashboardData: DashboardProps = {
       value: 0,
     },
   ],
+  benchmarkChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
+  benchmarkProfitChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
 };
 
 export function AssetOverview() {
@@ -183,6 +195,18 @@ export function AssetOverview() {
               name: '수익금',
               color: '#4CAF50',
               data: data.profitChartData,
+            },
+            {
+              id: 'benchmark',
+              name: '예금',
+              color: '#2196F3',
+              data: data.benchmarkChartData,
+            },
+            {
+              id: 'benchmarkProfit',
+              name: '예금 수익금',
+              color: '#FF9800',
+              data: data.benchmarkProfitChartData,
             },
           ]}
           title="자산 포트폴리오 차트"
