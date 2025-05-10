@@ -215,7 +215,11 @@ const getCurrentRate = (date: string) => {
 
   // 과거 금리가 없으면 가장 오래된 금리 반환
   if (pastRates.length === 0) {
-    return interestRates[interestRates.length - 1].interestRate;
+    // interestRates 배열에서 가장 오래된 날짜의 금리를 찾음
+    const oldestRate = interestRates.reduce((min, rate) => {
+      return new Date(rate.date) < new Date(min.date) ? rate : min;
+    }, interestRates[0]);
+    return oldestRate.interestRate;
   }
 
   // 가장 최근(가장 가까운 과거) 금리 반환
