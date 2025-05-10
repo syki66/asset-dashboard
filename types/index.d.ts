@@ -89,6 +89,7 @@ export type DashboardProps = {
   yieldOnCostChartData: ChartProps[];
   benchmarkChartData: ChartProps[];
   benchmarkProfitChartData: ChartProps[];
+  profitAfterTaxChartData: ChartProps[];
 };
 
 export type TermsProps = {

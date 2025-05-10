@@ -82,6 +82,12 @@ const initialDashboardData: DashboardProps = {
       value: 0,
     },
   ],
+  profitAfterTaxChartData: [
+    {
+      date: '1970-01-01',
+      value: 0,
+    },
+  ],
 };
 
 export function AssetOverview() {
@@ -207,6 +213,12 @@ export function AssetOverview() {
               name: '예금 수익금',
               color: '#FF9800',
               data: data.benchmarkProfitChartData,
+            },
+            {
+              id: 'profitAfterTax',
+              name: '세후 수익금',
+              color: '#673AB7',
+              data: data.profitAfterTaxChartData,
             },
           ]}
           title="자산 포트폴리오 차트"

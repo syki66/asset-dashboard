@@ -45,6 +45,7 @@ export const convertToDashboardData = (
   const dividendYieldChartData: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
+  const profitAfterTaxChartData: ChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -271,6 +272,12 @@ export const convertToDashboardData = (
       value: benchmarkValue - principal,
     });
 
+    // 세후 수익금 차트 데이터
+    profitAfterTaxChartData.push({
+      date: account.date,
+      value: profit - totalTaxFee,
+    });
+
     return {
       date: account.date,
       lastUpdated: account.lastUpdated,
@@ -300,6 +307,7 @@ export const convertToDashboardData = (
       dividendYieldChartData,
       benchmarkChartData,
       benchmarkProfitChartData,
+      profitAfterTaxChartData,
     };
   });
 

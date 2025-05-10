@@ -1,7 +1,11 @@
 import { TermsProps, StockHistoryProps, TransactionProps } from '@/types';
 import { generateDateObjects, timestampToDate } from './format';
 import { getStockInfo } from './converter';
-import { DEFAULT_FX_RATE, krDividendTax } from '@/constants/keywords';
+import {
+  DEFAULT_FX_RATE,
+  krDividendTax,
+  rateTable,
+} from '@/constants/keywords';
 
 // 벤치마크 데이터 생성
 export const createBenchmarkData = async (transactions: TransactionProps[]) => {
@@ -169,56 +173,17 @@ const addOneYear = (date: string) => {
 
 // 과거 금리 중 입력된 날짜와 같거나 가장 가까운 과거 금리 반환
 const getCurrentRate = (date: string) => {
-  const interestRates = [
-    { date: '2025-02-25', interestRate: 2.75 },
-    { date: '2024-11-28', interestRate: 3.0 },
-    { date: '2024-10-11', interestRate: 3.25 },
-    { date: '2023-01-13', interestRate: 3.5 },
-    { date: '2022-11-24', interestRate: 3.25 },
-    { date: '2022-10-12', interestRate: 3.0 },
-    { date: '2022-08-25', interestRate: 2.5 },
-    { date: '2022-07-13', interestRate: 2.25 },
-    { date: '2022-05-26', interestRate: 1.75 },
-    { date: '2022-04-14', interestRate: 1.5 },
-    { date: '2022-01-14', interestRate: 1.25 },
-    { date: '2021-11-25', interestRate: 1.0 },
-    { date: '2021-08-26', interestRate: 0.75 },
-    { date: '2020-05-28', interestRate: 0.5 },
-    { date: '2020-03-17', interestRate: 0.75 },
-    { date: '2019-10-16', interestRate: 1.25 },
-    { date: '2018-01-01', interestRate: 1.5 },
-    { date: '2017-01-01', interestRate: 1.25 },
-    { date: '2016-01-01', interestRate: 1.0 },
-    { date: '2015-01-01', interestRate: 0.75 },
-    { date: '2014-01-01', interestRate: 0.5 },
-    { date: '2013-01-01', interestRate: 0.25 },
-    { date: '2012-01-01', interestRate: 0.25 },
-    { date: '2011-01-01', interestRate: 0.25 },
-    { date: '2010-01-01', interestRate: 0.25 },
-    { date: '2009-01-01', interestRate: 0.25 },
-    { date: '2008-01-01', interestRate: 3.0 },
-    { date: '2007-01-01', interestRate: 5.25 },
-    { date: '2006-01-01', interestRate: 4.25 },
-    { date: '2005-01-01', interestRate: 2.25 },
-    { date: '2004-01-01', interestRate: 1.0 },
-    { date: '2003-01-01', interestRate: 1.25 },
-    { date: '2002-01-01', interestRate: 1.75 },
-    { date: '2001-01-01', interestRate: 3.5 },
-    { date: '2000-01-01', interestRate: 5.5 },
-  ];
   const dateObj = new Date(date);
 
   // 과거(같거나 이전) 금리만 필터링
-  const pastRates = interestRates.filter(
-    (rate) => new Date(rate.date) <= dateObj
-  );
+  const pastRates = rateTable.filter((rate) => new Date(rate.date) <= dateObj);
 
   // 과거 금리가 없으면 가장 오래된 금리 반환
   if (pastRates.length === 0) {
-    // interestRates 배열에서 가장 오래된 날짜의 금리를 찾음
-    const oldestRate = interestRates.reduce((min, rate) => {
+    // rateTable 배열에서 가장 오래된 날짜의 금리를 찾음
+    const oldestRate = rateTable.reduce((min, rate) => {
       return new Date(rate.date) < new Date(min.date) ? rate : min;
-    }, interestRates[0]);
+    }, rateTable[0]);
     return oldestRate.interestRate;
   }
 
