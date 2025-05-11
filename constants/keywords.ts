@@ -19,7 +19,7 @@ export const rateTable = [
   // 저축은행 예금 금리 (월 중 가장 높은 금리로 적용)
   { date: '2025-04-01', interestRate: 3.3 },
   { date: '2025-03-01', interestRate: 3.5 },
-  { date: '2025-02-01', interestRate: 3.6 },
+  { date: '2025-02-01', interestRate: 3.5 },
   { date: '2025-01-01', interestRate: 3.4 },
   { date: '2024-12-01', interestRate: 3.6 },
   { date: '2024-11-01', interestRate: 3.8 },

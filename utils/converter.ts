@@ -121,7 +121,10 @@ export const convertToDashboardData = (
     const usFxFee =
       (usdStockValue + account.usd.cash) /
       (account.fxRate * exchangeSpread * exchangeFee); // 환전 수수료 (원화로 계산)
-    const usTax = usEstimatedProfit * usCapitalGainsTax; // 미국주식 양도소득세 계산
+    const usTax =
+      usEstimatedProfit * usCapitalGainsTax > 0
+        ? usEstimatedProfit * usCapitalGainsTax
+        : 0; // 미국주식 양도소득세 계산 (마이너스일 경우 0원 처리)
 
     const totalTaxFee = krTaxFee + usFee + usTax + usFxFee; // 총 세금 및 수수료 (원화)
 
