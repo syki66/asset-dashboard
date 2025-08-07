@@ -31,6 +31,7 @@
 - Next.js에서 프록시 서버를 만들고, Yahoo Finance API 데이터를 가공하여 활용
 - 각 단계별로 성공, 실패 상세 내역을 Toast 메세지로 표시
 - Drag N Drop으로 계좌 데이터 불러오기
+- 컨트롤 패널 제공 (계좌 선택, 환율 전환, 보기 옵션 등)
 - useMemo로 렌더링 속도 최적화
 
 ## Usage/Examples

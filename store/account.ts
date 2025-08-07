@@ -35,3 +35,16 @@ export const useCurrencyStore = create<CurrencyState>((set) => ({
   currency: 'krw',
   setCurrency: (currency) => set({ currency }),
 }));
+
+// 상세정보 토글 상태 관리
+interface DetailToggleState {
+  showDetail: boolean;
+  toggleDetail: () => void;
+  setShowDetail: (show: boolean) => void;
+}
+
+export const useDetailToggleStore = create<DetailToggleState>((set) => ({
+  showDetail: false,
+  toggleDetail: () => set((state) => ({ showDetail: !state.showDetail })),
+  setShowDetail: (show) => set({ showDetail: show }),
+}));

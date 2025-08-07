@@ -11,6 +11,8 @@ import {
   AwardIcon as Won,
   ChevronDown,
   ChevronUp,
+  Minimize,
+  Maximize,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +34,7 @@ import {
   useAccountStore,
   useCurrencyStore,
   useDashboardStore,
+  useDetailToggleStore,
 } from '@/store/account';
 
 export function DashboardControls() {
@@ -41,6 +44,8 @@ export function DashboardControls() {
     currency: Currency;
     setCurrency: (currency: Currency) => void;
   };
+  const showDetail = useDetailToggleStore((state) => state.showDetail);
+  const toggleDetail = useDetailToggleStore((state) => state.toggleDetail);
 
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -148,6 +153,38 @@ export function DashboardControls() {
                       {currency === 'usd'
                         ? `모든 금액은 달러(USD)로 표시됩니다.`
                         : '모든 금액은 원화(KRW)로 표시됩니다.'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">상세보기 설정</h3>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="detail-view"
+                        checked={showDetail}
+                        onCheckedChange={toggleDetail}
+                      />
+                      <Label
+                        htmlFor="detail-view"
+                        className="flex items-center"
+                      >
+                        {showDetail ? (
+                          <>
+                            <Maximize className="h-4 w-4 mr-1" />
+                            <span>상세히 표시</span>
+                          </>
+                        ) : (
+                          <>
+                            <Minimize className="h-4 w-4 mr-1" />
+                            <span>간략히 표시</span>
+                          </>
+                        )}
+                      </Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {showDetail
+                        ? '대시보드에 모든 정보가 표시됩니다.'
+                        : '대시보드에 필수적인 정보만 표시됩니다.'}
                     </p>
                   </div>
                 </div>
