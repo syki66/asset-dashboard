@@ -68,21 +68,6 @@ const DEFAULT_COLORS = [
   '#d946ef', // 퓨시아
 ];
 
-// 인플레이션 데이터 (연간 인플레이션율 %)
-const inflationRates = {
-  2014: 1.3,
-  2015: 0.7,
-  2016: 1.0,
-  2017: 1.9,
-  2018: 1.5,
-  2019: 0.4,
-  2020: 0.5,
-  2021: 2.5,
-  2022: 5.1,
-  2023: 3.6,
-  2024: 2.8, // 예상치
-};
-
 interface AssetHistoryChartProps {
   series: AssetSeries[];
   title?: string;
