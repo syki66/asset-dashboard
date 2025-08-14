@@ -7,24 +7,22 @@ import { Label } from '@/components/ui/label';
 interface CheckboxOption {
   id: string;
   label: string;
+  disabled?: boolean;
 }
 
 interface CheckboxGroupProps {
-  options: CheckboxOption[] | [];
+  options: CheckboxOption[];
   onChange: (selectedValues: string[]) => void;
   defaultSelected?: string[];
-  allCheckedByDefault?: boolean;
 }
 
 export default function CheckboxGroup({
   options,
   onChange,
   defaultSelected = [],
-  allCheckedByDefault = false,
 }: CheckboxGroupProps) {
-  const [selectedValues, setSelectedValues] = useState<string[]>(
-    allCheckedByDefault ? options.map((option) => option.id) : defaultSelected
-  );
+  const [selectedValues, setSelectedValues] =
+    useState<string[]>(defaultSelected);
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     const newSelectedValues = checked
@@ -35,7 +33,7 @@ export default function CheckboxGroup({
     onChange(newSelectedValues);
   };
 
-  // Update parent component whenever selected values change
+  // 선택 값 변경 시 부모에 전달
   useEffect(() => {
     onChange(selectedValues);
   }, [selectedValues, onChange]);
@@ -50,8 +48,19 @@ export default function CheckboxGroup({
             onCheckedChange={(checked) =>
               handleCheckboxChange(option.id, checked as boolean)
             }
+            disabled={option.disabled}
           />
-          <Label htmlFor={option.id}>{option.label}</Label>
+          <Label
+            htmlFor={option.id}
+            className={
+              option.disabled ? 'text-gray-400 cursor-not-allowed' : ''
+            }
+          >
+            {option.label}
+            {option.disabled && (
+              <span className="ml-1 text-xs text-gray-400">(추후 예정)</span>
+            )}
+          </Label>
         </div>
       ))}
     </div>
