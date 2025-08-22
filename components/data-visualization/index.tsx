@@ -190,14 +190,10 @@ export default function DataVisualization() {
 
             {activeStep === 2 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Confirmation</h3>
+                <h3 className="text-lg font-medium">벤치마크 설정</h3>
                 <p className="text-muted-foreground">
-                  Review your information and confirm your submission.
+                  예금 데이터 생성 및 여러 지수들을 검색해서 비교할 수 있습니다.
                 </p>
-                {/* Summary would go here */}
-                <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
-                  Summary of submitted information
-                </div>
                 <BenchmarkStep />
               </div>
             )}

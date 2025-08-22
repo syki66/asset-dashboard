@@ -49,12 +49,15 @@ function defaultRateForMonth(year: number, month: number): number {
 }
 
 function makeDefaults(months: { year: number; month: number }[]): MonthRate[] {
-  return months.map(({ year, month }) => ({
-    year,
-    month,
-    rate: defaultRateForMonth(year, month),
-    active: true,
-  }));
+  return months.map(({ year, month }) => {
+    const rate = defaultRateForMonth(year, month);
+    return {
+      year,
+      month,
+      rate,
+      active: rate !== 0, // 금리가 0이면 비활성화
+    };
+  });
 }
 
 function formatMonthLabel(month: number): string {
@@ -123,6 +126,10 @@ export default function InterestRatePanel({
   const [loading, setLoading] = useState(true);
   const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set());
 
+  const setInterestRates = useInterestRateStore(
+    (state) => state.setInterestRates
+  );
+
   const groupedRates = useMemo(() => groupByYear(rates), [rates]);
   const years = useMemo(
     () =>
@@ -137,12 +144,16 @@ export default function InterestRatePanel({
     setLoading(false);
   }, [months]);
 
-  // Auto-save to localStorage whenever rates change
-  // useEffect(() => {
-  //   if (!loading) {
-  //     localStorage.setItem(storageKey, JSON.stringify(rates));
-  //   }
-  // }, [rates, storageKey, loading]);
+  // 금리가 변경될 때마다
+  useEffect(() => {
+    const formattedRates = rates
+      .filter(({ active }) => active)
+      .map(({ year, month, rate }) => ({
+        date: `${year}-${month.toString().padStart(2, '0')}-01`,
+        interestRate: rate,
+      }));
+    setInterestRates(formattedRates);
+  }, [rates]);
 
   function updateRate(year: number, month: number, value: string) {
     const next = value.replace(',', '.'); // support comma decimal

@@ -1,11 +1,8 @@
 import { TermsProps, StockHistoryProps, TransactionProps } from '@/types';
 import { generateDateObjects, timestampToDate } from './format';
 import { getStockInfo } from './converter';
-import {
-  DEFAULT_FX_RATE,
-  krDividendTax,
-  rateTable,
-} from '@/constants/keywords';
+import { DEFAULT_FX_RATE, krDividendTax } from '@/constants/keywords';
+import { useInterestRateStore } from '@/store/account';
 
 // 벤치마크 데이터 생성
 export const createBenchmarkData = async (transactions: TransactionProps[]) => {
@@ -173,17 +170,18 @@ const addOneYear = (date: string) => {
 
 // 과거 금리 중 입력된 날짜와 같거나 가장 가까운 과거 금리 반환
 const getCurrentRate = (date: string) => {
+  const rates = useInterestRateStore.getState().interestRates; // 전역 상태에서 금리 테이블 불러오기
   const dateObj = new Date(date);
 
   // 과거(같거나 이전) 금리만 필터링
-  const pastRates = rateTable.filter((rate) => new Date(rate.date) <= dateObj);
+  const pastRates = rates.filter((rate) => new Date(rate.date) <= dateObj);
 
   // 과거 금리가 없으면 가장 오래된 금리 반환
   if (pastRates.length === 0) {
-    // rateTable 배열에서 가장 오래된 날짜의 금리를 찾음
-    const oldestRate = rateTable.reduce((min, rate) => {
+    // rates 배열에서 가장 오래된 날짜의 금리를 찾음
+    const oldestRate = rates.reduce((min, rate) => {
       return new Date(rate.date) < new Date(min.date) ? rate : min;
-    }, rateTable[0]);
+    }, rates[0]);
     return oldestRate.interestRate;
   }
 
