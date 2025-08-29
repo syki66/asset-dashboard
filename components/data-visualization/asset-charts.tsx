@@ -625,6 +625,7 @@ export default function AssetChart({
                     const { cx, cy, index } = props;
                     return shouldShowDot(index) ? (
                       <circle
+                        key={`dot-${series.id}-${index}`}
                         cx={cx}
                         cy={cy}
                         r={3}
@@ -654,6 +655,7 @@ export default function AssetChart({
                     const { cx, cy, index } = props;
                     return shouldShowDot(index) ? (
                       <circle
+                        key={`dot-total-${index}`}
                         cx={cx}
                         cy={cy}
                         r={4}
