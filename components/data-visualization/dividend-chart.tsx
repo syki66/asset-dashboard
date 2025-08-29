@@ -18,6 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useCurrencyStore } from '@/store/account';
 
 interface DividendData {
   date: string;
@@ -32,6 +33,8 @@ type TimeRange = 'YTD' | '1Y' | '3Y' | '5Y' | '10Y' | 'MAX';
 
 export default function DividendChart({ data }: DividendChartProps) {
   const [selectedRange, setSelectedRange] = useState<TimeRange>('YTD');
+
+  const currency = useCurrencyStore((state) => state.currency);
 
   console.log(data);
 
@@ -169,7 +172,32 @@ export default function DividendChart({ data }: DividendChartProps) {
   }, [data, selectedRange]);
 
   const formatTooltipValue = (value: number) => {
-    return `₩${value.toLocaleString('ko-KR')}`;
+    return `${currency === 'usd' ? '$' : '₩'}${value.toLocaleString('ko-KR')}`;
+  };
+
+  // 기간 문자열을 한국어 형식으로 변환 (예: 2024-03 -> 2024년 3월, 2024 -> 2024년, 2024-Q1 -> 2024년 Q1분기)
+  const formatPeriodLabel = (period: string | number) => {
+    if (typeof period !== 'string') return String(period);
+    // YYYY-MM
+    const ymMatch = period.match(/^(\d{4})-(\d{2})$/);
+    if (ymMatch) {
+      const year = ymMatch[1];
+      const month = String(Number(ymMatch[2]));
+      return `${year}년 ${month}월`;
+    }
+    // YYYY-Qn
+    const qMatch = period.match(/^(\d{4})-Q(\d)$/);
+    if (qMatch) {
+      const year = qMatch[1];
+      const q = qMatch[2];
+      return `${year}년 ${q}분기`;
+    }
+    // YYYY
+    const yMatch = period.match(/^(\d{4})$/);
+    if (yMatch) {
+      return `${period}년`;
+    }
+    return period;
   };
 
   const getChartTitle = () => {
@@ -192,7 +220,9 @@ export default function DividendChart({ data }: DividendChartProps) {
       (sum, item) => sum + item.total,
       0
     );
-    return `총 배당 수익: ₩${totalDividend.toLocaleString('ko-KR')}`;
+    return `총 배당 수익: ${
+      currency === 'usd' ? '$' : '₩'
+    }${totalDividend.toLocaleString('ko-KR')}`;
   };
 
   return (
@@ -245,15 +275,19 @@ export default function DividendChart({ data }: DividendChartProps) {
                 dataKey="period"
                 className="text-sm fill-amber-600 dark:fill-amber-400"
                 tick={{ fontSize: 12 }}
+                tickFormatter={formatPeriodLabel}
               />
               <YAxis
                 className="text-sm fill-amber-600 dark:fill-amber-400"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `₩${value.toLocaleString()}`}
+                tickFormatter={(value) =>
+                  `${currency === 'usd' ? '$' : '₩'}${value.toLocaleString()}`
+                }
               />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
+                    const displayLabel = formatPeriodLabel(label as string);
                     return (
                       <div className="rounded-lg border bg-white dark:bg-gray-800 p-3 shadow-xl border-amber-200 dark:border-amber-700">
                         <div className="flex flex-col gap-2">
@@ -262,7 +296,7 @@ export default function DividendChart({ data }: DividendChartProps) {
                               기간
                             </span>
                             <div className="font-bold text-amber-900 dark:text-amber-100 text-sm">
-                              {label}
+                              {displayLabel}
                             </div>
                           </div>
                           <div className="text-center">
