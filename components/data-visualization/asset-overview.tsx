@@ -2,7 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DEFAULT_FX_RATE } from '@/constants/keywords';
-import { useCurrencyStore, useDashboardStore } from '@/store/account';
+import {
+  useCurrencyStore,
+  useDashboardStore,
+  useDetailToggleStore,
+} from '@/store/account';
 import { DashboardProps } from '@/types';
 import { formatDateKr } from '@/utils/format';
 import AssetChart from './asset-charts';
@@ -97,6 +101,7 @@ export function AssetOverview() {
     ? dashboardData
     : initialDashboardData;
   const currency = useCurrencyStore((state) => state.currency);
+  const showDetail = useDetailToggleStore((state) => state.showDetail);
 
   // formatCurrency 함수 수정
   function formatCurrency(
@@ -149,96 +154,102 @@ export function AssetOverview() {
           description={`배당률: ${data.dividendYield}% (원금대비: ${data.yieldOnCost}%)`}
           valueClassName={'text-yellow-600'}
         />
-        <AssetCard
-          title="환율"
-          value={data.fxRate.toLocaleString()}
-          description="USD/KRW"
-        />
-        <AssetCard
-          title={`최대 손실 낙폭 (${data.maxDrawdownPeriod})`}
-          value={formatCurrency(data.maxDrawdown)}
-          description={`하루 최대 낙폭: ${formatCurrency(
-            data.maxDailyDrawdown
-          )} (${data.maxDailyDrawdownDate})`}
-          valueClassName="text-blue-600"
-          descClassName={'text-blue-600'}
-        />
-        <AssetCard
-          title="세금 및 제비용"
-          value={formatCurrency(data.totalTaxFee, 'krw')}
-          description={`세후 수익금: ${formatCurrency(
-            data.profit - data.totalTaxFee
-          )}`}
-          valueClassName="text-red-600"
-        />
-        <AssetCard
-          title="현금"
-          value={formatCurrency(data.cash)}
-          description={`${formatCurrency(
-            data.usdCash,
-            'usd'
-          )} + ${formatCurrency(data.krwCash, 'krw')}`}
-          valueClassName="text-red-600"
-        />
+        {showDetail && (
+          <>
+            <AssetCard
+              title="환율"
+              value={data.fxRate.toLocaleString()}
+              description="USD/KRW"
+            />
+            <AssetCard
+              title={`최대 손실 낙폭 (${data.maxDrawdownPeriod})`}
+              value={formatCurrency(data.maxDrawdown)}
+              description={`하루 최대 낙폭: ${formatCurrency(
+                data.maxDailyDrawdown
+              )} (${data.maxDailyDrawdownDate})`}
+              valueClassName="text-blue-600"
+              descClassName={'text-blue-600'}
+            />
+            <AssetCard
+              title="세금 및 제비용"
+              value={formatCurrency(data.totalTaxFee, 'krw')}
+              description={`세후 수익금: ${formatCurrency(
+                data.profit - data.totalTaxFee
+              )}`}
+              valueClassName="text-red-600"
+            />
+            <AssetCard
+              title="현금"
+              value={formatCurrency(data.cash)}
+              description={`${formatCurrency(
+                data.usdCash,
+                'usd'
+              )} + ${formatCurrency(data.krwCash, 'krw')}`}
+              valueClassName="text-red-600"
+            />
+          </>
+        )}
       </div>
-      <div className="mt-8">
-        <AssetChart
-          series={[
-            {
-              id: 'principal',
-              name: '원금',
-              color: '#888888',
-              data: data.principalChartData,
-            },
-            {
-              id: 'currentValue',
-              name: '평가금',
-              color: '#F44336',
-              data: data.currentValueChartData,
-            },
-            {
-              id: 'profit',
-              name: '수익금',
-              color: '#4CAF50',
-              data: data.profitChartData,
-            },
-            {
-              id: 'benchmark',
-              name: '예금',
-              color: '#2196F3',
-              data: data.benchmarkChartData,
-            },
-            {
-              id: 'benchmarkProfit',
-              name: '예금 수익금',
-              color: '#FF9800',
-              data: data.benchmarkProfitChartData,
-            },
-            {
-              id: 'profitAfterTax',
-              name: '세후 수익금',
-              color: '#673AB7',
-              data: data.profitAfterTaxChartData,
-            },
-          ]}
-          title="자산 포트폴리오 차트"
-          description="자산 클래스별 포트폴리오 변화 추이"
-        />
-      </div>
-      <div className="mt-8">
-        <AssetChart
-          series={[
-            {
-              id: 'drawdown',
-              name: '손실 낙폭',
-              color: '#F44336',
-              data: data.drawdownChartData,
-            },
-          ]}
-          title="최대 손실 낙폭 차트"
-          description="자산 클래스별 최대 손실 낙폭 변화 추이"
-          reverseYAxis={true}
-        />
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="mt-8">
+          <AssetChart
+            series={[
+              {
+                id: 'principal',
+                name: '원금',
+                color: '#888888',
+                data: data.principalChartData,
+              },
+              {
+                id: 'currentValue',
+                name: '평가금',
+                color: '#F44336',
+                data: data.currentValueChartData,
+              },
+              {
+                id: 'profit',
+                name: '수익금',
+                color: '#4CAF50',
+                data: data.profitChartData,
+              },
+              {
+                id: 'benchmark',
+                name: '예금',
+                color: '#2196F3',
+                data: data.benchmarkChartData,
+              },
+              {
+                id: 'benchmarkProfit',
+                name: '예금 수익금',
+                color: '#FF9800',
+                data: data.benchmarkProfitChartData,
+              },
+              {
+                id: 'profitAfterTax',
+                name: '세후 수익금',
+                color: '#673AB7',
+                data: data.profitAfterTaxChartData,
+              },
+            ]}
+            title="자산 포트폴리오 차트"
+            description="자산 클래스별 포트폴리오 변화 추이"
+          />
+        </div>
+        <div className="mt-8">
+          <AssetChart
+            series={[
+              {
+                id: 'drawdown',
+                name: '손실 낙폭',
+                color: '#F44336',
+                data: data.drawdownChartData,
+              },
+            ]}
+            title="최대 손실 낙폭 차트"
+            description="자산 클래스별 최대 손실 낙폭 변화 추이"
+            reverseYAxis={true}
+          />
+        </div>
       </div>
       <div className="mt-8">
         <AssetChart
