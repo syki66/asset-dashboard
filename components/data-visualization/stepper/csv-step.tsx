@@ -13,14 +13,22 @@ export default function CsvStep({
   setUploadedFiles,
 }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [csvIndex, setCsvIndex] = useState(0);
+  const csvFiles = ['a.csv', 'b.csv', 'c.csv', 'd.csv'];
 
-  // 체험용 더미 CSV 데이터 불러오기
+  // 체험용 더미 CSV 데이터 불러오기 (순차적으로)
   const loadDummyCsv = async () => {
+    if (csvIndex >= csvFiles.length) {
+      toast.error('더 이상 불러올 CSV가 없습니다.');
+      return;
+    }
     try {
-      const res = await fetch('/a.csv'); // public 폴더에 있는 csv 파일 불러오기
+      const fileName = csvFiles[csvIndex];
+      const res = await fetch(`/${fileName}`); // public 폴더에 있는 csv 파일 불러오기
       const blob = await res.blob();
-      const file = new File([blob], 'dummy.csv', { type: 'text/csv' });
+      const file = new File([blob], fileName, { type: 'text/csv' });
       handleFiles([file]);
+      setCsvIndex((prev) => prev + 1);
     } catch (err) {
       toast.error('더미 CSV 로드 실패');
     }
