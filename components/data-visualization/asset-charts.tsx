@@ -38,6 +38,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { inflationRates } from '@/constants/keywords';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // 차트 시리즈 타입 정의
 interface AssetDataPoint {
@@ -73,6 +75,7 @@ interface AssetHistoryChartProps {
   title?: string;
   description?: string;
   reverseYAxis?: boolean;
+  height?: string;
 }
 
 export default function AssetChart({
@@ -80,6 +83,7 @@ export default function AssetChart({
   title = '자산 내역 차트',
   description = '',
   reverseYAxis = false,
+  height = '600px',
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -162,14 +166,11 @@ export default function AssetChart({
       case '6m':
         cutoffDate = subMonths(latestDate, 6);
         break;
-      case '1y':
-        cutoffDate = subYears(latestDate, 1);
-        break;
       case 'ytd':
         cutoffDate = startOfYear(latestDate);
         break;
-      case '2y':
-        cutoffDate = subYears(latestDate, 2);
+      case '1y':
+        cutoffDate = subYears(latestDate, 1);
         break;
       case '3y':
         cutoffDate = subYears(latestDate, 3);
@@ -386,7 +387,6 @@ export default function AssetChart({
       case '1y':
       case 'ytd':
         return 30; // 1개월마다
-      case '2y':
       case '3y':
         return 60; // 2개월마다
       case '5y':
@@ -416,11 +416,6 @@ export default function AssetChart({
     });
   };
 
-  // 총합 토글 핸들러
-  const toggleTotal = () => {
-    setShowTotal((prev) => !prev);
-  };
-
   // 시간 범위에 따른 틱 개수 결정
   const getTickCountByTimeRange = () => {
     switch (timeRange) {
@@ -435,7 +430,6 @@ export default function AssetChart({
       case '1y':
       case 'ytd':
         return 6; // 약 2개월마다
-      case '2y':
       case '3y':
         return 6; // 약 6개월마다
       case '5y':
@@ -530,7 +524,6 @@ export default function AssetChart({
                 <TabsTrigger value="6m">6개월</TabsTrigger>
                 <TabsTrigger value="1y">1년</TabsTrigger>
                 <TabsTrigger value="ytd">YTD</TabsTrigger>
-                <TabsTrigger value="2y">2년</TabsTrigger>
                 <TabsTrigger value="3y">3년</TabsTrigger>
                 <TabsTrigger value="5y">5년</TabsTrigger>
                 <TabsTrigger value="10y">10년</TabsTrigger>
@@ -539,80 +532,9 @@ export default function AssetChart({
             </Tabs>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="log-scale"
-                  checked={useLogScale}
-                  onCheckedChange={setUseLogScale}
-                />
-                <Label htmlFor="log-scale">로그 스케일</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="inflation-adjust"
-                  checked={adjustForInflation}
-                  onCheckedChange={setAdjustForInflation}
-                />
-                <Label htmlFor="inflation-adjust">인플레이션 보정</Label>
-              </div>
-            </div>
-
-            {showTotal && totalData.length >= 2 && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-                <div className="flex items-center">
-                  <span className="text-sm font-medium mr-2">수익률:</span>
-                  <span
-                    className={cn(
-                      'flex items-center font-semibold',
-                      isTotalPositiveReturn ? 'text-green-600' : 'text-red-600'
-                    )}
-                  >
-                    {isTotalPositiveReturn ? (
-                      <ArrowUpRight className="h-4 w-4 mr-1" />
-                    ) : (
-                      <ArrowDownRight className="h-4 w-4 mr-1" />
-                    )}
-                    {totalReturns.percentReturn.toFixed(2)}%
-                  </span>
-                </div>
-
-                <div className="flex items-center">
-                  <span className="text-sm font-medium mr-2">수익금:</span>
-                  <span
-                    className={cn(
-                      'font-semibold',
-                      isTotalPositiveReturn ? 'text-green-600' : 'text-red-600'
-                    )}
-                  >
-                    {new Intl.NumberFormat('ko-KR', {
-                      style: 'currency',
-                      currency: 'KRW',
-                      maximumFractionDigits: 0,
-                    }).format(totalReturns.absoluteReturn)}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 시리즈 선택 체크박스 */}
+          {/* 시리즈 선택 토글 */}
           {seriesWithColors.length > 0 && (
             <div className="flex flex-wrap gap-4">
-              {/* {seriesWithColors.length > 1 && (
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="total"
-                    checked={showTotal}
-                    onCheckedChange={toggleTotal}
-                  />
-                  <Label htmlFor="total" className="font-medium">
-                    총합
-                  </Label>
-                </div>
-              )} */}
-
               {seriesWithColors.map((series) => (
                 <div key={series.id} className="flex items-center space-x-2">
                   <Switch
@@ -633,7 +555,7 @@ export default function AssetChart({
           )}
         </div>
 
-        <div className="h-[600px]">
+        <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
@@ -673,7 +595,7 @@ export default function AssetChart({
                     new Intl.NumberFormat('ko-KR', {
                       style: 'currency',
                       currency: 'KRW',
-                      maximumFractionDigits: 0,
+                      maximumFractionDigits: 2, // ← 여기서 2로 변경
                     }).format(Number(value)),
                     seriesName,
                   ];
@@ -750,6 +672,27 @@ export default function AssetChart({
               )}
             </LineChart>
           </ResponsiveContainer>
+        </div>
+
+        <div className="flex justify-center items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="log-scale"
+              checked={useLogScale}
+              onCheckedChange={(checked) => setUseLogScale(checked === true)}
+            />
+            <Label htmlFor="log-scale">로그 스케일</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="inflation-adjust"
+              checked={adjustForInflation}
+              onCheckedChange={(checked) =>
+                setAdjustForInflation(checked === true)
+              }
+            />
+            <Label htmlFor="inflation-adjust">인플레이션 보정</Label>
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap justify-between text-sm text-muted-foreground gap-2">
