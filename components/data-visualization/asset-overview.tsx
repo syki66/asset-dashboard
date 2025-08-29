@@ -266,7 +266,7 @@ export function AssetOverview() {
         />
       </div>
       <div className="mt-8">
-        <DividendChart dividendData={data.dividendHistoryChartData} />
+        <DividendChart data={data.dividendHistoryChartData} />
       </div>
       <div className="mt-8">
         <AssetChart
