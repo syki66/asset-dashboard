@@ -6,10 +6,10 @@ const BASE_URL = 'https://query1.finance.yahoo.com/v8/finance/chart';
 // 티커와 날짜정보를 받아서 날짜별 종가 정보와 배당 정보를 반환
 export async function GET(
   request: Request,
-  { params }: { params: { symbol: string } }
+  context: { params: Promise<{ symbol: string }> }
 ) {
   // 경로 파라미터에서 심볼 추출
-  const { symbol } = params;
+  const { symbol } = await context.params;
 
   // 요청 URL에서 쿼리 파라미터 추출
   const url = new URL(request.url);

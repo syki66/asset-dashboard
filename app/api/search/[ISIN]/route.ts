@@ -5,10 +5,10 @@ const BASE_URL = 'https://query2.finance.yahoo.com/v1/finance/search';
 // US 종목 코드를 받아서 티커를 반환
 export async function GET(
   request: Request,
-  { params }: { params: { ISIN: string } }
+  context: { params: Promise<{ ISIN: string }> }
 ) {
-  // 경로 파라미터에서 심볼 추출
-  const { ISIN } = params;
+  // 경로 파라미터에서 ISIN 추출
+  const { ISIN } = await context.params;
 
   const fetchUrl = `${BASE_URL}?q=${ISIN}&newsCount=0`;
 
