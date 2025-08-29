@@ -1,7 +1,6 @@
 import { useState } from 'react';
-
 import { toast } from 'sonner';
-import { Check, FileUp, Upload, X } from 'lucide-react';
+import { Check, FileUp, Upload, X, FilePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface CsvStepProps {
@@ -15,8 +14,20 @@ export default function CsvStep({
 }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
 
+  // 체험용 더미 CSV 데이터 불러오기
+  const loadDummyCsv = async () => {
+    try {
+      const res = await fetch('/a.csv'); // public 폴더에 있는 csv 파일 불러오기
+      const blob = await res.blob();
+      const file = new File([blob], 'dummy.csv', { type: 'text/csv' });
+      handleFiles([file]);
+    } catch (err) {
+      toast.error('더미 CSV 로드 실패');
+    }
+  };
+
+  // 파일 처리 로직
   const handleFiles = (files: File[]) => {
-    // 파일 확장자 검증 (CSV, XLSX만 허용)
     const validFiles = files.filter((file) => {
       const ext = file.name.split('.').pop()?.toLowerCase();
       return ext === 'csv' || ext === 'xlsx';
@@ -37,15 +48,12 @@ export default function CsvStep({
     }
   };
 
+  // Drag & Drop 핸들러
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
+  const handleDragLeave = () => setIsDragging(false);
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -61,6 +69,7 @@ export default function CsvStep({
     }
   };
 
+  // 업로드 취소
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
@@ -100,6 +109,15 @@ export default function CsvStep({
           >
             <Upload className="mr-2 h-4 w-4" />
             파일 선택
+          </Button>
+
+          <Button
+            variant="secondary"
+            className="mt-2 ml-2"
+            onClick={loadDummyCsv}
+          >
+            <FilePlus className="mr-2 h-4 w-4" />
+            더미 CSV 불러오기
           </Button>
         </div>
 
