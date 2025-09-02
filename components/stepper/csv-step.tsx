@@ -8,10 +8,7 @@ interface CsvStepProps {
   setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>;
 }
 
-export default function CsvStep({
-  uploadedFiles,
-  setUploadedFiles,
-}: CsvStepProps) {
+export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [csvIndex, setCsvIndex] = useState(0);
   const csvFiles = ['a.csv', 'b.csv', 'c.csv', 'd.csv'];

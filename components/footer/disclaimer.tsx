@@ -1,5 +1,3 @@
-'use client';
-
 export function Disclaimer() {
   return (
     <div className="mt-8 text-sm text-muted-foreground border-t pt-4">

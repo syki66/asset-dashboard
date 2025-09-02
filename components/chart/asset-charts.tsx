@@ -78,7 +78,7 @@ interface AssetHistoryChartProps {
   height?: string;
 }
 
-export default function AssetChart({
+export function AssetChart({
   series = [],
   title = '자산 내역 차트',
   description = '',

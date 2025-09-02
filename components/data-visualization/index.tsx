@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { DashboardControls } from './dashboard-controls';
 import { DashboardSummary } from './dashboard-summary';
-import { Disclaimer } from './disclaimer';
+import { Disclaimer } from '@/components/footer';
 import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,9 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
-import CsvStep from './stepper/csv-step';
-import BenchmarkStep from './stepper/benchmark-step';
-import DateStep from './stepper/date-step';
+import { CsvStep, DateStep, BenchmarkStep } from '@/components/stepper';
 import { useAccountStore } from '@/store/account';
 import { useQuery } from '@tanstack/react-query';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
@@ -112,11 +110,6 @@ export default function DataVisualization() {
       setActiveStep(step);
     }
   };
-
-  useEffect(() => {
-    console.log(dateRange);
-    console.log(uploadedFiles);
-  }, [dateRange]);
 
   useEffect(() => {
     if (totalAccountData) {

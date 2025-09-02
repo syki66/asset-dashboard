@@ -117,7 +117,7 @@ function getYearStats(yearData: MonthRate[]) {
   };
 }
 
-export default function InterestRatePanel({
+export function InterestRatePanel({
   startYear = 2000,
   className = '',
 }: InterestRatePanelProps) {

@@ -31,7 +31,7 @@ interface DividendChartProps {
 
 type TimeRange = 'YTD' | '1Y' | '3Y' | '5Y' | '10Y' | 'MAX';
 
-export default function DividendChart({ data }: DividendChartProps) {
+export function DividendChart({ data }: DividendChartProps) {
   const [selectedRange, setSelectedRange] = useState<TimeRange>('YTD');
 
   const currency = useCurrencyStore((state) => state.currency);

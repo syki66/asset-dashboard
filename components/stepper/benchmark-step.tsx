@@ -1,5 +1,5 @@
 import InterestRatePanel from './interest-rate-panel';
-import CheckboxGroup from '../checkbox-group';
+import CheckboxGroup from '../data-visualization/checkbox-group';
 import { useState } from 'react';
 
 const stockIndicators = [
@@ -11,7 +11,7 @@ const stockIndicators = [
   { id: 'deposit', label: '예금' },
 ];
 
-const BenchmarkStep = () => {
+export const BenchmarkStep = () => {
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
 
   return (
@@ -27,5 +27,3 @@ const BenchmarkStep = () => {
     </>
   );
 };
-
-export default BenchmarkStep;

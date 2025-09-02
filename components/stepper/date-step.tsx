@@ -1,5 +1,5 @@
 import { DateRange } from 'react-day-picker';
-import { DateRangePicker } from '../date-range-picker';
+import { DateRangePicker } from '../data-visualization/date-range-picker';
 import { Button } from '@/components/ui/button';
 import { addDays, format } from 'date-fns';
 import { CalendarRange } from 'lucide-react';
@@ -9,10 +9,7 @@ interface DateStepProps {
   onDateRangeChange: (dateRange: DateRange | undefined) => void;
 }
 
-export default function DateStep({
-  dateRange,
-  onDateRangeChange,
-}: DateStepProps) {
+export function DateStep({ dateRange, onDateRangeChange }: DateStepProps) {
   return (
     <>
       <div className="space-y-4">
