@@ -1,4 +1,4 @@
-import InterestRatePanel from './interest-rate-panel';
+import { InterestRatePanel } from './interest-rate-panel';
 import CheckboxGroup from '../data-visualization/checkbox-group';
 import { useState } from 'react';
 

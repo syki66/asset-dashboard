@@ -32,7 +32,7 @@ export const createShsecTransactions = (json: any[]) => {
   let _krwIpoDeposit: number = 0; // 공모주 청약 증거금 (원화)
   let _usdDeposit: number = 0; // USD 예수금
   let _usdRp: number = 0; // USD RP 잔고
-  let _usdRpPreTax = 0; // USD RP 이자 추적
+  let _usdRpTotalPreTax = 0; // USD RP 이자 추적
 
   const transactions = json.map((item) => {
     // 새로운 데이터 객체 생성
@@ -52,7 +52,7 @@ export const createShsecTransactions = (json: any[]) => {
       item['구분'] === '외화RP_재투자환매' ||
       item['구분'] === '외화RP_매도'
     ) {
-      _usdRpPreTax = Number(item['수량']);
+      _usdRpTotalPreTax = Number(item['수량']);
     }
 
     // krw 예수금 값 업데이트
@@ -131,7 +131,7 @@ export const createShsecTransactions = (json: any[]) => {
     // 입금고 데이터 대입
     const isDeposit = [
       '은행이체입금',
-      '계좌입금',
+      '계좌입금', // TOSS계좌입금
       '계좌대체입금',
       '(펌뱅킹)입금',
       '은행이체외화입금', // USD
@@ -140,10 +140,9 @@ export const createShsecTransactions = (json: any[]) => {
     // 출금고 데이터 대입
     const isWithdrawal = [
       '은행이체출금',
-      '계좌출금',
+      '계좌출금', // 헥토파이낸셜계좌출금
       '계좌대체출금',
-      '(펌뱅킹)출금',
-      '헥토파이낸셜계좌출금',
+      '(펌뱅킹)출금', // 카카오페이(펌뱅킹)출금
       '체크카드승인',
       '체크카드대체출금',
       '은행이체외화출금', // USD, 테스트 csv에 해당 데이터가 없어서 추정하는 키값임
@@ -230,7 +229,7 @@ export const createShsecTransactions = (json: any[]) => {
       _itemData.type = 'dividend';
       _itemData.currency = 'usd';
       _itemData.quantity = 1;
-      _itemData.price = Number(item['거래대금']) - _usdRpPreTax;
+      _itemData.price = Number(item['거래대금']) - _usdRpTotalPreTax;
     }
 
     // 타사대체입고 데이터는 buy, deposit 두 곳에 추가
