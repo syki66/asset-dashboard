@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 
 import { DashboardControls } from './dashboard-controls';
-import { DashboardSummary } from './dashboard-summary';
 import { Disclaimer } from '@/components/footer';
 import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { createAccountData } from '@/utils/converter';
 import { createBenchmarkData } from '@/utils/generator';
 import { toast } from 'sonner';
+import { AssetOverview } from './asset-overview';
 
 const steps = [
   {
@@ -217,7 +217,7 @@ export default function DataVisualization() {
           <DashboardControls />
 
           <div className="grid gap-8">
-            <DashboardSummary dateRange={dateRange} />
+            <AssetOverview />
 
             <Disclaimer />
           </div>

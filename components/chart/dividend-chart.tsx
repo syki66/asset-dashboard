@@ -36,8 +36,6 @@ export function DividendChart({ data }: DividendChartProps) {
 
   const currency = useCurrencyStore((state) => state.currency);
 
-  console.log(data);
-
   const processedData = useMemo(() => {
     if (!data || data.length === 0) return [];
 
