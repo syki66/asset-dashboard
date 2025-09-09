@@ -55,7 +55,6 @@ export default function DataVisualization() {
   const [activeStep, setActiveStep] = useState(0);
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const setTotalAccountData = useAccountStore(
     (state) => state.setTotalAccountData
@@ -75,11 +74,7 @@ export default function DataVisualization() {
           const fileContent = await readFile(file); // 파일 내용 읽기
           const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
-          const accountData = await createAccountData(
-            transactions,
-            dateRange?.from?.toISOString() || '',
-            dateRange?.to?.toISOString() || ''
-          ); // 거래내역을 날짜별 계좌정보로 변환
+          const accountData = await createAccountData(transactions); // 거래내역을 계좌정보로 변환
           const benchmarkData = await createBenchmarkData(
             transactions // 벤치마크 데이터 생성
           );
@@ -151,10 +146,9 @@ export default function DataVisualization() {
           <div className="mt-8 min-h-40">
             {activeStep === 0 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Personal Information</h3>
+                <h3 className="text-lg font-medium">파일 불러오기</h3>
                 <p className="text-muted-foreground">
-                  Enter your personal details to get started with your
-                  application.
+                  CSV 파일을 업로드하여 데이터를 불러옵니다.
                 </p>
                 {/* Form fields would go here */}
                 {/* <div className="h-20 rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center text-sm text-muted-foreground">
@@ -169,15 +163,11 @@ export default function DataVisualization() {
 
             {activeStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Personal Information</h3>
+                <h3 className="text-lg font-medium">조회할 날짜 선택</h3>
                 <p className="text-muted-foreground">
-                  Enter your personal details to get started with your
-                  application.
+                  조회할 날짜를 선택합니다.
                 </p>
-                <DateStep
-                  dateRange={dateRange}
-                  onDateRangeChange={setDateRange}
-                />
+                <DateStep />
               </div>
             )}
 

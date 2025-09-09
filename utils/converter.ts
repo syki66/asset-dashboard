@@ -365,8 +365,8 @@ const updateStockPrice = (
 // 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
 export const createAccountData = async (
   transactions: TransactionProps[],
-  startDate: string,
-  endDate: string
+  startDate?: string,
+  endDate?: string
 ) => {
   // 계좌 병합 시 계좌들의 날짜값들이 안 맞으면 값이 틀어짐. 병합할때 부족분을 더미로 넣는다면 환율과 주가정보 등 최신정보 반영이 불가능함. 따라서 여기서 당일 날짜로 받고 endDate를 줄이고 싶다면 데이터를 잘라서 쓰는게 맞을듯
   const today = timestampToDate(Math.floor(new Date().getTime() / 1000));
