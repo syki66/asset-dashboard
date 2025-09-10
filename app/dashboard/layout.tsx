@@ -17,13 +17,48 @@ type RootLayoutProps = {
 };
 
 const defaultMenuItems: NavItem[] = [
-  { id: 'dashboard', label: '자산 개요', icon: Home, href: '/' },
-  { id: 'analytics', label: '포트폴리오 현황', icon: BarChart3, href: '/portfolio' },
-  { id: 'users', label: '배당금 정보', icon: Users, href: '/dividend' },
-  { id: 'reports', label: '자산 분석', icon: FileText, href: '/analytics' },
-  { id: 'calendar', label: '거래내역', icon: Calendar, href: '/history' },
-  { id: 'messages', label: '벤치마크 비교', icon: MessageSquare, href: '/benchmark' },
-  { id: 'settings', label: '차트 분석', icon: Settings, href: '/report' },
+  {
+    id: 'dashboard',
+    label: '자산 개요',
+    icon: Home,
+    href: '/dashboard/overview',
+  },
+  {
+    id: 'dividends',
+    label: '배당금 정보',
+    icon: Users,
+    href: '/dashboard/dividends',
+  },
+  {
+    id: 'portfolio',
+    label: '포트폴리오 현황',
+    icon: BarChart3,
+    href: '/dashboard/portfolio',
+  },
+  {
+    id: 'analytics',
+    label: '자산 분석',
+    icon: FileText,
+    href: '/dashboard/analytics',
+  },
+  {
+    id: 'history',
+    label: '거래내역',
+    icon: Calendar,
+    href: '/dashboard/history',
+  },
+  {
+    id: 'benchmark',
+    label: '벤치마크 비교',
+    icon: MessageSquare,
+    href: '/dashboard/benchmark',
+  },
+  {
+    id: 'report',
+    label: '차트 분석',
+    icon: Settings,
+    href: '/dashboard/report',
+  },
 ];
 
 export default function RootLayout({ children }: RootLayoutProps) {

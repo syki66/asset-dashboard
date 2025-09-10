@@ -1,3 +1,6 @@
+import { redirect } from 'next/navigation';
+
 export default function Page() {
-  return <>대시보드 메인 페이지</>;
+  // Immediately redirect this route to /dashboard/overview on the server
+  redirect('/dashboard/overview');
 }
