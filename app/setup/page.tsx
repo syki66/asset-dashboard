@@ -114,7 +114,7 @@ export default function Page() {
       toast.success('계좌 불러오기 성공', {
         description: '계좌 데이터를 성공적으로 불러왔습니다.',
       });
-      router.push('/visualizer');
+      router.push('/dashboard/overview'); // 대시보드 메인 페이지로 이동
     }
     if (isError) {
       toast.error('계좌 불러오기 실패', {
