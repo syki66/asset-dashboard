@@ -19,11 +19,6 @@ export default function Page() {
       >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <DashboardCard
-            title="조회 날짜"
-            value={formatDateKr(dashboardData.date)}
-            description={`최근 업데이트: ${dashboardData.lastUpdated}`}
-          />
-          <DashboardCard
             title="총 자산"
             value={formatCurrency(dashboardData.currentValue, currency)}
             description={`원금: ${formatCurrency(
@@ -51,6 +46,11 @@ export default function Page() {
             value={formatCurrency(dashboardData.dividends, currency)}
             description={`배당률: ${dashboardData.dividendYield}% (원금대비: ${dashboardData.yieldOnCost}%)`}
             valueClassName={'text-yellow-600'}
+          />
+          <DashboardCard
+            title="환율"
+            value={dashboardData.fxRate.toLocaleString()}
+            description="USD/KRW"
           />
         </div>
         <div className="mt-8">
