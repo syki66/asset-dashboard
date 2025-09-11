@@ -1,14 +1,14 @@
-import { useAccountDateStore } from '@/store/options';
+import { useDashboardDateStore } from '@/store/options';
 import { CalendarPicker } from '../ui/calendar-picker';
 
 export function DateStep() {
-  const { accountDate, setAccountDate } = useAccountDateStore();
+  const { dashboardDate, setDashboardDate } = useDashboardDateStore();
 
   return (
     <div className="flex justify-center">
       <CalendarPicker
-        selectedDate={accountDate}
-        onDateSelect={setAccountDate}
+        selectedDate={dashboardDate}
+        onDateSelect={setDashboardDate}
       />
     </div>
   );

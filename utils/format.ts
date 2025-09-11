@@ -56,3 +56,23 @@ export const getLatestDate = (date1: string, date2: string): string => {
   const timestamp2 = dateToTimestamp(date2);
   return timestamp1 > timestamp2 ? date1 : date2;
 };
+
+// 금액을 통화 형식으로 변환
+export function formatCurrency(
+  amount: number,
+  currency: 'usd' | 'krw'
+): string {
+  if (currency === 'usd') {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } else {
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+}

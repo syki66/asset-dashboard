@@ -53,11 +53,17 @@ const defaultMenuItems: NavItem[] = [
     icon: MessageSquare,
     href: '/dashboard/benchmark',
   },
+  // {
+  //   id: 'report',
+  //   label: '차트 분석',
+  //   icon: Settings,
+  //   href: '/dashboard/report',
+  // },
   {
-    id: 'report',
-    label: '차트 분석',
+    id: 'settings',
+    label: '설정',
     icon: Settings,
-    href: '/dashboard/report',
+    href: '/dashboard/settings',
   },
 ];
 

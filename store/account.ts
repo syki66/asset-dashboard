@@ -15,17 +15,6 @@ export const useAccountStore = create<AccountState>((set) => ({
   setTotalAccountData: (data) => set({ totalAccountData: data }),
 }));
 
-// 환율 상태 관리
-interface CurrencyState {
-  currency: string;
-  setCurrency: (currency: string) => void;
-}
-
-export const useCurrencyStore = create<CurrencyState>((set) => ({
-  currency: 'krw',
-  setCurrency: (currency) => set({ currency }),
-}));
-
 // 상세정보 토글 상태 관리
 interface DetailToggleState {
   showDetail: boolean;
