@@ -15,17 +15,6 @@ export const useAccountStore = create<AccountState>((set) => ({
   setTotalAccountData: (data) => set({ totalAccountData: data }),
 }));
 
-// 대시보드 데이터
-interface DashboardState {
-  dashboardData: DashboardProps;
-  setDashboardData: (data: DashboardProps) => void;
-}
-
-export const useDashboardStore = create<DashboardState>((set) => ({
-  dashboardData: {} as DashboardProps,
-  setDashboardData: (data) => set({ dashboardData: data }),
-}));
-
 // 환율 상태 관리
 interface CurrencyState {
   currency: string;
