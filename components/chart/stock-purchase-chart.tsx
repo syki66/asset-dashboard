@@ -73,7 +73,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-xl p-4 min-w-[220px] backdrop-blur-sm">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-xl p-4 min-w-[220px] backdrop-blur-xs">
         <div className="font-bold text-gray-900 mb-3 text-center border-b pb-2 text-lg">
           📅 {label}
         </div>
@@ -82,7 +82,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <div key={index} className="flex items-center justify-between py-1">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-4 h-4 rounded-full shadow-sm"
+                  className="w-4 h-4 rounded-full shadow-xs"
                   style={{ backgroundColor: entry.color }}
                 />
                 <span className="font-semibold text-gray-800 text-sm">
@@ -194,8 +194,8 @@ export function StockPurchaseChart({ data }: StockPurchaseChartProps) {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      <Card className="bg-gradient-to-br from-red-50 to-rose-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-        <CardHeader className="bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-t-lg py-5 px-6">
+      <Card className="bg-linear-to-br from-red-50 to-rose-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
+        <CardHeader className="bg-linear-to-r from-red-500 to-rose-600 text-white rounded-t-lg py-5 px-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <CardTitle className="text-xl font-bold">
@@ -285,7 +285,7 @@ export function StockPurchaseChart({ data }: StockPurchaseChartProps) {
         </CardHeader>
         <CardContent className="p-6">
           {/* 종목 선택 섹션 */}
-          <div className="mb-6 bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+          <div className="mb-6 bg-white/70 backdrop-blur-xs rounded-xl p-4 border border-white/30">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">
@@ -320,7 +320,7 @@ export function StockPurchaseChart({ data }: StockPurchaseChartProps) {
                   />
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-3 h-3 rounded-full shadow-sm"
+                      className="w-3 h-3 rounded-full shadow-xs"
                       style={{ backgroundColor: stockColors[stock] }}
                     />
                     <label
@@ -336,7 +336,7 @@ export function StockPurchaseChart({ data }: StockPurchaseChartProps) {
           </div>
 
           {/* 차트 섹션 */}
-          <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="bg-white/50 backdrop-blur-xs rounded-xl p-6 border border-white/20">
             <div className="h-[500px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart

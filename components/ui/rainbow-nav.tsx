@@ -43,14 +43,14 @@ export function RainbowNav({
 
         const buttonContent = (
           <>
-            <Icon className="w-6 h-6 flex-shrink-0" />
+            <Icon className="w-6 h-6 shrink-0" />
             <span className="text-sm font-medium flex-1 text-left">
               {item.label}
             </span>
             {isActive && (
               <div
                 className={cn(
-                  'w-2.5 h-2.5 rounded-full animate-pulse flex-shrink-0',
+                  'w-2.5 h-2.5 rounded-full animate-pulse shrink-0',
                   color.text === 'text-white' ? 'bg-white' : 'bg-gray-900'
                 )}
               />
@@ -64,7 +64,7 @@ export function RainbowNav({
               onClick={() => onItemClick?.(item.id)}
               className={cn(
                 'w-full flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-200 text-left',
-                'font-medium shadow-sm cursor-pointer min-h-[3.5rem] mb-2',
+                'font-medium shadow-xs cursor-pointer min-h-14 mb-2',
                 color.bg,
                 color.hover,
                 color.text,

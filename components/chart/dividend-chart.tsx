@@ -224,7 +224,7 @@ export function DividendChart({ data }: DividendChartProps) {
   };
 
   return (
-    <Card className="w-full bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border-amber-200 dark:border-amber-800">
+    <Card className="w-full bg-linear-to-br from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border-amber-200 dark:border-amber-800">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -241,7 +241,7 @@ export function DividendChart({ data }: DividendChartProps) {
               (range) => (
                 <Button
                   key={range}
-                  variant={selectedRange === range ? 'default' : 'outline'}
+                  variant={selectedRange === range ? 'default' : 'outline-solid'}
                   size="sm"
                   onClick={() => setSelectedRange(range)}
                   className={`text-sm transition-all duration-200 ${
@@ -316,7 +316,7 @@ export function DividendChart({ data }: DividendChartProps) {
                 dataKey="total"
                 fill="url(#colorGradient)"
                 radius={[6, 6, 0, 0]}
-                className="drop-shadow-sm"
+                className="drop-shadow-xs"
                 style={{
                   filter: 'brightness(1)',
                 }}

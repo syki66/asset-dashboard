@@ -108,7 +108,7 @@ export function CalendarPicker({
           className={cn(
             'h-10 w-10 rounded-md text-sm font-medium transition-colors cursor-pointer',
             'hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-300',
-            'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            'focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
             isCurrentDay &&
               !isSelectedDay &&
               'bg-accent/20 text-accent-foreground font-semibold',

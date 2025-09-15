@@ -324,7 +324,7 @@ export function InterestRatePanel({
                       key={`${year}-${month}`}
                       className={`rounded-lg border p-3 space-y-2 cursor-pointer transition-all duration-200 ${
                         active
-                          ? 'bg-card border-primary/20 shadow-sm'
+                          ? 'bg-card border-primary/20 shadow-xs'
                           : 'bg-muted/50 border-muted text-muted-foreground opacity-60'
                       }`}
                       onClick={() => toggleActive(year, month)}
