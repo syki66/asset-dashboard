@@ -29,6 +29,11 @@ const categories = [
     subtitle: '포트폴리오 전체 현황',
     icon: Home,
     href: '/dashboard/overview',
+    theme: {
+      text: 'theme-overview',
+      bg: 'bg-theme-overview',
+      hover: 'hover:bg-indigo-500/10',
+    },
   },
   {
     id: 'performance' as const,
@@ -36,6 +41,11 @@ const categories = [
     subtitle: '성과 지표 및 벤치마크',
     icon: TrendingUp,
     href: '/dashboard/performance',
+    theme: {
+      text: 'theme-performance',
+      bg: 'bg-theme-performance',
+      hover: 'hover:bg-green-500/10',
+    },
   },
   {
     id: 'dividends' as const,
@@ -43,6 +53,11 @@ const categories = [
     subtitle: '배당금 및 수익률',
     icon: DollarSign,
     href: '/dashboard/dividends',
+    theme: {
+      text: 'theme-dividend',
+      bg: 'bg-theme-dividend',
+      hover: 'hover:bg-cyan-500/10',
+    },
   },
   {
     id: 'risk' as const,
@@ -50,6 +65,11 @@ const categories = [
     subtitle: '손실 및 변동성 분석',
     icon: Shield,
     href: '/dashboard/risk',
+    theme: {
+      text: 'theme-risk',
+      bg: 'bg-theme-risk',
+      hover: 'hover:bg-red-500/10',
+    },
   },
   {
     id: 'portfolio' as const,
@@ -57,6 +77,11 @@ const categories = [
     subtitle: '보유 종목 및 섹터 분석',
     icon: PieChart,
     href: '/dashboard/portfolio',
+    theme: {
+      text: 'theme-portfolio',
+      bg: 'bg-theme-portfolio',
+      hover: 'hover:bg-purple-500/10',
+    },
   },
   {
     id: 'transaction' as const,
@@ -64,6 +89,11 @@ const categories = [
     subtitle: '매수/매도 기록',
     icon: ArrowUpDown,
     href: '/dashboard/transaction',
+    theme: {
+      text: 'theme-transaction',
+      bg: 'bg-theme-transaction',
+      hover: 'hover:bg-orange-500/10',
+    },
   },
   {
     id: 'chart' as const,
@@ -71,6 +101,11 @@ const categories = [
     subtitle: '시각적 데이터 분석',
     icon: LineChart,
     href: '/dashboard/chart',
+    theme: {
+      text: 'theme-chart',
+      bg: 'bg-theme-chart',
+      hover: 'hover:bg-blue-500/10',
+    },
   },
   {
     id: 'settings' as const,
@@ -78,6 +113,11 @@ const categories = [
     subtitle: '환경설정 및 계정 관리',
     icon: Settings,
     href: '/dashboard/settings',
+    theme: {
+      text: 'theme-settings',
+      bg: 'bg-theme-settings',
+      hover: 'hover:bg-gray-500/10',
+    },
   },
 ];
 
@@ -101,13 +141,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const pathname = usePathname();
 
-  const activeCategory = categories.find((c) => pathname.startsWith(c.href))?.id || 'overview';
+  const activeCategory =
+    categories.find((c) => pathname.startsWith(c.href))?.id || 'overview';
 
   const { title, subTitle } = getPageDetails(pathname);
 
+  const menuItems = categories.map((category) => ({
+    ...category,
+    isActive: category.id === activeCategory,
+  }));
+
   return (
     <div className="min-h-screen bg-background flex">
-      <Sidebar categories={categories} activeCategory={activeCategory} />
+      <Sidebar menuItems={menuItems} />
 
       <div className="flex-1 pl-64">
         <header className="p-8 border-b">
@@ -134,7 +180,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <span className="text-muted-foreground cursor-help relative group">
                   {timeAgo(dashboardData.lastUpdated)}
                   <div className="absolute top-full right-0 mt-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    {new Date(dashboardData.lastUpdated).toLocaleString('ko-KR')}
+                    {new Date(dashboardData.lastUpdated).toLocaleString(
+                      'ko-KR'
+                    )}
                   </div>
                 </span>
               </div>
