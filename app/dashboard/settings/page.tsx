@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
 import { Currency, DashboardProps } from '@/types';
-import { useAccountStore, useDetailToggleStore } from '@/store/account';
+import { useAccountStore } from '@/store/account';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 
@@ -41,8 +41,6 @@ export default function Page() {
     currency: Currency;
     setCurrency: (currency: Currency) => void;
   };
-  const showDetail = useDetailToggleStore((state) => state.showDetail);
-  const toggleDetail = useDetailToggleStore((state) => state.toggleDetail);
 
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -111,128 +109,83 @@ export default function Page() {
 
         {isExpanded && (
           <CardContent>
-            <Tabs defaultValue="settings" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="settings">기본 설정</TabsTrigger>
-                <TabsTrigger value="date">날짜 범위</TabsTrigger>
-                <TabsTrigger value="import">데이터 가져오기</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="settings" className="space-y-6">
-                {/* 세금 설정과 통화 설정을 가로로 배치 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">통화 설정</h3>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="currency-mode"
-                        checked={currency === 'usd'}
-                        onCheckedChange={(checked) =>
-                          setCurrency(checked ? 'usd' : 'krw')
-                        }
-                      />
-                      <Label
-                        htmlFor="currency-mode"
-                        className="flex items-center"
-                      >
-                        {currency === 'usd' ? (
-                          <>
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            <span>달러 (USD) 표시</span>
-                          </>
-                        ) : (
-                          <>
-                            <Won className="h-4 w-4 mr-1" />
-                            <span>원화 (KRW) 표시</span>
-                          </>
-                        )}
-                      </Label>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {currency === 'usd'
-                        ? `모든 금액은 달러(USD)로 표시됩니다.`
-                        : '모든 금액은 원화(KRW)로 표시됩니다.'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">상세보기 설정</h3>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="detail-view"
-                        checked={showDetail}
-                        onCheckedChange={toggleDetail}
-                      />
-                      <Label
-                        htmlFor="detail-view"
-                        className="flex items-center"
-                      >
-                        {showDetail ? (
-                          <>
-                            <Maximize className="h-4 w-4 mr-1" />
-                            <span>상세히 표시</span>
-                          </>
-                        ) : (
-                          <>
-                            <Minimize className="h-4 w-4 mr-1" />
-                            <span>간략히 표시</span>
-                          </>
-                        )}
-                      </Label>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {showDetail
-                        ? '대시보드에 모든 정보가 표시됩니다.'
-                        : '대시보드에 필수적인 정보만 표시됩니다.'}
-                    </p>
-                  </div>
+            {/* 세금 설정과 통화 설정을 가로로 배치 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">통화 설정</h3>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="currency-mode"
+                    checked={currency === 'usd'}
+                    onCheckedChange={(checked) =>
+                      setCurrency(checked ? 'usd' : 'krw')
+                    }
+                  />
+                  <Label htmlFor="currency-mode" className="flex items-center">
+                    {currency === 'usd' ? (
+                      <>
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        <span>달러 (USD) 표시</span>
+                      </>
+                    ) : (
+                      <>
+                        <Won className="h-4 w-4 mr-1" />
+                        <span>원화 (KRW) 표시</span>
+                      </>
+                    )}
+                  </Label>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  {currency === 'usd'
+                    ? `모든 금액은 달러(USD)로 표시됩니다.`
+                    : '모든 금액은 원화(KRW)로 표시됩니다.'}
+                </p>
+              </div>
+            </div>
 
-                <Separator />
+            <Separator />
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">계좌 선택</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">계좌 선택</h3>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="select-all"
+                    checked={
+                      selectedAccounts.length === totalAccountData?.length
+                    }
+                    onCheckedChange={handleSelectAllAccounts}
+                  />
+                  <Label htmlFor="select-all" className="text-sm">
+                    전체 선택
+                  </Label>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {totalAccountData?.map((account) => (
+                  <div
+                    key={account.name}
+                    className="flex items-center justify-between border p-3 rounded-md"
+                  >
                     <div className="flex items-center space-x-2">
                       <Checkbox
-                        id="select-all"
-                        checked={
-                          selectedAccounts.length === totalAccountData?.length
+                        id={`account-${account.name}`}
+                        checked={selectedAccounts.includes(account.name)}
+                        onCheckedChange={() =>
+                          handleAccountToggle(account.name)
                         }
-                        onCheckedChange={handleSelectAllAccounts}
                       />
-                      <Label htmlFor="select-all" className="text-sm">
-                        전체 선택
+                      <Label htmlFor={`account-${account.name}`}>
+                        {account.name}
                       </Label>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    {totalAccountData?.map((account) => (
-                      <div
-                        key={account.name}
-                        className="flex items-center justify-between border p-3 rounded-md"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`account-${account.name}`}
-                            checked={selectedAccounts.includes(account.name)}
-                            onCheckedChange={() =>
-                              handleAccountToggle(account.name)
-                            }
-                          />
-                          <Label htmlFor={`account-${account.name}`}>
-                            {account.name}
-                          </Label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    선택한 계좌의 데이터만 대시보드에 표시됩니다.
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                선택한 계좌의 데이터만 대시보드에 표시됩니다.
+              </p>
+            </div>
           </CardContent>
         )}
       </Card>

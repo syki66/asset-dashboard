@@ -84,7 +84,7 @@ const initialDashboardData: DashboardProps = {
   ],
 };
 
-// 대시보드 데이터0
+// 대시보드 데이터 상태 관리
 interface DashboardState {
   dashboardData: DashboardProps;
   setDashboardData: (data: DashboardProps) => void;

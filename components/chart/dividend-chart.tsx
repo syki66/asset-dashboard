@@ -18,7 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { useCurrencyStore } from '@/store/account';
+import { useCurrencyStore } from '@/store/options';
 
 interface DividendData {
   date: string;
@@ -241,7 +241,9 @@ export function DividendChart({ data }: DividendChartProps) {
               (range) => (
                 <Button
                   key={range}
-                  variant={selectedRange === range ? 'default' : 'outline-solid'}
+                  variant={
+                    selectedRange === range ? 'default' : 'outline-solid'
+                  }
                   size="sm"
                   onClick={() => setSelectedRange(range)}
                   className={`text-sm transition-all duration-200 ${

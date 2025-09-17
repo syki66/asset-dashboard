@@ -1,4 +1,4 @@
-import { AccountProps, DashboardProps } from '@/types';
+import { AccountProps } from '@/types';
 import { create } from 'zustand';
 import { rateTable } from '@/constants/keywords';
 
@@ -13,19 +13,6 @@ interface AccountState {
 export const useAccountStore = create<AccountState>((set) => ({
   totalAccountData: [],
   setTotalAccountData: (data) => set({ totalAccountData: data }),
-}));
-
-// 상세정보 토글 상태 관리
-interface DetailToggleState {
-  showDetail: boolean;
-  toggleDetail: () => void;
-  setShowDetail: (show: boolean) => void;
-}
-
-export const useDetailToggleStore = create<DetailToggleState>((set) => ({
-  showDetail: false,
-  toggleDetail: () => set((state) => ({ showDetail: !state.showDetail })),
-  setShowDetail: (show) => set({ showDetail: show }),
 }));
 
 // 금리 테이블 상태 관리
