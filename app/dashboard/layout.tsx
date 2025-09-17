@@ -1,5 +1,6 @@
 'use client';
 
+import { Disclaimer } from '@/components/footer/disclaimer';
 import { useDashboardStore } from '@/store/dashboard';
 import { formatDateKr, timeAgo } from '@/utils/format';
 import {
@@ -190,7 +191,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        <main className="p-8">{children}</main>
+        <main className="p-8">{children}
+        <Disclaimer />
+        </main>
       </div>
     </div>
   );

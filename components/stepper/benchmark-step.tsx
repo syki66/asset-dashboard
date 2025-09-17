@@ -1,5 +1,5 @@
 import { InterestRatePanel } from './interest-rate-panel';
-import CheckboxGroup from '../data-visualization/checkbox-group';
+import CheckboxGroup from '../ui/checkbox-group';
 import { useState } from 'react';
 
 const stockIndicators = [
