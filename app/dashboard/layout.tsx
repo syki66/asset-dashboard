@@ -4,6 +4,7 @@ import { Disclaimer } from '@/components/footer/disclaimer';
 import { useDashboardStore } from '@/store/dashboard';
 import { formatDateKr, timeAgo } from '@/utils/format';
 import {
+  RefreshCw,
   CalendarDays,
   FileText,
   Home,
@@ -193,7 +194,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               <div className="flex flex-col items-start gap-2 rounded-2xl border bg-card backdrop-blur-md shadow-md p-4 text-sm shrink-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground">업데이트:</span>
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-foreground">
+                    파일 업데이트:
+                  </span>
                   <span className="text-muted-foreground cursor-help relative group">
                     {timeAgo(dashboardData.lastUpdated)}
                     <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">

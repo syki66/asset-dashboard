@@ -5,10 +5,15 @@ import DashboardCard from '@/components/ui/dashboard-card';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency, formatDateKr } from '@/utils/format';
+import { HelpCircle, Landmark, TrendingUp, DollarSign } from 'lucide-react';
 
 export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
+
+  const overviewTheme = {
+    iconClassName: 'theme-overview',
+  };
 
   return (
     <>
@@ -20,6 +25,8 @@ export default function Page() {
             dashboardData.principal,
             currency
           )}`}
+          icon={<HelpCircle />}
+          theme={overviewTheme}
         />
         <DashboardCard
           title="수익금"
@@ -35,17 +42,23 @@ export default function Page() {
           valueClassName={
             dashboardData.profit >= 0 ? 'text-red-600' : 'text-blue-600'
           }
+          icon={<TrendingUp />}
+          theme={overviewTheme}
         />
         <DashboardCard
           title="배당금 (최근 1년)"
           value={formatCurrency(dashboardData.dividends, currency)}
           description={`배당률: ${dashboardData.dividendYield}% (원금대비: ${dashboardData.yieldOnCost}%)`}
           valueClassName={'text-yellow-600'}
+          icon={<DollarSign />}
+          theme={overviewTheme}
         />
         <DashboardCard
           title="환율"
           value={dashboardData.fxRate.toLocaleString()}
           description="USD/KRW"
+          icon={<Landmark />}
+          theme={overviewTheme}
         />
       </div>
       <div className="mt-8">
