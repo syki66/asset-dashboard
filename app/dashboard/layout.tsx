@@ -181,9 +181,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <span className="text-muted-foreground cursor-help relative group">
                   {timeAgo(dashboardData.lastUpdated)}
                   <div className="absolute top-full right-0 mt-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    {new Date(dashboardData.lastUpdated).toLocaleString(
-                      'ko-KR'
-                    )}
+                    {formatDateKr(dashboardData.lastUpdated)}
                   </div>
                 </span>
               </div>
@@ -191,8 +189,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        <main className="p-8">{children}
-        <Disclaimer />
+        <main className="p-8">
+          {children}
+          <Disclaimer />
         </main>
       </div>
     </div>
