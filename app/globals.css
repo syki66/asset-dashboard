@@ -13,7 +13,7 @@
     oklch(0.75 0.28 20)
   );
   --foreground: oklch(0.35 0.05 220);
-  --card: oklch(0.98 0.01 200 / 0.8);
+  --card: oklch(0.98 0.01 200 / 0.5);
   --card-foreground: oklch(0.35 0.05 220);
   --popover: oklch(0.98 0.01 200 / 0.9);
   --popover-foreground: oklch(0.35 0.05 220);
@@ -41,12 +41,28 @@
   /* Category Theme Colors */
   --overview-theme: oklch(0.6 0.25 260);
   --performance-theme: oklch(0.65 0.22 150);
-  --dividend-theme: oklch(0.65 0.22 180);
+  --dividends-theme: oklch(0.65 0.22 180);
   --risk-theme: oklch(0.6 0.2 15);
   --portfolio-theme: oklch(0.65 0.22 280);
   --transaction-theme: oklch(0.7 0.22 50);
   --chart-theme: oklch(0.65 0.22 220);
   --settings-theme: oklch(0.6 0.05 220);
+
+  /* Category Theme Hover Backgrounds */
+  --overview-hover-bg: linear-gradient(
+    to right,
+
+    oklch(0.65 0.22 280 / 0.1),
+    oklch(0.65 0.22 180 / 0.1),
+    oklch(0.65 0.22 150 / 0.1)
+  );
+  --performance-hover-bg: oklch(0.65 0.22 150 / 0.1);
+  --dividends-hover-bg: oklch(0.65 0.22 180 / 0.1);
+  --risk-hover-bg: oklch(0.6 0.2 15 / 0.1);
+  --portfolio-hover-bg: oklch(0.65 0.22 280 / 0.1);
+  --transaction-hover-bg: oklch(0.7 0.22 50 / 0.1);
+  --chart-hover-bg: oklch(0.65 0.22 220 / 0.1);
+  --settings-hover-bg: oklch(0.6 0.05 220 / 0.1);
 
   /* Radius & Sidebar */
   --radius: 1rem;
@@ -117,22 +133,10 @@
   }
 
   body {
-    font-family:
-      'Pretendard Variable',
-      Pretendard,
-      -apple-system,
-      BlinkMacSystemFont,
-      system-ui,
-      Roboto,
-      'Helvetica Neue',
-      'Segoe UI',
-      'Apple SD Gothic Neo',
-      'Noto Sans KR',
-      'Malgun Gothic',
-      'Apple Color Emoji',
-      'Segoe UI Emoji',
-      'Segoe UI Symbol',
-      sans-serif;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system,
+      BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI',
+      'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic',
+      'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 
     @apply bg-background text-foreground;
 
@@ -160,23 +164,111 @@
   }
 
   /* Category Theme Text Colors */
-  .theme-overview { color: var(--overview-theme); }
-  .theme-performance { color: var(--performance-theme); }
-  .theme-dividend { color: var(--dividend-theme); }
-  .theme-risk { color: var(--risk-theme); }
-  .theme-portfolio { color: var(--portfolio-theme); }
-  .theme-transaction { color: var(--transaction-theme); }
-  .theme-chart { color: var(--chart-theme); }
-  .theme-settings { color: var(--settings-theme); }
+  .theme-overview {
+    @apply bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent;
+  }
+  .theme-performance {
+    color: var(--performance-theme);
+  }
+  .theme-dividends {
+    color: var(--dividends-theme);
+  }
+  .theme-risk {
+    color: var(--risk-theme);
+  }
+  .theme-portfolio {
+    color: var(--portfolio-theme);
+  }
+  .theme-transaction {
+    color: var(--transaction-theme);
+  }
+  .theme-chart {
+    color: var(--chart-theme);
+  }
+  .theme-settings {
+    color: var(--settings-theme);
+  }
 
   /* Category Theme Backgrounds */
-  .bg-theme-overview { background-color: var(--overview-theme); }
-  .bg-theme-performance { background-color: var(--performance-theme); }
-  .bg-theme-dividend { background-color: var(--dividend-theme); }
-  .bg-theme-risk { background-color: var(--risk-theme); }
-  .bg-theme-portfolio { background-color: var(--portfolio-theme); }
-  .bg-theme-transaction { background-color: var(--transaction-theme); }
-  .bg-theme-chart { background-color: var(--chart-theme); }
-  .bg-theme-settings { background-color: var(--settings-theme); }
-
+  .bg-theme-overview {
+    background: linear-gradient(
+      to right,
+      var(--portfolio-theme),
+      var(--dividends-theme),
+      var(--performance-theme)
+    );
   }
+  .bg-theme-performance {
+    background-color: var(--performance-theme);
+  }
+  .bg-theme-dividends {
+    background-color: var(--dividends-theme);
+  }
+  .bg-theme-risk {
+    background-color: var(--risk-theme);
+  }
+  .bg-theme-portfolio {
+    background-color: var(--portfolio-theme);
+  }
+  .bg-theme-transaction {
+    background-color: var(--transaction-theme);
+  }
+  .bg-theme-chart {
+    background-color: var(--chart-theme);
+  }
+  .bg-theme-settings {
+    background-color: var(--settings-theme);
+  }
+
+  /* Category Theme Hover Backgrounds */
+  .hover-bg-theme-overview:hover {
+    background: var(--overview-hover-bg);
+  }
+  .hover-bg-theme-performance:hover {
+    background-color: var(--performance-hover-bg);
+  }
+  .hover-bg-theme-dividends:hover {
+    background-color: var(--dividends-hover-bg);
+  }
+  .hover-bg-theme-risk:hover {
+    background-color: var(--risk-hover-bg);
+  }
+  .hover-bg-theme-portfolio:hover {
+    background-color: var(--portfolio-hover-bg);
+  }
+  .hover-bg-theme-transaction:hover {
+    background-color: var(--transaction-hover-bg);
+  }
+  .hover-bg-theme-chart:hover {
+    background-color: var(--chart-hover-bg);
+  }
+  .hover-bg-theme-settings:hover {
+    background-color: var(--settings-hover-bg);
+  }
+
+  /* Category Theme Page Backgrounds */
+  .page-bg-theme-overview {
+    background: var(--overview-hover-bg);
+  }
+  .page-bg-theme-performance {
+    background-color: var(--performance-hover-bg);
+  }
+  .page-bg-theme-dividends {
+    background-color: var(--dividends-hover-bg);
+  }
+  .page-bg-theme-risk {
+    background-color: var(--risk-hover-bg);
+  }
+  .page-bg-theme-portfolio {
+    background-color: var(--portfolio-hover-bg);
+  }
+  .page-bg-theme-transaction {
+    background-color: var(--transaction-hover-bg);
+  }
+  .page-bg-theme-chart {
+    background-color: var(--chart-hover-bg);
+  }
+  .page-bg-theme-settings {
+    background-color: var(--settings-hover-bg);
+  }
+}

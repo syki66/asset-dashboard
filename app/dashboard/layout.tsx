@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -33,7 +34,7 @@ const categories = [
     theme: {
       text: 'theme-overview',
       bg: 'bg-theme-overview',
-      hover: 'hover:bg-indigo-500/10',
+      hover: 'hover-bg-theme-overview',
     },
   },
   {
@@ -45,7 +46,7 @@ const categories = [
     theme: {
       text: 'theme-performance',
       bg: 'bg-theme-performance',
-      hover: 'hover:bg-green-500/10',
+      hover: 'hover-bg-theme-performance',
     },
   },
   {
@@ -55,9 +56,9 @@ const categories = [
     icon: DollarSign,
     href: '/dashboard/dividends',
     theme: {
-      text: 'theme-dividend',
-      bg: 'bg-theme-dividend',
-      hover: 'hover:bg-cyan-500/10',
+      text: 'theme-dividends',
+      bg: 'bg-theme-dividends',
+      hover: 'hover-bg-theme-dividends',
     },
   },
   {
@@ -69,7 +70,7 @@ const categories = [
     theme: {
       text: 'theme-risk',
       bg: 'bg-theme-risk',
-      hover: 'hover:bg-red-500/10',
+      hover: 'hover-bg-theme-risk',
     },
   },
   {
@@ -81,7 +82,7 @@ const categories = [
     theme: {
       text: 'theme-portfolio',
       bg: 'bg-theme-portfolio',
-      hover: 'hover:bg-purple-500/10',
+      hover: 'hover-bg-theme-portfolio',
     },
   },
   {
@@ -93,7 +94,7 @@ const categories = [
     theme: {
       text: 'theme-transaction',
       bg: 'bg-theme-transaction',
-      hover: 'hover:bg-orange-500/10',
+      hover: 'hover-bg-theme-transaction',
     },
   },
   {
@@ -105,7 +106,7 @@ const categories = [
     theme: {
       text: 'theme-chart',
       bg: 'bg-theme-chart',
-      hover: 'hover:bg-blue-500/10',
+      hover: 'hover-bg-theme-chart',
     },
   },
   {
@@ -117,7 +118,7 @@ const categories = [
     theme: {
       text: 'theme-settings',
       bg: 'bg-theme-settings',
-      hover: 'hover:bg-gray-500/10',
+      hover: 'hover-bg-theme-settings',
     },
   },
 ];
@@ -152,15 +153,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     isActive: category.id === activeCategory,
   }));
 
+  const activeTheme = categories.find((c) => c.id === activeCategory)?.theme;
+  const pageBgClass = `page-bg-theme-${activeCategory}`;
+  const textThemeClass = activeTheme?.text ?? 'theme-overview';
+
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar menuItems={menuItems} />
 
-      <div className="flex-1 pl-64">
+      <div className={cn('flex-1 pl-64', pageBgClass)}>
         <header className="p-8 border-b">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">
+              <h1
+                className={cn(
+                  'text-4xl font-bold mb-2',
+                  textThemeClass
+                )}
+              >
                 {title}
               </h1>
               <p className="text-muted-foreground text-lg">{subTitle}</p>
