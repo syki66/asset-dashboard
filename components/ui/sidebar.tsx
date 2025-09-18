@@ -22,7 +22,7 @@ interface SidebarProps {
 
 export function Sidebar({ menuItems }: SidebarProps) {
   return (
-    <div className="fixed left-0 top-0 h-full w-64 bg-background/80 backdrop-blur-sm z-50 border-r">
+    <div className="fixed left-4 top-4 h-[calc(100vh-2rem)] w-64 z-50 glass-card rounded-2xl">
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-primary">투자 대시보드</h1>

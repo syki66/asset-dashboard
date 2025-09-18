@@ -165,7 +165,7 @@
 
   /* Category Theme Text Colors */
   .theme-overview {
-    @apply bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent;
+    color: var(--overview-theme);
   }
   .theme-performance {
     color: var(--performance-theme);
