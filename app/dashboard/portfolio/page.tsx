@@ -24,6 +24,7 @@ export default function Page() {
 
       <div className="mt-8">
         <AssetChart
+          themeColor="var(--portfolio-theme)"
           series={[
             {
               id: 'cash',

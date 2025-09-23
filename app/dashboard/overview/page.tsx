@@ -44,13 +44,10 @@ export default function Page() {
               valueClassName: getReturnRateColorClass(dashboardData.returnRate),
             },
             {
-              label: '세후 수익금',
+              label: '순수익금',
               value: formatCurrency(
                 dashboardData.profit - dashboardData.totalTaxFee,
                 currency
-              ),
-              valueClassName: getReturnRateColorClass(
-                dashboardData.profit - dashboardData.totalTaxFee
               ),
             },
           ]}
@@ -92,6 +89,8 @@ export default function Page() {
       </div>
       <div className="mt-4">
         <AssetChart
+          themeColor="var(--overview-theme)"
+          chartType="line"
           series={[
             {
               id: 'principal',
@@ -111,7 +110,6 @@ export default function Page() {
               color: '#4CAF50',
               data: dashboardData.profitChartData,
             },
-
             {
               id: 'profitAfterTax',
               name: '세후 수익금',

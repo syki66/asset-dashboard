@@ -26,6 +26,8 @@ export default function Page() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
         <AssetChart
+          themeColor="var(--risk-theme)"
+          chartType="area"
           series={[
             {
               id: 'drawdown',

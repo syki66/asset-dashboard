@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import {
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  Legend,
+  Line,
+  LineChart,
 } from 'recharts';
 import {
   format,
@@ -39,7 +40,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { inflationRates } from '@/constants/keywords';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '../ui/button';
 
 // 차트 시리즈 타입 정의
 interface AssetDataPoint {
@@ -75,7 +76,8 @@ interface AssetHistoryChartProps {
   title?: string;
   description?: string;
   reverseYAxis?: boolean;
-  height?: string;
+  chartType?: 'area' | 'line';
+  themeColor?: string;
 }
 
 export function AssetChart({
@@ -83,7 +85,8 @@ export function AssetChart({
   title = '자산 내역 차트',
   description = '',
   reverseYAxis = false,
-  height = '600px',
+  chartType = 'area',
+  themeColor = 'var(--overview-theme)',
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -476,13 +479,80 @@ export function AssetChart({
     return ticks;
   }, [chartData, timeRange]);
 
+  const glassmorphismTooltipStyle = {
+    backgroundColor: 'var(--card)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid var(--border)',
+    borderRadius: '12px',
+    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+    color: 'var(--card-foreground)',
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const formattedLabel = label
+        ? format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })
+        : '';
+
+      return (
+        <div
+          style={glassmorphismTooltipStyle}
+          className="p-3 rounded-lg shadow-lg"
+        >
+          <p className="text-center font-bold text-base mb-2">{formattedLabel}</p>
+          <hr className="border-border my-1" />
+          <div className="space-y-1 mt-2">
+            {payload.map((pld, index) => {
+              const series = seriesWithColors.find((s) => s.id === pld.name);
+              const seriesName = series
+                ? series.name
+                : pld.name === 'total'
+                ? '총합'
+                : pld.name;
+              const seriesColor = series
+                ? series.color
+                : pld.name === 'total'
+                ? themeColor
+                : '#8884d8';
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <div className="flex items-center">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full mr-2"
+                      style={{ backgroundColor: seriesColor }}
+                    />
+                    <span>{seriesName}</span>
+                  </div>
+                  <span className="font-semibold ml-4">
+                    {new Intl.NumberFormat('ko-KR', {
+                      style: 'currency',
+                      currency: 'KRW',
+                      maximumFractionDigits: 0,
+                    }).format(pld.value as number)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // 시리즈가 없을 경우 안내 메시지 표시
   if (series.length === 0) {
     return (
-      <Card className="w-full">
+      <Card className="w-full glass-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 theme-overview" />
             {title}
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
@@ -497,233 +567,236 @@ export function AssetChart({
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full glass-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          {title}
-        </CardTitle>
-        <CardDescription>
-          {description ||
-            (adjustForInflation ? '인플레이션 조정 적용됨' : '실제 금액 기준')}
-        </CardDescription>
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 theme-overview" />
+              {title}
+            </CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+          <div className="flex items-center gap-4 pt-1">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="log-scale"
+                checked={useLogScale}
+                onCheckedChange={setUseLogScale}
+                style={{ '--switch-bg': themeColor } as React.CSSProperties}
+              />
+              <Label htmlFor="log-scale" className="text-sm font-medium">
+                로그 스케일
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="inflation-adjust"
+                checked={adjustForInflation}
+                onCheckedChange={setAdjustForInflation}
+                style={{ '--switch-bg': themeColor } as React.CSSProperties}
+              />
+              <Label htmlFor="inflation-adjust" className="text-sm font-medium">
+                인플레이션 보정
+              </Label>
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="mb-6 flex flex-col gap-6">
+        <div className="mb-4 flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Tabs
               defaultValue="all"
               value={timeRange}
               onValueChange={setTimeRange}
               className="w-full"
+              style={
+                { '--active-tab-color': themeColor } as React.CSSProperties
+              }
             >
-              <TabsList className="flex flex-wrap h-auto">
-                <TabsTrigger value="1w">1주일</TabsTrigger>
-                <TabsTrigger value="1m">1개월</TabsTrigger>
-                <TabsTrigger value="3m">3개월</TabsTrigger>
-                <TabsTrigger value="6m">6개월</TabsTrigger>
-                <TabsTrigger value="1y">1년</TabsTrigger>
-                <TabsTrigger value="ytd">YTD</TabsTrigger>
-                <TabsTrigger value="3y">3년</TabsTrigger>
-                <TabsTrigger value="5y">5년</TabsTrigger>
-                <TabsTrigger value="10y">10년</TabsTrigger>
-                <TabsTrigger value="all">전체</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-10">
+                <TabsTrigger value="1w" className="rounded-full text-xs">
+                  1주
+                </TabsTrigger>
+                <TabsTrigger value="1m" className="rounded-full text-xs">
+                  1개월
+                </TabsTrigger>
+                <TabsTrigger value="3m" className="rounded-full text-xs">
+                  3개월
+                </TabsTrigger>
+                <TabsTrigger value="6m" className="rounded-full text-xs">
+                  6개월
+                </TabsTrigger>
+                <TabsTrigger value="1y" className="rounded-full text-xs">
+                  1년
+                </TabsTrigger>
+                <TabsTrigger value="ytd" className="rounded-full text-xs">
+                  YTD
+                </TabsTrigger>
+                <TabsTrigger value="3y" className="rounded-full text-xs">
+                  3년
+                </TabsTrigger>
+                <TabsTrigger value="5y" className="rounded-full text-xs">
+                  5년
+                </TabsTrigger>
+                <TabsTrigger value="10y" className="rounded-full text-xs">
+                  10년
+                </TabsTrigger>
+                <TabsTrigger value="all" className="rounded-full text-xs">
+                  전체
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
-
-          {/* 시리즈 선택 토글 */}
-          {seriesWithColors.length > 0 && (
-            <div className="flex flex-wrap gap-4">
-              {seriesWithColors.map((series) => (
-                <div key={series.id} className="flex items-center space-x-2">
-                  <Switch
-                    id={series.id}
-                    checked={activeSeries.includes(series.id)}
-                    onCheckedChange={() => toggleSeries(series.id)}
-                  />
-                  <Label
-                    htmlFor={series.id}
-                    className="font-medium"
-                    style={{ color: series.color }}
-                  >
-                    {series.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
-        <div className="h-[300px]">
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickFormatter={getXAxisTickFormatter()}
-                type="category"
-                ticks={calculateXAxisTicks}
-                interval={0}
-                padding={{ left: 10, right: 10 }}
-              />
-              <YAxis
-                scale={useLogScale ? 'log' : 'linear'}
-                domain={yDomain}
-                tickFormatter={(value) =>
-                  new Intl.NumberFormat('ko-KR', {
-                    notation: 'compact',
-                    compactDisplay: 'short',
-                    maximumFractionDigits: 1,
-                  }).format(value)
-                }
-                reversed={reverseYAxis}
-              />
-              <Tooltip
-                formatter={(value, name) => {
-                  // 시리즈 이름 한글화
-                  const seriesName =
-                    name === 'total'
-                      ? '총합'
-                      : seriesWithColors.find((s) => s.id === name)?.name ||
-                        name;
-
-                  return [
+            {chartType === 'area' ? (
+              <AreaChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  stroke="var(--color-muted-foreground)"
+                  fontSize={12}
+                  tickFormatter={getXAxisTickFormatter()}
+                  type="category"
+                  ticks={calculateXAxisTicks}
+                  interval={0}
+                  padding={{ left: 10, right: 10 }}
+                />
+                <YAxis
+                  stroke="var(--color-muted-foreground)"
+                  fontSize={12}
+                  scale={useLogScale ? 'log' : 'linear'}
+                  domain={yDomain}
+                  tickFormatter={(value) =>
                     new Intl.NumberFormat('ko-KR', {
-                      style: 'currency',
-                      currency: 'KRW',
-                      maximumFractionDigits: 2, // ← 여기서 2로 변경
-                    }).format(Number(value)),
-                    seriesName,
-                  ];
-                }}
-                labelFormatter={getTooltipLabelFormatter()}
-              />
-              <Legend
-                formatter={(value) => {
-                  // 시리즈 이름 한글화
-                  return value === 'total'
-                    ? '총합'
-                    : seriesWithColors.find((s) => s.id === value)?.name ||
-                        value;
-                }}
-              />
-
-              {/* 각 시리즈별 라인 */}
-              {activeSeriesData.map((series) => (
-                <Line
-                  key={series.id}
-                  type="monotone"
-                  dataKey={series.id}
-                  name={series.id}
-                  stroke={series.color}
-                  strokeWidth={2}
-                  dot={(props) => {
-                    const { cx, cy, index } = props;
-                    return shouldShowDot(index) ? (
-                      <circle
-                        key={`dot-${series.id}-${index}`}
-                        cx={cx}
-                        cy={cy}
-                        r={3}
-                        fill={series.color}
-                        stroke={series.color}
-                      />
-                    ) : null;
-                  }}
-                  activeDot={{
-                    r: 6,
-                    stroke: series.color,
-                    strokeWidth: 2,
-                    fill: series.color,
-                  }}
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                      maximumFractionDigits: 1,
+                    }).format(value)
+                  }
+                  reversed={reverseYAxis}
                 />
-              ))}
+                <Tooltip content={<CustomTooltip />} />
 
-              {/* 총합 라인 */}
-              {showTotal && (
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  name="total"
-                  stroke="#000000"
-                  strokeWidth={3}
-                  dot={(props) => {
-                    const { cx, cy, index } = props;
-                    return shouldShowDot(index) ? (
-                      <circle
-                        key={`dot-total-${index}`}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="#000000"
-                        stroke="#000000"
-                      />
-                    ) : null;
-                  }}
-                  activeDot={{
-                    r: 6,
-                    stroke: '#000000',
-                    strokeWidth: 2,
-                    fill: '#000000',
-                  }}
+                {/* 각 시리즈별 라인 */}
+                {activeSeriesData.map((series) => (
+                  <Area
+                    key={series.id}
+                    type="monotone"
+                    dataKey={series.id}
+                    name={series.id}
+                    stroke={series.color}
+                    fill={series.color}
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{
+                      r: 6,
+                      stroke: series.color,
+                      strokeWidth: 2,
+                      fill: series.color,
+                    }}
+                  />
+                ))}
+              </AreaChart>
+            ) : (
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={getXAxisTickFormatter()}
+                  type="category"
+                  ticks={calculateXAxisTicks}
+                  interval={0}
                 />
-              )}
-            </LineChart>
+                <YAxis
+                  scale={useLogScale ? 'log' : 'linear'}
+                  domain={yDomain}
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat('ko-KR', {
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                      maximumFractionDigits: 1,
+                    }).format(value)
+                  }
+                  reversed={reverseYAxis}
+                />
+                <Tooltip content={<CustomTooltip />} />
+
+                {/* 각 시리즈별 라인 */}
+                {activeSeriesData.map((series) => (
+                  <Line
+                    key={series.id}
+                    type="monotone"
+                    dataKey={series.id}
+                    name={series.id}
+                    stroke={series.color}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{
+                      r: 6,
+                      stroke: series.color,
+                      strokeWidth: 2,
+                      fill: series.color,
+                    }}
+                  />
+                ))}
+              </LineChart>
+            )}
           </ResponsiveContainer>
         </div>
 
-        <div className="flex justify-center items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="log-scale"
-              checked={useLogScale}
-              onCheckedChange={(checked) => setUseLogScale(checked === true)}
-            />
-            <Label htmlFor="log-scale">로그 스케일</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="inflation-adjust"
-              checked={adjustForInflation}
-              onCheckedChange={(checked) =>
-                setAdjustForInflation(checked === true)
-              }
-            />
-            <Label htmlFor="inflation-adjust">인플레이션 보정</Label>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap justify-between text-sm text-muted-foreground gap-2">
-          {showTotal && totalData.length > 0 && (
-            <>
-              <div className="flex items-center">
-                <DollarSign className="mr-1 h-4 w-4" />
-                <span>
-                  현재 총자산:{' '}
-                  {new Intl.NumberFormat('ko-KR', {
-                    style: 'currency',
-                    currency: 'KRW',
-                    maximumFractionDigits: 0,
-                  }).format(totalData[totalData.length - 1]?.displayValue || 0)}
+        {/* 시리즈 선택 토글 */}
+        {seriesWithColors.length > 0 && (
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            {seriesWithColors.map((series) => (
+              <Button
+                key={series.id}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'rounded-full h-8 transition-all duration-200 ease-in-out flex items-center justify-center',
+                  {
+                    'bg-transparent text-muted-foreground border-dashed hover:text-muted-foreground':
+                      !activeSeries.includes(series.id),
+                    'shadow-md': activeSeries.includes(series.id),
+                  }
+                )}
+                onClick={() => toggleSeries(series.id)}
+                style={{
+                  borderColor: activeSeries.includes(series.id)
+                    ? series.color
+                    : '' /* 비활성 상태에서는 기본 테두리 사용 */,
+                  background: activeSeries.includes(series.id)
+                    ? `${series.color}20`
+                    : 'transparent',
+                }}
+              >
+                <div
+                  className="w-3 h-3 rounded-full mr-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: series.color,
+                    opacity: activeSeries.includes(series.id) ? 1 : 0.4,
+                  }}
+                />
+                <span
+                  className="font-medium transition-colors duration-200"
+                  style={{
+                    color: activeSeries.includes(series.id)
+                      ? series.color
+                      : '' /* 기본 텍스트 색상 사용 */,
+                  }}
+                >
+                  {series.name}
                 </span>
-              </div>
-              <div className="flex items-center">
-                <span>
-                  초기 총자산:{' '}
-                  {new Intl.NumberFormat('ko-KR', {
-                    style: 'currency',
-                    currency: 'KRW',
-                    maximumFractionDigits: 0,
-                  }).format(totalData[0]?.displayValue || 0)}
-                </span>
-              </div>
-            </>
-          )}
-        </div>
+              </Button>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
