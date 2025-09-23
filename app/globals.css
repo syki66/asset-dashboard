@@ -271,4 +271,31 @@
   .page-bg-theme-settings {
     background-color: var(--settings-hover-bg);
   }
+
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient-text {
+    background-image: linear-gradient(
+      to right,
+      var(--overview-theme),
+      var(--performance-theme),
+      var(--dividends-theme),
+      var(--overview-theme)
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: gradient-animation 3s ease-in-out infinite;
+  }
 }

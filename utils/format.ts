@@ -113,3 +113,8 @@ export function formatCurrency(
     }).format(amount);
   }
 }
+
+// 수익률에 따라 text-red-600 또는 text-blue-600 클래스를 반환
+export function getReturnRateColorClass(returnRate: number): string {
+  return returnRate >= 0 ? 'text-red-600' : 'text-blue-600';
+}

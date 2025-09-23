@@ -1,67 +1,96 @@
 'use client';
 
 import { AssetChart } from '@/components/chart';
-import DashboardCard from '@/components/ui/dashboard-card';
+import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
+import { DollarSign, Trophy, TrendingUp, PiggyBank } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
-import { formatCurrency, formatDateKr } from '@/utils/format';
-import { HelpCircle, Landmark, TrendingUp, DollarSign } from 'lucide-react';
+import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
 
 export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
 
-  const overviewTheme = {
-    iconClassName: 'theme-overview',
-  };
-
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <DashboardCard
+        <DashboardOverviewCard
           title="총 자산"
-          value={formatCurrency(dashboardData.currentValue, currency)}
-          description={`원금: ${formatCurrency(
-            dashboardData.principal,
-            currency
-          )}`}
-          icon={<HelpCircle />}
-          theme={overviewTheme}
+          icon={Trophy}
+          contentItems={[
+            {
+              label: '현재 가치',
+              value: formatCurrency(dashboardData.currentValue, currency),
+              valueClassName: 'animate-gradient-text text-lg',
+            },
+            {
+              label: '원금',
+              value: formatCurrency(dashboardData.principal, currency),
+            },
+          ]}
         />
-        <DashboardCard
-          title="수익금"
-          value={`${formatCurrency(dashboardData.profit, currency)} (${
-            dashboardData.returnRate
-          }%)`}
-          description={`지표 대비 초과수익 (세후): ${formatCurrency(
-            dashboardData.profit -
-              dashboardData.totalTaxFee -
-              (dashboardData.benchmarkValue - dashboardData.principal),
-            currency
-          )}`}
-          valueClassName={
-            dashboardData.profit >= 0 ? 'text-red-600' : 'text-blue-600'
-          }
-          icon={<TrendingUp />}
-          theme={overviewTheme}
+        <DashboardOverviewCard
+          title="투자 성과"
+          icon={TrendingUp}
+          contentItems={[
+            {
+              label: '평가 손익',
+              value: formatCurrency(dashboardData.profit, currency),
+              valueClassName: getReturnRateColorClass(dashboardData.profit),
+            },
+            {
+              label: '수익률',
+              value: `${dashboardData.returnRate}%`,
+              valueClassName: getReturnRateColorClass(dashboardData.returnRate),
+            },
+            {
+              label: '세후 수익금',
+              value: formatCurrency(
+                dashboardData.profit - dashboardData.totalTaxFee,
+                currency
+              ),
+              valueClassName: getReturnRateColorClass(
+                dashboardData.profit - dashboardData.totalTaxFee
+              ),
+            },
+          ]}
         />
-        <DashboardCard
+
+        <DashboardOverviewCard
           title="배당금 (최근 1년)"
-          value={formatCurrency(dashboardData.dividends, currency)}
-          description={`배당률: ${dashboardData.dividendYield}% (원금대비: ${dashboardData.yieldOnCost}%)`}
-          valueClassName={'text-yellow-600'}
-          icon={<DollarSign />}
-          theme={overviewTheme}
+          icon={DollarSign}
+          contentItems={[
+            {
+              label: '배당금',
+              value: formatCurrency(dashboardData.dividends, currency),
+              valueClassName: 'text-yellow-600',
+            },
+            {
+              label: '배당률',
+              value: `${dashboardData.dividendYield}%`,
+            },
+          ]}
         />
-        <DashboardCard
-          title="환율"
-          value={dashboardData.fxRate.toLocaleString()}
-          description="USD/KRW"
-          icon={<Landmark />}
-          theme={overviewTheme}
+        <DashboardOverviewCard
+          title="현금 보유"
+          icon={PiggyBank}
+          contentItems={[
+            {
+              label: '원화',
+              value: formatCurrency(dashboardData.krwCash, 'krw'),
+            },
+            {
+              label: '달러',
+              value: formatCurrency(dashboardData.usdCash, 'usd'),
+            },
+            {
+              label: '환율 (USD/KRW)',
+              value: dashboardData.fxRate.toLocaleString(),
+            },
+          ]}
         />
       </div>
-      <div className="mt-8">
+      <div className="mt-4">
         <AssetChart
           series={[
             {
@@ -82,18 +111,7 @@ export default function Page() {
               color: '#4CAF50',
               data: dashboardData.profitChartData,
             },
-            {
-              id: 'benchmark',
-              name: '예금',
-              color: '#2196F3',
-              data: dashboardData.benchmarkChartData,
-            },
-            {
-              id: 'benchmarkProfit',
-              name: '예금 수익금',
-              color: '#FF9800',
-              data: dashboardData.benchmarkProfitChartData,
-            },
+
             {
               id: 'profitAfterTax',
               name: '세후 수익금',
