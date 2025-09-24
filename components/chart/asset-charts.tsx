@@ -92,7 +92,7 @@ export function AssetChart({
   const [adjustForInflation, setAdjustForInflation] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
   const [activeSeries, setActiveSeries] = useState<string[]>([]);
-  const [showTotal, setShowTotal] = useState(false); // 총합 표시 비활성화
+
 
   // 시리즈에 색상 할당
   const seriesWithColors = series.map((s, index) => ({
@@ -202,55 +202,18 @@ export function AssetChart({
     activeSeries.includes(series.id)
   );
 
-  // 총합 데이터 계산
-  const calculateTotalData = () => {
+
+
+
+
+  // 차트 데이터 준비 - 모든 시리즈의 데이터를 날짜별로 병합
+  const prepareChartData = () => {
     if (activeSeriesData.length === 0) return [];
 
     // 모든 날짜 추출
     const allDates = new Set<string>();
-    activeSeriesData.forEach((series) => {
-      series.filteredData.forEach((item) => {
-        allDates.add(item.date);
-      });
-    });
 
-    // 날짜순으로 정렬
-    const sortedDates = Array.from(allDates).sort();
 
-    // 각 날짜별로 모든 시리즈의 값을 합산
-    return sortedDates.map((date) => {
-      let totalValue = 0;
-
-      activeSeriesData.forEach((series) => {
-        const dataPoint = series.filteredData.find(
-          (item) => item.date === date
-        );
-        if (dataPoint) {
-          totalValue += dataPoint.displayValue;
-        }
-      });
-
-      return {
-        date,
-        parsedDate: parseISO(date),
-        displayValue: totalValue,
-        totalValue,
-      };
-    });
-  };
-
-  const totalData = showTotal ? calculateTotalData() : [];
-
-  // 차트 데이터 준비 - 모든 시리즈의 데이터를 날짜별로 병합
-  const prepareChartData = () => {
-    if (activeSeriesData.length === 0 && !showTotal) return [];
-
-    // 모든 날짜 추출
-    const allDates = new Set<string>();
-
-    if (showTotal) {
-      totalData.forEach((item) => allDates.add(item.date));
-    }
 
     activeSeriesData.forEach((series) => {
       series.filteredData.forEach((item) => {
@@ -275,13 +238,7 @@ export function AssetChart({
         }
       });
 
-      // 총합 값 추가
-      if (showTotal) {
-        const totalDataPoint = totalData.find((item) => item.date === date);
-        if (totalDataPoint) {
-          dataPoint.total = totalDataPoint.displayValue;
-        }
-      }
+
 
       return dataPoint;
     });
@@ -305,11 +262,7 @@ export function AssetChart({
         }
       });
 
-      // 총합 값 확인
-      if (showTotal && dataPoint.total !== undefined) {
-        minValue = Math.min(minValue, dataPoint.total);
-        maxValue = Math.max(maxValue, dataPoint.total);
-      }
+
     });
 
     // 무한대 값 처리
@@ -341,13 +294,7 @@ export function AssetChart({
     };
   };
 
-  // 총 수익률 계산
-  const totalReturns =
-    showTotal && totalData.length >= 2
-      ? calculateReturns(totalData)
-      : { percentReturn: 0, absoluteReturn: 0 };
 
-  const isTotalPositiveReturn = totalReturns.percentReturn >= 0;
 
   // X축 포맷터 - 시간 범위에 따라 다른 형식 사용
   const getXAxisTickFormatter = () => {
@@ -507,16 +454,8 @@ export function AssetChart({
           <div className="space-y-1 mt-2">
             {payload.map((pld, index) => {
               const series = seriesWithColors.find((s) => s.id === pld.name);
-              const seriesName = series
-                ? series.name
-                : pld.name === 'total'
-                ? '총합'
-                : pld.name;
-              const seriesColor = series
-                ? series.color
-                : pld.name === 'total'
-                ? themeColor
-                : '#8884d8';
+              const seriesName = series ? series.name : pld.name;
+              const seriesColor = series ? series.color : '#8884d8';
 
               return (
                 <div
