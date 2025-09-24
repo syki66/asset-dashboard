@@ -500,7 +500,9 @@ export function AssetChart({
           style={glassmorphismTooltipStyle}
           className="p-3 rounded-lg shadow-lg"
         >
-          <p className="text-center font-bold text-base mb-2">{formattedLabel}</p>
+          <p className="text-center font-bold text-base mb-2">
+            {formattedLabel}
+          </p>
           <hr className="border-border my-1" />
           <div className="space-y-1 mt-2">
             {payload.map((pld, index) => {
@@ -658,7 +660,7 @@ export function AssetChart({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
-                  stroke="var(--color-muted-foreground)"
+                  axisLine={false}
                   fontSize={12}
                   tickFormatter={getXAxisTickFormatter()}
                   type="category"
@@ -667,7 +669,7 @@ export function AssetChart({
                   padding={{ left: 10, right: 10 }}
                 />
                 <YAxis
-                  stroke="var(--color-muted-foreground)"
+                  axisLine={false}
                   fontSize={12}
                   scale={useLogScale ? 'log' : 'linear'}
                   domain={yDomain}
@@ -712,6 +714,7 @@ export function AssetChart({
                   type="category"
                   ticks={calculateXAxisTicks}
                   interval={0}
+                  axisLine={false}
                 />
                 <YAxis
                   scale={useLogScale ? 'log' : 'linear'}
@@ -724,6 +727,7 @@ export function AssetChart({
                     }).format(value)
                   }
                   reversed={reverseYAxis}
+                  axisLine={false}
                 />
                 <Tooltip content={<CustomTooltip />} />
 
