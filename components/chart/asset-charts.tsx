@@ -93,7 +93,6 @@ export function AssetChart({
   const [timeRange, setTimeRange] = useState('all');
   const [activeSeries, setActiveSeries] = useState<string[]>([]);
 
-
   // 시리즈에 색상 할당
   const seriesWithColors = series.map((s, index) => ({
     ...s,
@@ -202,18 +201,12 @@ export function AssetChart({
     activeSeries.includes(series.id)
   );
 
-
-
-
-
   // 차트 데이터 준비 - 모든 시리즈의 데이터를 날짜별로 병합
   const prepareChartData = () => {
     if (activeSeriesData.length === 0) return [];
 
     // 모든 날짜 추출
     const allDates = new Set<string>();
-
-
 
     activeSeriesData.forEach((series) => {
       series.filteredData.forEach((item) => {
@@ -238,8 +231,6 @@ export function AssetChart({
         }
       });
 
-
-
       return dataPoint;
     });
   };
@@ -261,8 +252,6 @@ export function AssetChart({
           maxValue = Math.max(maxValue, dataPoint[series.id]);
         }
       });
-
-
     });
 
     // 무한대 값 처리
@@ -270,31 +259,18 @@ export function AssetChart({
     if (maxValue === Number.NEGATIVE_INFINITY) maxValue = 100;
 
     // 로그 스케일을 위한 도메인 조정 (0이나 음수 방지)
-    return useLogScale
-      ? [Math.max(minValue, 1), maxValue * 1.1]
-      : [0, maxValue * 1.1];
+    if (useLogScale) {
+      const minLogValue = minValue <= 0 ? 0.1 : minValue; // Ensure min is positive for log scale
+      // Ensure max value is greater than minLogValue for log scale
+      const adjustedMaxValue =
+        maxValue <= minLogValue ? minLogValue + 1 : maxValue * 1.1;
+      return [minLogValue, adjustedMaxValue];
+    } else {
+      return [0, maxValue * 1.1];
+    }
   };
 
   const yDomain = calculateYDomain();
-
-  // 수익률 및 수익금 계산 - 각 시리즈별로 계산
-  const calculateReturns = (data) => {
-    if (!data || data.length < 2)
-      return { percentReturn: 0, absoluteReturn: 0 };
-
-    const initialValue = data[0].displayValue;
-    const currentValue = data[data.length - 1].displayValue;
-
-    const absoluteReturn = currentValue - initialValue;
-    const percentReturn = (absoluteReturn / initialValue) * 100;
-
-    return {
-      percentReturn,
-      absoluteReturn,
-    };
-  };
-
-
 
   // X축 포맷터 - 시간 범위에 따라 다른 형식 사용
   const getXAxisTickFormatter = () => {
@@ -313,46 +289,6 @@ export function AssetChart({
       default:
         return (dateStr) => format(parseISO(dateStr), 'yyyy', { locale: ko });
     }
-  };
-
-  // 툴팁 라벨 포맷터
-  const getTooltipLabelFormatter = () => {
-    return (dateStr) =>
-      format(parseISO(dateStr), 'yyyy년 M월 d일', { locale: ko });
-  };
-
-  // 데이터 포인트 간격 조정 - 시간 범위에 따라 다르게 표시
-  const getDataPointInterval = () => {
-    if (chartData.length <= 30) return 1; // 데이터가 적으면 모든 포인트 표시
-
-    switch (timeRange) {
-      case '1w':
-        return 1; // 매일
-      case '1m':
-        return 2; // 2일마다
-      case '3m':
-        return 7; // 1주일마다
-      case '6m':
-        return 14; // 2주일마다
-      case '1y':
-      case 'ytd':
-        return 30; // 1개월마다
-      case '3y':
-        return 60; // 2개월마다
-      case '5y':
-        return 90; // 3개월마다
-      case '10y':
-      case 'all':
-        return 180; // 6개월마다
-      default:
-        return 30;
-    }
-  };
-
-  // 데이터 포인트 표시 여부 결정
-  const shouldShowDot = (index) => {
-    const interval = getDataPointInterval();
-    return index % interval === 0 || index === chartData.length - 1; // 마지막 포인트는 항상 표시
   };
 
   // 시리즈 토글 핸들러

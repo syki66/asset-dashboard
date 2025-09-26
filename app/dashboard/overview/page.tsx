@@ -17,6 +17,7 @@ export default function Page() {
         <DashboardOverviewCard
           title="총 자산"
           icon={Trophy}
+          themeColor="var(--overview-theme)"
           contentItems={[
             {
               label: '현재 가치',
@@ -32,6 +33,7 @@ export default function Page() {
         <DashboardOverviewCard
           title="투자 성과"
           icon={TrendingUp}
+          themeColor="var(--overview-theme)"
           contentItems={[
             {
               label: '평가 손익',
@@ -56,6 +58,7 @@ export default function Page() {
         <DashboardOverviewCard
           title="배당금 (최근 1년)"
           icon={DollarSign}
+          themeColor="var(--overview-theme)"
           contentItems={[
             {
               label: '배당금',
@@ -71,6 +74,7 @@ export default function Page() {
         <DashboardOverviewCard
           title="현금 보유"
           icon={PiggyBank}
+          themeColor="var(--overview-theme)"
           contentItems={[
             {
               label: '원화',
@@ -103,18 +107,6 @@ export default function Page() {
               name: '평가금',
               color: '#F44336',
               data: dashboardData.currentValueChartData,
-            },
-            {
-              id: 'profit',
-              name: '수익금',
-              color: '#4CAF50',
-              data: dashboardData.profitChartData,
-            },
-            {
-              id: 'profitAfterTax',
-              name: '세후 수익금',
-              color: '#673AB7',
-              data: dashboardData.profitAfterTaxChartData,
             },
           ]}
           title="자산 포트폴리오 차트"
