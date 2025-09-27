@@ -48,7 +48,7 @@ export default function Page() {
             {
               label: '순수익금',
               value: formatCurrency(
-                dashboardData.profit - dashboardData.totalTaxFee,
+                dashboardData.netProfit,
                 currency
               ),
             },

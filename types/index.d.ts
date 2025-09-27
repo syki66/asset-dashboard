@@ -67,7 +67,9 @@ export type DashboardProps = {
   currentValue: number;
   principal: number;
   profit: number;
+  netProfit: number;
   returnRate: number;
+  netReturnRate: number;
   totalTaxFee: number;
   dividends: number;
   dividendYield: number;
@@ -83,13 +85,13 @@ export type DashboardProps = {
   principalChartData: ChartProps[];
   currentValueChartData: ChartProps[];
   profitChartData: ChartProps[];
+  netProfitChartData: ChartProps[];
   drawdownChartData: ChartProps[];
   dividendHistoryChartData: ChartProps[];
   dividendYieldChartData: ChartProps[];
   yieldOnCostChartData: ChartProps[];
   benchmarkChartData: ChartProps[];
   benchmarkProfitChartData: ChartProps[];
-  profitAfterTaxChartData: ChartProps[];
 };
 
 export type TermsProps = {

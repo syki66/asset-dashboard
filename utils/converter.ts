@@ -39,13 +39,13 @@ export const convertToDashboardData = (
   const principalChartData: ChartProps[] = [];
   const currentValueChartData: ChartProps[] = [];
   const profitChartData: ChartProps[] = [];
+  const netProfitChartData: ChartProps[] = [];
   const drawdownChartData: ChartProps[] = [];
   let dividendHistoryChartData: ChartProps[] = [];
   const yieldOnCostChartData: ChartProps[] = [];
   const dividendYieldChartData: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
-  const profitAfterTaxChartData: ChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -82,21 +82,6 @@ export const convertToDashboardData = (
         ? account.usd.cash + account.krw.cash / account.fxRate
         : account.krw.cash + account.usd.cash * account.fxRate;
 
-    // 평가 금액
-    const currentValue = stockValue + cashValue;
-
-    // 원금
-    const principal =
-      currency === 'usd'
-        ? account.usd.principalAmount
-        : account.krw.principalAmount;
-
-    // 수익금
-    const profit = currentValue - principal;
-
-    // 수익률
-    const returnRate = Number(((profit / principal) * 100).toFixed(2));
-
     // 세금 및 제비용 (원화로만 계산)
     const krTaxFee =
       krwStockValue * (krBrokerFee + krRegulatoryFee + krTransferTax); // 국내 주식 세금 및 제비용
@@ -127,6 +112,27 @@ export const convertToDashboardData = (
         : 0; // 미국주식 양도소득세 계산 (마이너스일 경우 0원 처리)
 
     const totalTaxFee = krTaxFee + usFee + usTax + usFxFee; // 총 세금 및 수수료 (원화)
+
+    // 평가 금액
+    const currentValue = stockValue + cashValue;
+
+    // 원금
+    const principal =
+      currency === 'usd'
+        ? account.usd.principalAmount
+        : account.krw.principalAmount;
+
+    // 수익금
+    const profit = currentValue - principal;
+
+    // 순수익금
+    const netProfit = profit - totalTaxFee;
+
+    // 수익률
+    const returnRate = Number(((profit / principal) * 100).toFixed(2));
+
+    // 순수익률
+    const netReturnRate = Number((((profit - totalTaxFee) / principal) * 100).toFixed(2));
 
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
@@ -221,6 +227,12 @@ export const convertToDashboardData = (
       value: profit,
     });
 
+    // 세후 수익금 차트 데이터
+    netProfitChartData.push({
+      date: account.date,
+      value: profit - totalTaxFee,
+    });
+
     // MDD 차트
     drawdownChartData.push({
       date: account.date,
@@ -288,7 +300,9 @@ export const convertToDashboardData = (
       currentValue,
       principal,
       profit,
+      netProfit,
       returnRate,
+      netReturnRate,
       totalTaxFee,
       dividends,
       yieldOnCost,
@@ -304,13 +318,13 @@ export const convertToDashboardData = (
       principalChartData,
       currentValueChartData,
       profitChartData,
+      netProfitChartData,
       drawdownChartData,
       dividendHistoryChartData,
       yieldOnCostChartData,
       dividendYieldChartData,
       benchmarkChartData,
       benchmarkProfitChartData,
-      profitAfterTaxChartData,
     };
   });
 
