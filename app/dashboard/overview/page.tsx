@@ -47,10 +47,7 @@ export default function Page() {
             },
             {
               label: '순수익금',
-              value: formatCurrency(
-                dashboardData.netProfit,
-                currency
-              ),
+              value: formatCurrency(dashboardData.netProfit, currency),
             },
           ]}
         />
@@ -107,6 +104,12 @@ export default function Page() {
               name: '평가금',
               color: '#F44336',
               data: dashboardData.currentValueChartData,
+            },
+            {
+              id: 'benchmarkProfit',
+              name: '벤치마크',
+              color: '#03A9F4',
+              data: dashboardData.benchmarkChartData,
             },
           ]}
           title="자산 포트폴리오 차트"
