@@ -132,7 +132,9 @@ export const convertToDashboardData = (
     const returnRate = Number(((profit / principal) * 100).toFixed(2));
 
     // 순수익률
-    const netReturnRate = Number((((profit - totalTaxFee) / principal) * 100).toFixed(2));
+    const netReturnRate = Number(
+      (((profit - totalTaxFee) / principal) * 100).toFixed(2)
+    );
 
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
@@ -202,10 +204,18 @@ export const convertToDashboardData = (
     prevValue = stocksProfit;
 
     // 벤치마크
-    const benchmarkValue =
+    const benchmarkNetValue =
       currency === 'usd'
-        ? account.usd.benchmarkValue
-        : account.krw.benchmarkValue;
+        ? account.usd.benchmarkNetValue
+        : account.krw.benchmarkNetValue;
+
+    // 벤치마크 수익금
+    const benchmarkNetProfit = benchmarkNetValue - principal;
+
+    // 벤치마크 수익률
+    const benchmarkNetReturnRate = Number(
+      (((benchmarkNetValue - principal) / principal) * 100).toFixed(2)
+    );
 
     ////////////////////////////////////
     // 자산 차트용 데이터 가공
@@ -278,13 +288,13 @@ export const convertToDashboardData = (
     // 벤치마크 차트 데이터
     benchmarkChartData.push({
       date: account.date,
-      value: benchmarkValue,
+      value: benchmarkNetValue,
     });
 
     // 벤치마크 수익률 차트 데이터
     benchmarkProfitChartData.push({
       date: account.date,
-      value: benchmarkValue - principal,
+      value: benchmarkNetValue - principal,
     });
 
     // 세후 수익금 차트 데이터
@@ -297,34 +307,50 @@ export const convertToDashboardData = (
       date: account.date,
       lastUpdated: account.lastUpdated,
       fxRate: Number(account.fxRate.toFixed(2)),
+      performance: {
       currentValue,
       principal,
       profit,
       netProfit,
       returnRate,
       netReturnRate,
-      totalTaxFee,
-      dividends,
+      },
+      dividends: {
+        amount: dividends,
+        dividendYield,
       yieldOnCost,
-      dividendYield,
+      },
+      cash: {
+        total: cashValue,
+        usdCash: account.usd.cash,
       krwCash: account.krw.cash,
-      usdCash: account.usd.cash,
-      cash: cashValue,
-      benchmarkValue,
+      },
+      costs: {
+        totalCost: totalTaxFee,
+      },
+      benchmark: {
+        netValue: benchmarkNetValue,
+        netProfit: benchmarkNetProfit,
+        netReturnRate: benchmarkNetReturnRate,
+      },
+      drawdown: {
       maxDrawdown,
       maxDrawdownPeriod,
       maxDailyDrawdown,
       maxDailyDrawdownDate,
-      principalChartData,
-      currentValueChartData,
-      profitChartData,
-      netProfitChartData,
-      drawdownChartData,
-      dividendHistoryChartData,
-      yieldOnCostChartData,
-      dividendYieldChartData,
-      benchmarkChartData,
-      benchmarkProfitChartData,
+      },
+      charts: {
+        principal: principalChartData,
+        currentValue: currentValueChartData,
+        profit: profitChartData,
+        netProfit: netProfitChartData,
+        drawdown: drawdownChartData,
+        dividendHistory: dividendHistoryChartData,
+        yieldOnCost: yieldOnCostChartData,
+        dividendYield: dividendYieldChartData,
+        benchmark: benchmarkChartData,
+        benchmarkProfit: benchmarkProfitChartData,
+      },
     };
   });
 

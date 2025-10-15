@@ -14,11 +14,11 @@ export default function Page() {
     <>
       <DashboardCard
         title="현금"
-        value={formatCurrency(dashboardData.cash, currency)}
+        value={formatCurrency(dashboardData.cash.total, currency)}
         description={`${formatCurrency(
-          dashboardData.usdCash,
+          dashboardData.cash.usdCash,
           'usd'
-        )} + ${formatCurrency(dashboardData.krwCash, 'krw')}`}
+        )} + ${formatCurrency(dashboardData.cash.krwCash, 'krw')}`}
         valueClassName="text-red-600"
       />
 
@@ -30,7 +30,7 @@ export default function Page() {
               id: 'cash',
               name: '현금',
               color: '#F44336',
-              data: dashboardData.currentValueChartData,
+              data: dashboardData.charts.currentValue,
             },
           ]}
           title="현금 포트폴리오 차트"

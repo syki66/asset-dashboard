@@ -11,7 +11,7 @@ export default function Page() {
   return (
     <>
       <div className="mt-8">
-        <DividendChart data={dashboardData.dividendHistoryChartData} />
+        <DividendChart data={dashboardData.charts.dividendHistory} />
       </div>
       <div className="mt-8">
         <AssetChart
@@ -21,7 +21,7 @@ export default function Page() {
               id: 'YoC',
               name: '원금대비배당률',
               color: '#F44336',
-              data: dashboardData.yieldOnCostChartData,
+              data: dashboardData.charts.yieldOnCost,
             },
           ]}
           title="원금대비배당률 차트"
@@ -36,7 +36,7 @@ export default function Page() {
               id: 'dividendYield',
               name: '배당률',
               color: '#F44336',
-              data: dashboardData.dividendYieldChartData,
+              data: dashboardData.charts.dividendYield,
             },
           ]}
           title="배당률 차트"

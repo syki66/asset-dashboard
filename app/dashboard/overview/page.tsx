@@ -21,12 +21,18 @@ export default function Page() {
           contentItems={[
             {
               label: '현재 가치',
-              value: formatCurrency(dashboardData.currentValue, currency),
+              value: formatCurrency(
+                dashboardData.performance.currentValue,
+                currency
+              ),
               valueClassName: 'animate-gradient-text text-lg',
             },
             {
               label: '원금',
-              value: formatCurrency(dashboardData.principal, currency),
+              value: formatCurrency(
+                dashboardData.performance.principal,
+                currency
+              ),
             },
           ]}
         />
@@ -37,17 +43,24 @@ export default function Page() {
           contentItems={[
             {
               label: '평가 손익',
-              value: formatCurrency(dashboardData.profit, currency),
-              valueClassName: getReturnRateColorClass(dashboardData.profit),
+              value: formatCurrency(dashboardData.performance.profit, currency),
+              valueClassName: getReturnRateColorClass(
+                dashboardData.performance.profit
+              ),
             },
             {
               label: '수익률',
-              value: `${dashboardData.returnRate}%`,
-              valueClassName: getReturnRateColorClass(dashboardData.returnRate),
+              value: `${dashboardData.performance.returnRate}%`,
+              valueClassName: getReturnRateColorClass(
+                dashboardData.performance.returnRate
+              ),
             },
             {
               label: '순수익금',
-              value: formatCurrency(dashboardData.netProfit, currency),
+              value: formatCurrency(
+                dashboardData.performance.netProfit,
+                currency
+              ),
             },
           ]}
         />
@@ -59,12 +72,12 @@ export default function Page() {
           contentItems={[
             {
               label: '배당금',
-              value: formatCurrency(dashboardData.dividends, currency),
+              value: formatCurrency(dashboardData.dividends.amount, currency),
               valueClassName: 'text-yellow-600',
             },
             {
               label: '배당률',
-              value: `${dashboardData.dividendYield}%`,
+              value: `${dashboardData.dividends.dividendYield}%`,
             },
           ]}
         />
@@ -75,11 +88,11 @@ export default function Page() {
           contentItems={[
             {
               label: '원화',
-              value: formatCurrency(dashboardData.krwCash, 'krw'),
+              value: formatCurrency(dashboardData.cash.krwCash, 'krw'),
             },
             {
               label: '달러',
-              value: formatCurrency(dashboardData.usdCash, 'usd'),
+              value: formatCurrency(dashboardData.cash.usdCash, 'usd'),
             },
             {
               label: '환율 (USD/KRW)',
@@ -97,19 +110,19 @@ export default function Page() {
               id: 'principal',
               name: '원금',
               color: '#888888',
-              data: dashboardData.principalChartData,
+              data: dashboardData.charts.principal,
             },
             {
               id: 'currentValue',
               name: '평가금',
               color: '#F44336',
-              data: dashboardData.currentValueChartData,
+              data: dashboardData.charts.currentValue,
             },
             {
               id: 'benchmarkProfit',
               name: '벤치마크',
               color: '#03A9F4',
-              data: dashboardData.benchmarkChartData,
+              data: dashboardData.charts.benchmark,
             },
           ]}
           title="자산 포트폴리오 차트"

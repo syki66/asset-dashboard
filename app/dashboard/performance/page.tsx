@@ -20,12 +20,18 @@ export default function Page() {
           contentItems={[
             {
               label: '평가자산',
-              value: formatCurrency(dashboardData.currentValue, currency),
+              value: formatCurrency(
+                dashboardData.performance.currentValue,
+                currency
+              ),
               valueClassName: 'animate-gradient-text text-lg',
             },
             {
               label: '원금',
-              value: formatCurrency(dashboardData.principal, currency),
+              value: formatCurrency(
+                dashboardData.performance.principal,
+                currency
+              ),
             },
             {
               label: '연평균 수익률',
@@ -44,19 +50,22 @@ export default function Page() {
           contentItems={[
             {
               label: '수익금',
-              value: formatCurrency(dashboardData.profit, currency),
+              value: formatCurrency(dashboardData.performance.profit, currency),
             },
             {
               label: '수익률',
-              value: `${dashboardData.returnRate}%`,
+              value: `${dashboardData.performance.returnRate}%`,
             },
             {
               label: '세후 수익금',
-              value: formatCurrency(dashboardData.netProfit, currency),
+              value: formatCurrency(
+                dashboardData.performance.netProfit,
+                currency
+              ),
             },
             {
               label: '세후 수익률',
-              value: `${dashboardData.netReturnRate}%`,
+              value: `${dashboardData.performance.netReturnRate}%`,
             },
           ]}
         />
@@ -67,11 +76,11 @@ export default function Page() {
           contentItems={[
             {
               label: '벤치마크 평가금',
-              value: formatCurrency(dashboardData.benchmarkNetValue, currency),
+              value: formatCurrency(dashboardData.benchmark.netValue, currency),
             },
             {
               label: '벤치마크 수익금',
-              value: formatCurrency(dashboardData.benchmarkNetValue, currency),
+              value: formatCurrency(dashboardData.benchmark.netValue, currency),
             },
             {
               label: '벤치마크 수익률',
@@ -86,7 +95,7 @@ export default function Page() {
           themeColor="var(--performance-theme)"
           contentItems={[
             {
-              label: '세금',
+              label: '양도소득세',
               value: formatCurrency(1200, 'krw'),
             },
             {
@@ -99,7 +108,7 @@ export default function Page() {
             },
             {
               label: '합산',
-              value: formatCurrency(dashboardData.totalTaxFee, 'krw'),
+              value: formatCurrency(dashboardData.costs.totalCost, 'krw'),
             },
           ]}
         />
@@ -114,19 +123,19 @@ export default function Page() {
               id: 'principal',
               name: '원금',
               color: '#888888',
-              data: dashboardData.principalChartData,
+              data: dashboardData.charts.principal,
             },
             {
               id: 'currentValue',
               name: '평가금',
               color: '#F44336',
-              data: dashboardData.currentValueChartData,
+              data: dashboardData.charts.currentValue,
             },
             {
               id: 'benchmark',
               name: '벤치마크',
               color: '#FF9800',
-              data: dashboardData.benchmarkChartData,
+              data: dashboardData.charts.benchmark,
             },
           ]}
         />
@@ -141,19 +150,19 @@ export default function Page() {
               id: 'profit',
               name: '수익금',
               color: '#4CAF50',
-              data: dashboardData.profitChartData,
+              data: dashboardData.charts.profit,
             },
             {
               id: 'netProfit',
               name: '세후 수익금',
               color: '#673AB7',
-              data: dashboardData.netProfitChartData,
+              data: dashboardData.charts.netProfit,
             },
             {
               id: 'benchmarkProfit',
               name: '벤치마크 수익금',
               color: '#03A9F4',
-              data: dashboardData.benchmarkProfitChartData,
+              data: dashboardData.charts.benchmarkProfit,
             },
           ]}
         />

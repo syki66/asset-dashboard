@@ -14,12 +14,12 @@ export default function Page() {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
         <DashboardCard
-          title={`최대 손실 낙폭 (${dashboardData.maxDrawdownPeriod})`}
-          value={formatCurrency(dashboardData.maxDrawdown, currency)}
+          title={`최대 손실 낙폭 (${dashboardData.drawdown.maxDrawdownPeriod})`}
+          value={formatCurrency(dashboardData.drawdown.maxDrawdown, currency)}
           description={`하루 최대 낙폭: ${formatCurrency(
-            dashboardData.maxDailyDrawdown,
+            dashboardData.drawdown.maxDailyDrawdown,
             currency
-          )} (${dashboardData.maxDailyDrawdownDate})`}
+          )} (${dashboardData.drawdown.maxDailyDrawdownDate})`}
           valueClassName="text-blue-600"
           descClassName={'text-blue-600'}
         />
@@ -33,7 +33,7 @@ export default function Page() {
               id: 'drawdown',
               name: '손실 낙폭',
               color: '#F44336',
-              data: dashboardData.drawdownChartData,
+              data: dashboardData.charts.drawdown,
             },
           ]}
           title="최대 손실 낙폭 차트"
