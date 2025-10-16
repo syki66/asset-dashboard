@@ -71,6 +71,7 @@ export type DashboardProps = {
     netProfit: number; // 순수익금
     returnRate: number; // 수익률
     netReturnRate: number; // 순수익률
+    cagr: number; // 연평균 성장률
   };
   dividends: {
     amount: number; // 배당금 (최근 1년)

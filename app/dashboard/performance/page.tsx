@@ -35,7 +35,7 @@ export default function Page() {
             },
             {
               label: '연평균 수익률',
-              value: `${3}%`,
+              value: `${dashboardData.performance.cagr}%`,
             },
             {
               label: '샤프 지수',

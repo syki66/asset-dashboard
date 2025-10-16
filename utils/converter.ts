@@ -136,6 +136,20 @@ export const convertToDashboardData = (
       (((profit - totalTaxFee) / principal) * 100).toFixed(2)
     );
 
+    // CAGR
+    const startDate = new Date(accountData[0].date);
+    const endDate = new Date(accountData[accountData.length - 1].date);
+    const years =
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    const cagr =
+      years > 0
+        ? Number(
+            ((Math.pow(currentValue / principal, 1 / years) - 1) * 100).toFixed(
+              2
+            )
+          )
+        : 0;
+
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -308,6 +322,7 @@ export const convertToDashboardData = (
       netProfit,
       returnRate,
       netReturnRate,
+        cagr,
       },
       dividends: {
         amount: dividends,
