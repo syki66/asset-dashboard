@@ -90,6 +90,7 @@ export type DashboardProps = {
     netValue: number; // 벤치마크 평가금 (세후)
     netProfit: number; // 벤치마크 수익금 (세후)
     netReturnRate: number; // 벤치마크 수익률 (세후)
+    cagr: number; // 벤치마크 연평균 성장률
   };
   drawdown: {
     maxDrawdown: number; // 역대 최대 낙폭

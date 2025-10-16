@@ -34,12 +34,8 @@ export default function Page() {
               ),
             },
             {
-              label: '연평균 수익률',
+              label: 'CAGR',
               value: `${dashboardData.performance.cagr}%`,
-            },
-            {
-              label: '샤프 지수',
-              value: `1.25`,
             },
           ]}
         />
@@ -86,7 +82,18 @@ export default function Page() {
               label: '벤치마크 수익률',
               value: `${3}%`,
             },
-            { label: '벤치마크 초과수익', value: formatCurrency(5625, 'krw') },
+            {
+              label: '벤치마크 초과수익',
+              value: formatCurrency(
+                dashboardData.performance.netProfit -
+                  dashboardData.benchmark.netProfit,
+                currency
+              ),
+            },
+            {
+              label: '벤치마크 CAGR',
+              value: `${dashboardData.benchmark.cagr}%`,
+            },
           ]}
         />
         <DashboardOverviewCard

@@ -231,6 +231,17 @@ export const convertToDashboardData = (
       (((benchmarkNetValue - principal) / principal) * 100).toFixed(2)
     );
 
+    // 벤치마크 CAGR
+    const benchmarkCagr =
+      years > 0
+        ? Number(
+            (
+              (Math.pow(benchmarkNetValue / principal, 1 / years) - 1) *
+              100
+            ).toFixed(2)
+          )
+        : 0;
+
     ////////////////////////////////////
     // 자산 차트용 데이터 가공
     // 원금 차트
@@ -341,6 +352,7 @@ export const convertToDashboardData = (
         netValue: benchmarkNetValue,
         netProfit: benchmarkNetProfit,
         netReturnRate: benchmarkNetReturnRate,
+        cagr: benchmarkCagr,
       },
       drawdown: {
       maxDrawdown,

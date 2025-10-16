@@ -13,6 +13,7 @@ const initialDashboardData: DashboardProps = {
     netProfit: 0,
     returnRate: 0,
     netReturnRate: 0,
+    cagr: 0,
   },
   dividends: {
     amount: 0,
@@ -31,6 +32,7 @@ const initialDashboardData: DashboardProps = {
     netValue: 0,
     netProfit: 0,
     netReturnRate: 0,
+    cagr: 0,
   },
   drawdown: {
     maxDrawdown: 0,
