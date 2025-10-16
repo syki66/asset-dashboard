@@ -297,12 +297,6 @@ export const convertToDashboardData = (
       value: benchmarkNetValue - principal,
     });
 
-    // 세후 수익금 차트 데이터
-    profitAfterTaxChartData.push({
-      date: account.date,
-      value: profit - totalTaxFee,
-    });
-
     return {
       date: account.date,
       lastUpdated: account.lastUpdated,
@@ -547,7 +541,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
-            benchmarkValue: 0,
+            benchmarkNetValue: 0,
           },
           usd: {
             principalAmount: 0,
@@ -555,7 +549,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
-            benchmarkValue: 0,
+            benchmarkNetValue: 0,
           },
         },
       ] as AccountProps[]
@@ -680,8 +674,8 @@ export const mergeAccountData = (
     accountData: AccountProps[];
     benchmarkData?: {
       date: string;
-      benchmarkValueKrw: number;
-      benchmarkValueUsd: number;
+      benchmarkNetValueKrw: number;
+      benchmarkNetValueUsd: number;
     }[];
   }[]
 ): AccountProps[] => {
@@ -771,11 +765,13 @@ export const mergeAccountData = (
         const date = benchmark.date;
         const merged = mergedMap.get(date)!; // merged는 반드시 존재해야 함
 
-        // benchmarkValue 값이 없으면 0으로 초기화 하고 누적 합산
-        merged['krw'].benchmarkValue =
-          (merged['krw'].benchmarkValue ?? 0) + benchmark.benchmarkValueKrw;
-        merged['usd'].benchmarkValue =
-          (merged['usd'].benchmarkValue ?? 0) + benchmark.benchmarkValueUsd;
+        // benchmarkNetValue 값이 없으면 0으로 초기화 하고 누적 합산
+        merged['krw'].benchmarkNetValue =
+          (merged['krw'].benchmarkNetValue ?? 0) +
+          benchmark.benchmarkNetValueKrw;
+        merged['usd'].benchmarkNetValue =
+          (merged['usd'].benchmarkNetValue ?? 0) +
+          benchmark.benchmarkNetValueUsd;
       });
     }
   });

@@ -54,8 +54,8 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   let terms: TermsProps[] = []; // 예금 상품
   let result: {
     date: string;
-    benchmarkValueKrw: number;
-    benchmarkValueUsd: number;
+    benchmarkNetValueKrw: number;
+    benchmarkNetValueUsd: number;
   }[] = [];
 
   cashFlowData.forEach((flow) => {
@@ -126,8 +126,8 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
 
     result.push({
       date: flow.date,
-      benchmarkValueKrw: Math.round(currentValue),
-      benchmarkValueUsd: Math.round(
+      benchmarkNetValueKrw: Math.round(currentValue),
+      benchmarkNetValueUsd: Math.round(
         currentValue / getFxRate(fxTable.prices, flow.date)
       ),
     });
