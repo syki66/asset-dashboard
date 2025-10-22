@@ -116,6 +116,9 @@ export const convertToDashboardData = (
     // 평가 금액
     const currentValue = stockValue + cashValue;
 
+    // 순평가금액
+    const netCurrentValue = currentValue - totalTaxFee;
+
     // 원금
     const principal =
       currency === 'usd'
@@ -147,6 +150,16 @@ export const convertToDashboardData = (
             ((Math.pow(currentValue / principal, 1 / years) - 1) * 100).toFixed(
               2
             )
+          )
+        : 0;
+
+    const netCagr =
+      years > 0
+        ? Number(
+            (
+              (Math.pow(netCurrentValue / principal, 1 / years) - 1) *
+              100
+            ).toFixed(2)
           )
         : 0;
 
@@ -231,8 +244,8 @@ export const convertToDashboardData = (
       (((benchmarkNetValue - principal) / principal) * 100).toFixed(2)
     );
 
-    // 벤치마크 CAGR
-    const benchmarkCagr =
+    // 벤치마크 순 CAGR
+    const benchmarkNetCagr =
       years > 0
         ? Number(
             (
@@ -242,8 +255,12 @@ export const convertToDashboardData = (
           )
         : 0;
 
-    ////////////////////////////////////
+    // 벤치마크 순초과수익
+    const benchmarkNetExcessReturn = netProfit - benchmarkNetProfit;
+
+    //////////////////////////////////////////////////////
     // 자산 차트용 데이터 가공
+    /////////////////////////////////////////////////////
     // 원금 차트
     principalChartData.push({
       date: account.date,
@@ -328,12 +345,14 @@ export const convertToDashboardData = (
       fxRate: Number(account.fxRate.toFixed(2)),
       performance: {
       currentValue,
+        netCurrentValue,
       principal,
       profit,
       netProfit,
       returnRate,
       netReturnRate,
         cagr,
+        netCagr,
       },
       dividends: {
         amount: dividends,
@@ -352,7 +371,8 @@ export const convertToDashboardData = (
         netValue: benchmarkNetValue,
         netProfit: benchmarkNetProfit,
         netReturnRate: benchmarkNetReturnRate,
-        cagr: benchmarkCagr,
+        netCagr: benchmarkNetCagr,
+        netExcessReturn: benchmarkNetExcessReturn,
       },
       drawdown: {
       maxDrawdown,

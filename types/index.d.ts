@@ -66,12 +66,14 @@ export type DashboardProps = {
   fxRate: number; // 환율
   performance: {
     currentValue: number; // 평가자산
+    netCurrentValue: number; // 순평가자산
     principal: number; // 원금
     profit: number; // 수익금
     netProfit: number; // 순수익금
     returnRate: number; // 수익률
     netReturnRate: number; // 순수익률
     cagr: number; // 연평균 성장률
+    netCagr: number; // 순 연평균 성장률
   };
   dividends: {
     amount: number; // 배당금 (최근 1년)
@@ -90,7 +92,8 @@ export type DashboardProps = {
     netValue: number; // 벤치마크 평가금 (세후)
     netProfit: number; // 벤치마크 수익금 (세후)
     netReturnRate: number; // 벤치마크 수익률 (세후)
-    cagr: number; // 벤치마크 연평균 성장률
+    netCagr: number; // 벤치마크 연평균 성장률 (세후)
+    netExcessReturn: number; // 벤치마크 초과수익률 (세후)
   };
   drawdown: {
     maxDrawdown: number; // 역대 최대 낙폭

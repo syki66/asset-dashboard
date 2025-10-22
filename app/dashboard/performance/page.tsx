@@ -2,6 +2,7 @@
 
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
+import { ComparisonTable } from '@/components/dashboard/comparison-table';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
@@ -10,13 +11,16 @@ import { Award, ChartColumnStacked, ChartLine, Landmark } from 'lucide-react';
 export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
+
+  const { performance, benchmark } = dashboardData;
+
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
         <DashboardOverviewCard
-          title="자산 분석"
+          title='자산 분석'
           icon={Award}
-          themeColor="var(--performance-theme)"
+          themeColor='var(--performance-theme)'
           contentItems={[
             {
               label: '평가자산',
@@ -34,15 +38,18 @@ export default function Page() {
               ),
             },
             {
-              label: 'CAGR',
-              value: `${dashboardData.performance.cagr}%`,
+              label: '순평가자산',
+              value: formatCurrency(
+                dashboardData.performance.netCurrentValue,
+                currency
+              ),
             },
           ]}
         />
         <DashboardOverviewCard
-          title="투자 성과"
+          title='투자 성과'
           icon={ChartLine}
-          themeColor="var(--performance-theme)"
+          themeColor='var(--performance-theme)'
           contentItems={[
             {
               label: '수익금',
@@ -53,53 +60,15 @@ export default function Page() {
               value: `${dashboardData.performance.returnRate}%`,
             },
             {
-              label: '세후 수익금',
-              value: formatCurrency(
-                dashboardData.performance.netProfit,
-                currency
-              ),
-            },
-            {
-              label: '세후 수익률',
-              value: `${dashboardData.performance.netReturnRate}%`,
+              label: '연평균 수익률',
+              value: `${dashboardData.performance.cagr}%`,
             },
           ]}
         />
         <DashboardOverviewCard
-          title="벤치마크 비교 (세후)"
-          icon={ChartColumnStacked}
-          themeColor="var(--performance-theme)"
-          contentItems={[
-            {
-              label: '벤치마크 평가금',
-              value: formatCurrency(dashboardData.benchmark.netValue, currency),
-            },
-            {
-              label: '벤치마크 수익금',
-              value: formatCurrency(dashboardData.benchmark.netValue, currency),
-            },
-            {
-              label: '벤치마크 수익률',
-              value: `${3}%`,
-            },
-            {
-              label: '벤치마크 초과수익',
-              value: formatCurrency(
-                dashboardData.performance.netProfit -
-                  dashboardData.benchmark.netProfit,
-                currency
-              ),
-            },
-            {
-              label: '벤치마크 CAGR',
-              value: `${dashboardData.benchmark.cagr}%`,
-            },
-          ]}
-        />
-        <DashboardOverviewCard
-          title="세금 및 제비용"
+          title='세금 및 제비용'
           icon={Landmark}
-          themeColor="var(--performance-theme)"
+          themeColor='var(--performance-theme)'
           contentItems={[
             {
               label: '양도소득세',
@@ -120,11 +89,45 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className="mt-4">
+      <div className='mt-4'>
+        <ComparisonTable
+          title='벤치마크 비교'
+          icon={<ChartLine className='h-5 w-5 theme-performance' />}
+          themeColor='var(--performance-theme)'
+          comparisonData={[
+            {
+              metric: '순평가금액',
+              investment: formatCurrency(performance.netCurrentValue, currency),
+              benchmark: formatCurrency(benchmark.netValue, currency),
+            },
+            {
+              metric: '순수익금',
+              investment: formatCurrency(performance.netProfit, currency),
+              benchmark: formatCurrency(benchmark.netProfit, currency),
+            },
+            {
+              metric: '순수익률',
+              investment: `${performance.netReturnRate}%`,
+              benchmark: `${benchmark.netReturnRate}%`,
+            },
+            {
+              metric: '순연평균수익률',
+              investment: `${performance.netCagr}%`,
+              benchmark: `${benchmark.netCagr}%`,
+            },
+            {
+              metric: '순초과수익',
+              investment: formatCurrency(benchmark.netExcessReturn, currency),
+              benchmark: '-',
+            },
+          ]}
+        />
+      </div>
+      <div className='mt-4'>
         <AssetChart
-          title="자산 추이"
-          themeColor="var(--performance-theme)"
-          chartType="line"
+          title='자산 추이'
+          themeColor='var(--performance-theme)'
+          chartType='line'
           series={[
             {
               id: 'principal',
@@ -147,11 +150,11 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className="mt-4">
+      <div className='mt-4'>
         <AssetChart
-          title="수익금 비교"
-          themeColor="var(--performance-theme)"
-          chartType="line"
+          title='수익금 비교'
+          themeColor='var(--performance-theme)'
+          chartType='line'
           series={[
             {
               id: 'profit',
@@ -174,22 +177,16 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className="mt-4">
+      <div className='mt-4'>
         <AssetChart
-          title="지표 비교"
-          themeColor="var(--performance-theme)"
-          chartType="line"
+          title='지표 비교'
+          themeColor='var(--performance-theme)'
+          chartType='line'
           series={[
             {
               id: 'cagr',
               name: 'CAGR (연평균 수익률)',
               color: '#3F51B5',
-              data: [],
-            },
-            {
-              id: 'sharpeRatio',
-              name: '샤프 지수',
-              color: '#009688',
               data: [],
             },
           ]}

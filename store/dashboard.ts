@@ -8,12 +8,14 @@ const initialDashboardData: DashboardProps = {
   fxRate: DEFAULT_FX_RATE,
   performance: {
     currentValue: 0,
+    netCurrentValue: 0,
     principal: 0,
     profit: 0,
     netProfit: 0,
     returnRate: 0,
     netReturnRate: 0,
     cagr: 0,
+    netCagr: 0,
   },
   dividends: {
     amount: 0,
@@ -32,7 +34,8 @@ const initialDashboardData: DashboardProps = {
     netValue: 0,
     netProfit: 0,
     netReturnRate: 0,
-    cagr: 0,
+    netCagr: 0,
+    netExcessReturn: 0,
   },
   drawdown: {
     maxDrawdown: 0,

@@ -13,11 +13,11 @@ export default function Page() {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
         <DashboardOverviewCard
-          title="총 자산"
+          title='총 자산'
           icon={Trophy}
-          themeColor="var(--overview-theme)"
+          themeColor='var(--overview-theme)'
           contentItems={[
             {
               label: '현재 가치',
@@ -34,12 +34,19 @@ export default function Page() {
                 currency
               ),
             },
+            {
+              label: '순평가자산',
+              value: formatCurrency(
+                dashboardData.performance.netCurrentValue,
+                currency
+              ),
+            },
           ]}
         />
         <DashboardOverviewCard
-          title="투자 성과"
+          title='투자 성과'
           icon={TrendingUp}
-          themeColor="var(--overview-theme)"
+          themeColor='var(--overview-theme)'
           contentItems={[
             {
               label: '평가 손익',
@@ -66,9 +73,9 @@ export default function Page() {
         />
 
         <DashboardOverviewCard
-          title="배당금 (최근 1년)"
+          title='배당금 (최근 1년)'
           icon={DollarSign}
-          themeColor="var(--overview-theme)"
+          themeColor='var(--overview-theme)'
           contentItems={[
             {
               label: '배당금',
@@ -82,9 +89,9 @@ export default function Page() {
           ]}
         />
         <DashboardOverviewCard
-          title="현금 보유"
+          title='현금 보유'
           icon={PiggyBank}
-          themeColor="var(--overview-theme)"
+          themeColor='var(--overview-theme)'
           contentItems={[
             {
               label: '원화',
@@ -101,10 +108,10 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className="mt-4">
+      <div className='mt-4'>
         <AssetChart
-          themeColor="var(--overview-theme)"
-          chartType="line"
+          themeColor='var(--overview-theme)'
+          chartType='line'
           series={[
             {
               id: 'principal',
@@ -125,8 +132,8 @@ export default function Page() {
               data: dashboardData.charts.benchmark,
             },
           ]}
-          title="자산 포트폴리오 차트"
-          description="자산 클래스별 포트폴리오 변화 추이"
+          title='자산 포트폴리오 차트'
+          description='자산 클래스별 포트폴리오 변화 추이'
         />
       </div>
     </>
