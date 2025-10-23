@@ -12,7 +12,7 @@ export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
 
-  const { performance, benchmark } = dashboardData;
+  const { performance, benchmark, costs } = dashboardData;
 
   return (
     <>
@@ -31,16 +31,16 @@ export default function Page() {
               valueClassName: 'animate-gradient-text text-lg',
             },
             {
-              label: '원금',
+              label: '순평가자산',
               value: formatCurrency(
-                dashboardData.performance.principal,
+                dashboardData.performance.netCurrentValue,
                 currency
               ),
             },
             {
-              label: '순평가자산',
+              label: '원금',
               value: formatCurrency(
-                dashboardData.performance.netCurrentValue,
+                dashboardData.performance.principal,
                 currency
               ),
             },
@@ -71,20 +71,24 @@ export default function Page() {
           themeColor='var(--performance-theme)'
           contentItems={[
             {
-              label: '양도소득세',
-              value: formatCurrency(1200, 'krw'),
+              label: '해외주식 양도소득세',
+              value: formatCurrency(costs.usTax, currency),
             },
             {
               label: '환전 수수료',
-              value: formatCurrency(3000, 'krw'),
+              value: formatCurrency(costs.usFxFee, currency),
             },
             {
-              label: '기타 비용',
-              value: formatCurrency(5625, 'krw'),
+              label: '해외주식 매도 수수료',
+              value: formatCurrency(costs.usFee, currency),
+            },
+            {
+              label: '기타 비용 (국내주식 비용)',
+              value: formatCurrency(costs.krTaxFee, currency),
             },
             {
               label: '합산',
-              value: formatCurrency(dashboardData.costs.totalCost, 'krw'),
+              value: formatCurrency(dashboardData.costs.totalCost, currency),
             },
           ]}
         />
@@ -95,6 +99,11 @@ export default function Page() {
           icon={<ChartLine className='h-5 w-5 theme-performance' />}
           themeColor='var(--performance-theme)'
           comparisonData={[
+            {
+              metric: '원금',
+              investment: formatCurrency(performance.principal, currency),
+              benchmark: formatCurrency(performance.principal, currency),
+            },
             {
               metric: '순평가금액',
               investment: formatCurrency(performance.netCurrentValue, currency),

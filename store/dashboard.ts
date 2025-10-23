@@ -29,6 +29,10 @@ const initialDashboardData: DashboardProps = {
   },
   costs: {
     totalCost: 0,
+    krTaxFee: 0,
+    usFee: 0,
+    usTax: 0,
+    usFxFee: 0,
   },
   benchmark: {
     netValue: 0,

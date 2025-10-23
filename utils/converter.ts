@@ -366,6 +366,10 @@ export const convertToDashboardData = (
       },
       costs: {
         totalCost: totalTaxFee,
+        krTaxFee,
+        usFee,
+        usTax,
+        usFxFee,
       },
       benchmark: {
         netValue: benchmarkNetValue,
