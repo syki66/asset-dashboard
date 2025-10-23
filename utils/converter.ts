@@ -230,16 +230,44 @@ export const convertToDashboardData = (
     // 하루 MDD 계산을 위한 비교를 위해 이전 값으로 대입
     prevValue = stocksProfit;
 
-    // 벤치마크
+    // 벤치마크 순평가금
+    const benchmarkValue =
+      currency === 'usd'
+        ? account.usd.benchmarkValue
+        : account.krw.benchmarkValue;
+
+    // 벤치마크 순수익금
+    const benchmarkProfit = benchmarkValue - principal;
+
+    // 벤치마크 순수익률
+    const benchmarkReturnRate = Number(
+      (((benchmarkValue - principal) / principal) * 100).toFixed(2)
+    );
+
+    // 벤치마크 순 CAGR
+    const benchmarkCagr =
+      years > 0
+        ? Number(
+            (
+              (Math.pow(benchmarkValue / principal, 1 / years) - 1) *
+              100
+            ).toFixed(2)
+          )
+        : 0;
+
+    // 벤치마크 순초과수익
+    const benchmarkExcessReturn = profit - benchmarkProfit;
+
+    // 벤치마크 순평가금
     const benchmarkNetValue =
       currency === 'usd'
         ? account.usd.benchmarkNetValue
         : account.krw.benchmarkNetValue;
 
-    // 벤치마크 수익금
+    // 벤치마크 순수익금
     const benchmarkNetProfit = benchmarkNetValue - principal;
 
-    // 벤치마크 수익률
+    // 벤치마크 순수익률
     const benchmarkNetReturnRate = Number(
       (((benchmarkNetValue - principal) / principal) * 100).toFixed(2)
     );
@@ -372,10 +400,15 @@ export const convertToDashboardData = (
         usFxFee,
       },
       benchmark: {
+        value: benchmarkValue,
         netValue: benchmarkNetValue,
+        profit: benchmarkProfit,
         netProfit: benchmarkNetProfit,
+        returnRate: benchmarkReturnRate,
         netReturnRate: benchmarkNetReturnRate,
+        cagr: benchmarkCagr,
         netCagr: benchmarkNetCagr,
+        excessReturn: benchmarkExcessReturn,
         netExcessReturn: benchmarkNetExcessReturn,
       },
       drawdown: {
@@ -592,6 +625,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
+            benchmarkValue: 0,
             benchmarkNetValue: 0,
           },
           usd: {
@@ -600,6 +634,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
+            benchmarkValue: 0,
             benchmarkNetValue: 0,
           },
         },
@@ -725,6 +760,8 @@ export const mergeAccountData = (
     accountData: AccountProps[];
     benchmarkData?: {
       date: string;
+      benchmarkValueKrw: number;
+      benchmarkValueUsd: number;
       benchmarkNetValueKrw: number;
       benchmarkNetValueUsd: number;
     }[];
@@ -816,7 +853,11 @@ export const mergeAccountData = (
         const date = benchmark.date;
         const merged = mergedMap.get(date)!; // merged는 반드시 존재해야 함
 
-        // benchmarkNetValue 값이 없으면 0으로 초기화 하고 누적 합산
+        // benchmarkValue, benchmarkNetValue 값이 없으면 0으로 초기화 하고 누적 합산
+        merged['krw'].benchmarkValue =
+          (merged['krw'].benchmarkValue ?? 0) + benchmark.benchmarkValueKrw;
+        merged['usd'].benchmarkValue =
+          (merged['usd'].benchmarkValue ?? 0) + benchmark.benchmarkValueUsd;
         merged['krw'].benchmarkNetValue =
           (merged['krw'].benchmarkNetValue ?? 0) +
           benchmark.benchmarkNetValueKrw;

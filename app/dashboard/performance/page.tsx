@@ -60,6 +60,17 @@ export default function Page() {
               value: `${dashboardData.performance.returnRate}%`,
             },
             {
+              label: '순수익금',
+              value: formatCurrency(
+                dashboardData.performance.netProfit,
+                currency
+              ),
+            },
+            {
+              label: '순수익률',
+              value: `${dashboardData.performance.netReturnRate}%`,
+            },
+            {
               label: '연평균 수익률',
               value: `${dashboardData.performance.cagr}%`,
             },
@@ -96,6 +107,45 @@ export default function Page() {
       <div className='mt-4'>
         <ComparisonTable
           title='벤치마크 비교'
+          icon={<ChartLine className='h-5 w-5 theme-performance' />}
+          themeColor='var(--performance-theme)'
+          comparisonData={[
+            {
+              metric: '원금',
+              investment: formatCurrency(performance.principal, currency),
+              benchmark: formatCurrency(performance.principal, currency),
+            },
+            {
+              metric: '평가금액',
+              investment: formatCurrency(performance.currentValue, currency),
+              benchmark: formatCurrency(benchmark.value, currency),
+            },
+            {
+              metric: '수익금',
+              investment: formatCurrency(performance.profit, currency),
+              benchmark: formatCurrency(benchmark.profit, currency),
+            },
+            {
+              metric: '수익률',
+              investment: `${performance.returnRate}%`,
+              benchmark: `${benchmark.returnRate}%`,
+            },
+            {
+              metric: '연평균수익률',
+              investment: `${performance.cagr}%`,
+              benchmark: `${benchmark.cagr}%`,
+            },
+            {
+              metric: '초과수익',
+              investment: formatCurrency(benchmark.excessReturn, currency),
+              benchmark: '-',
+            },
+          ]}
+        />
+      </div>
+      <div className='mt-4'>
+        <ComparisonTable
+          title='벤치마크 비교 (세후)'
           icon={<ChartLine className='h-5 w-5 theme-performance' />}
           themeColor='var(--performance-theme)'
           comparisonData={[
@@ -182,21 +232,6 @@ export default function Page() {
               name: '벤치마크 수익금',
               color: '#03A9F4',
               data: dashboardData.charts.benchmarkProfit,
-            },
-          ]}
-        />
-      </div>
-      <div className='mt-4'>
-        <AssetChart
-          title='지표 비교'
-          themeColor='var(--performance-theme)'
-          chartType='line'
-          series={[
-            {
-              id: 'cagr',
-              name: 'CAGR (연평균 수익률)',
-              color: '#3F51B5',
-              data: [],
             },
           ]}
         />

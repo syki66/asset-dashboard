@@ -28,16 +28,16 @@ export default function Page() {
               valueClassName: 'animate-gradient-text text-lg',
             },
             {
-              label: '원금',
+              label: '순평가자산',
               value: formatCurrency(
-                dashboardData.performance.principal,
+                dashboardData.performance.netCurrentValue,
                 currency
               ),
             },
             {
-              label: '순평가자산',
+              label: '원금',
               value: formatCurrency(
-                dashboardData.performance.netCurrentValue,
+                dashboardData.performance.principal,
                 currency
               ),
             },

@@ -35,10 +35,15 @@ const initialDashboardData: DashboardProps = {
     usFxFee: 0,
   },
   benchmark: {
+    value: 0,
     netValue: 0,
+    profit: 0,
     netProfit: 0,
+    returnRate: 0,
     netReturnRate: 0,
+    cagr: 0,
     netCagr: 0,
+    excessReturn: 0,
     netExcessReturn: 0,
   },
   drawdown: {

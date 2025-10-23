@@ -23,6 +23,7 @@ type AccountDetails = {
   cash: number;
   stocksProfit: number;
   stocks: StockProps[];
+  benchmarkValue: number;
   benchmarkNetValue: number;
 };
 
@@ -93,10 +94,15 @@ export type DashboardProps = {
     usFxFee; // 미국주식 환전 수수료
   };
   benchmark: {
+    value: number; // 벤치마크 평가금
     netValue: number; // 벤치마크 평가금 (세후)
+    profit: number; // 벤치마크 수익금
     netProfit: number; // 벤치마크 수익금 (세후)
+    returnRate: number; // 벤치마크 수익률
     netReturnRate: number; // 벤치마크 수익률 (세후)
+    cagr: number; // 벤치마크 연평균 성장률
     netCagr: number; // 벤치마크 연평균 성장률 (세후)
+    excessReturn: number; // 벤치마크 초과수익률
     netExcessReturn: number; // 벤치마크 초과수익률 (세후)
   };
   drawdown: {

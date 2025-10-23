@@ -56,6 +56,8 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
     date: string;
     benchmarkNetValueKrw: number;
     benchmarkNetValueUsd: number;
+    benchmarkValueKrw: number;
+    benchmarkValueUsd: number;
   }[] = [];
 
   cashFlowData.forEach((flow) => {
@@ -106,13 +108,14 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
     }
 
     let currentValue = 0; // 현재 평가금액
+    let netCurrentValue = 0; // 순평가금액
 
     // 이자 지급
     terms.forEach((term) => {
       currentValue += term.principal + term.interest; // 평가금액 계산
+      netCurrentValue += term.principal + term.interest * (1 - krDividendTax); // 순평가금액 계산
 
-      term.interest =
-        term.interest + term.principal * (term.interestRate / 100 / 365); // 이자 계산
+      term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 계산
 
       // 만기일이 지난 상품은 재예치
       if (term.maturityDate < flow.date) {
@@ -126,9 +129,13 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
 
     result.push({
       date: flow.date,
-      benchmarkNetValueKrw: Math.round(currentValue),
-      benchmarkNetValueUsd: Math.round(
+      benchmarkValueKrw: Math.round(currentValue),
+      benchmarkValueUsd: Math.round(
         currentValue / getFxRate(fxTable.prices, flow.date)
+      ),
+      benchmarkNetValueKrw: Math.round(netCurrentValue),
+      benchmarkNetValueUsd: Math.round(
+        netCurrentValue / getFxRate(fxTable.prices, flow.date)
       ),
     });
   });
