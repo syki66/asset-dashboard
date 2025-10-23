@@ -45,9 +45,14 @@ export function ComparisonTable({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>지표</TableHead>
-              <TableHead style={{ color: themeColor }}>내 포트폴리오</TableHead>
-              <TableHead>벤치마크</TableHead>
+              <TableHead className="w-1/3">지표</TableHead>
+              <TableHead
+                style={{ color: themeColor }}
+                className="w-1/3 text-right"
+              >
+                내 포트폴리오
+              </TableHead>
+              <TableHead className="w-1/3 text-right">벤치마크</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody
@@ -59,10 +64,10 @@ export function ComparisonTable({
                 className="transition-colors hover:bg-[var(--row-hover-bg)]"
               >
                 <TableCell>{data.metric}</TableCell>
-                <TableCell style={{ color: themeColor }}>
+                <TableCell style={{ color: themeColor }} className="text-right">
                   {data.investment}
                 </TableCell>
-                <TableCell>{data.benchmark}</TableCell>
+                <TableCell className="text-right">{data.benchmark}</TableCell>
               </TableRow>
             ))}
           </TableBody>
