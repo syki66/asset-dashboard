@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 export default function Page() {
+  const themeColor = 'var(--performance-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const [showAfterTax, setShowAfterTax] = useState(false);
@@ -94,7 +95,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='자산 분석'
           icon={Award}
-          themeColor='var(--performance-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '평가자산',
@@ -123,7 +124,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='투자 성과'
           icon={ChartLine}
-          themeColor='var(--performance-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '수익금',
@@ -153,7 +154,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='세금 및 제비용'
           icon={Landmark}
-          themeColor='var(--performance-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '해외주식 양도소득세',
@@ -182,7 +183,7 @@ export default function Page() {
         <ComparisonTable
           title={`벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
           icon={<ChartLine className='h-5 w-5 theme-performance' />}
-          themeColor='var(--performance-theme)'
+          themeColor={themeColor}
           comparisonData={showAfterTax ? afterTaxData : beforeTaxData}
           addon={
             <div className='flex items-center space-x-2'>
@@ -191,7 +192,7 @@ export default function Page() {
                 checked={showAfterTax}
                 onCheckedChange={handleToggle}
                 style={
-                  { '--switch-bg': 'var(--performance-theme)' } as React.CSSProperties
+                  { '--switch-bg': themeColor } as React.CSSProperties
                 }
               />
               <Label htmlFor='tax-switch'>세후</Label>
@@ -202,7 +203,7 @@ export default function Page() {
       <div className='mt-4'>
         <AssetChart
           title='자산 추이'
-          themeColor='var(--performance-theme)'
+          themeColor={themeColor}
           chartType='line'
           series={[
             {
@@ -229,7 +230,7 @@ export default function Page() {
       <div className='mt-4'>
         <AssetChart
           title='수익금 비교'
-          themeColor='var(--performance-theme)'
+          themeColor={themeColor}
           chartType='line'
           series={[
             {

@@ -8,6 +8,7 @@ import { useCurrencyStore } from '@/store/options';
 import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
 
 export default function Page() {
+  const themeColor = 'var(--overview-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
 
@@ -17,7 +18,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='총 자산'
           icon={Trophy}
-          themeColor='var(--overview-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '현재 가치',
@@ -46,7 +47,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='투자 성과'
           icon={TrendingUp}
-          themeColor='var(--overview-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '평가 손익',
@@ -75,7 +76,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='배당금 (최근 1년)'
           icon={DollarSign}
-          themeColor='var(--overview-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '배당금',
@@ -91,7 +92,7 @@ export default function Page() {
         <DashboardOverviewCard
           title='현금 보유'
           icon={PiggyBank}
-          themeColor='var(--overview-theme)'
+          themeColor={themeColor}
           contentItems={[
             {
               label: '원화',
@@ -110,7 +111,7 @@ export default function Page() {
       </div>
       <div className='mt-4'>
         <AssetChart
-          themeColor='var(--overview-theme)'
+          themeColor={themeColor}
           chartType='line'
           series={[
             {
