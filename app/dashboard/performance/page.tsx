@@ -6,13 +6,87 @@ import { ComparisonTable } from '@/components/dashboard/comparison-table';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
-import { Award, ChartColumnStacked, ChartLine, Landmark } from 'lucide-react';
+import { Award, ChartLine, Landmark } from 'lucide-react';
+import { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
+  const [showAfterTax, setShowAfterTax] = useState(false);
 
   const { performance, benchmark, costs } = dashboardData;
+
+  const handleToggle = (checked: boolean) => {
+    setShowAfterTax(checked);
+  };
+
+  const beforeTaxData = [
+    {
+      metric: '원금',
+      investment: formatCurrency(performance.principal, currency),
+      benchmark: formatCurrency(performance.principal, currency),
+    },
+    {
+      metric: '평가금액',
+      investment: formatCurrency(performance.currentValue, currency),
+      benchmark: formatCurrency(benchmark.value, currency),
+    },
+    {
+      metric: '수익금',
+      investment: formatCurrency(performance.profit, currency),
+      benchmark: formatCurrency(benchmark.profit, currency),
+    },
+    {
+      metric: '수익률',
+      investment: `${performance.returnRate}%`,
+      benchmark: `${benchmark.returnRate}%`,
+    },
+    {
+      metric: '연평균수익률',
+      investment: `${performance.cagr}%`,
+      benchmark: `${benchmark.cagr}%`,
+    },
+    {
+      metric: '초과수익',
+      investment: formatCurrency(benchmark.excessReturn, currency),
+      benchmark: '-',
+    },
+  ];
+
+  const afterTaxData = [
+    {
+      metric: '원금',
+      investment: formatCurrency(performance.principal, currency),
+      benchmark: formatCurrency(performance.principal, currency),
+    },
+    {
+      metric: '순평가금액',
+      investment: formatCurrency(performance.netCurrentValue, currency),
+      benchmark: formatCurrency(benchmark.netValue, currency),
+    },
+    {
+      metric: '순수익금',
+      investment: formatCurrency(performance.netProfit, currency),
+      benchmark: formatCurrency(benchmark.netProfit, currency),
+    },
+    {
+      metric: '순수익률',
+      investment: `${performance.netReturnRate}%`,
+      benchmark: `${benchmark.netReturnRate}%`,
+    },
+    {
+      metric: '순연평균수익률',
+      investment: `${performance.netCagr}%`,
+      benchmark: `${benchmark.netCagr}%`,
+    },
+    {
+      metric: '순초과수익',
+      investment: formatCurrency(benchmark.netExcessReturn, currency),
+      benchmark: '-',
+    },
+  ];
 
   return (
     <>
@@ -106,80 +180,23 @@ export default function Page() {
       </div>
       <div className='mt-4'>
         <ComparisonTable
-          title='벤치마크 비교'
+          title={`벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
           icon={<ChartLine className='h-5 w-5 theme-performance' />}
           themeColor='var(--performance-theme)'
-          comparisonData={[
-            {
-              metric: '원금',
-              investment: formatCurrency(performance.principal, currency),
-              benchmark: formatCurrency(performance.principal, currency),
-            },
-            {
-              metric: '평가금액',
-              investment: formatCurrency(performance.currentValue, currency),
-              benchmark: formatCurrency(benchmark.value, currency),
-            },
-            {
-              metric: '수익금',
-              investment: formatCurrency(performance.profit, currency),
-              benchmark: formatCurrency(benchmark.profit, currency),
-            },
-            {
-              metric: '수익률',
-              investment: `${performance.returnRate}%`,
-              benchmark: `${benchmark.returnRate}%`,
-            },
-            {
-              metric: '연평균수익률',
-              investment: `${performance.cagr}%`,
-              benchmark: `${benchmark.cagr}%`,
-            },
-            {
-              metric: '초과수익',
-              investment: formatCurrency(benchmark.excessReturn, currency),
-              benchmark: '-',
-            },
-          ]}
-        />
-      </div>
-      <div className='mt-4'>
-        <ComparisonTable
-          title='벤치마크 비교 (세후)'
-          icon={<ChartLine className='h-5 w-5 theme-performance' />}
-          themeColor='var(--performance-theme)'
-          comparisonData={[
-            {
-              metric: '원금',
-              investment: formatCurrency(performance.principal, currency),
-              benchmark: formatCurrency(performance.principal, currency),
-            },
-            {
-              metric: '순평가금액',
-              investment: formatCurrency(performance.netCurrentValue, currency),
-              benchmark: formatCurrency(benchmark.netValue, currency),
-            },
-            {
-              metric: '순수익금',
-              investment: formatCurrency(performance.netProfit, currency),
-              benchmark: formatCurrency(benchmark.netProfit, currency),
-            },
-            {
-              metric: '순수익률',
-              investment: `${performance.netReturnRate}%`,
-              benchmark: `${benchmark.netReturnRate}%`,
-            },
-            {
-              metric: '순연평균수익률',
-              investment: `${performance.netCagr}%`,
-              benchmark: `${benchmark.netCagr}%`,
-            },
-            {
-              metric: '순초과수익',
-              investment: formatCurrency(benchmark.netExcessReturn, currency),
-              benchmark: '-',
-            },
-          ]}
+          comparisonData={showAfterTax ? afterTaxData : beforeTaxData}
+          addon={
+            <div className='flex items-center space-x-2'>
+              <Switch
+                id='tax-switch'
+                checked={showAfterTax}
+                onCheckedChange={handleToggle}
+                style={
+                  { '--switch-bg': 'var(--performance-theme)' } as React.CSSProperties
+                }
+              />
+              <Label htmlFor='tax-switch'>세후</Label>
+            </div>
+          }
         />
       </div>
       <div className='mt-4'>

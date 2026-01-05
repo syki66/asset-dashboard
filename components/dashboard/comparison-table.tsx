@@ -22,6 +22,7 @@ export type ComparisonTableProps = {
   themeColor?: string;
   title?: string;
   icon?: React.ReactNode;
+  addon?: React.ReactNode;
 };
 
 export function ComparisonTable({
@@ -29,17 +30,19 @@ export function ComparisonTable({
   themeColor = "var(--overview-theme)",
   title = "벤치마크 비교",
   icon,
+  addon,
 }: ComparisonTableProps) {
   // Derive the hover background color variable from the theme color variable
   const hoverBgVar = themeColor.replace("-theme)", "-hover-bg)");
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           {icon}
           {title}
         </CardTitle>
+        {addon}
       </CardHeader>
       <CardContent>
         <Table>
