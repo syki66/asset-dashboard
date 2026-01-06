@@ -11,7 +11,12 @@ export default function Page() {
   return (
     <>
       <div className="mt-8">
-        <DividendChart data={dashboardData.charts.dividendHistory} />
+        <DividendChart
+          themeColor="var(--dividends-theme)"
+          data={dashboardData.charts.dividendHistory}
+          title="배당금 지급 내역"
+          description="기간별 배당금 지급 내역을 확인합니다."
+        />
       </div>
       <div className="mt-8">
         <AssetChart

@@ -2,345 +2,299 @@
 
 import { useState, useMemo } from 'react';
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  parseISO,
+  format,
+  subYears,
+  subMonths,
+  startOfQuarter,
+  startOfYear,
+  formatISO,
+} from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { Landmark } from 'lucide-react';
+
+import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrencyStore } from '@/store/options';
+import { cn } from '@/lib/utils';
 
 interface DividendData {
   date: string;
   value: number;
+  yoc?: number;
 }
 
 interface DividendChartProps {
   data: DividendData[];
+  title?: string;
+  description?: string;
+  themeColor?: string;
 }
 
-type TimeRange = 'YTD' | '1Y' | '3Y' | '5Y' | '10Y' | 'MAX';
+type AggregationPeriod = 'monthly' | 'quarterly' | 'annual';
+type TimeRange = 'ytd' | '1y' | '3y' | '5y' | '10y' | 'max';
 
-export function DividendChart({ data }: DividendChartProps) {
-  const [selectedRange, setSelectedRange] = useState<TimeRange>('YTD');
+const glassmorphismTooltipStyle = {
+  backgroundColor: 'var(--card)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  border: '1px solid var(--border)',
+  borderRadius: '12px',
+  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+  color: 'var(--card-foreground)',
+};
 
-  const currency = useCurrencyStore((state) => state.currency);
+export function DividendChart({
+  data = [],
+  title = '배당금 내역 차트',
+  description = '수령한 배당금의 내역입니다.',
+  themeColor = 'var(--dividends-theme)',
+}: DividendChartProps) {
+  const [timeRange, setTimeRange] = useState<TimeRange>('ytd');
+  const { currency } = useCurrencyStore();
 
-  const processedData = useMemo(() => {
-    if (!data || data.length === 0) return [];
-
-    // 날짜순으로 정렬
-    const sortedData = [...data].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+  const { chartData, aggregationPeriod } = useMemo(() => {
+    if (!data || data.length === 0)
+      return { chartData: [], aggregationPeriod: 'annual' };
 
     const now = new Date();
     let startDate: Date;
+    let aggPeriod: AggregationPeriod;
 
-    switch (selectedRange) {
-      case 'YTD':
-        startDate = new Date(now.getFullYear(), 0, 1); // 올해 1월 1일부터
+    switch (timeRange) {
+      case 'ytd':
+        startDate = startOfYear(now);
+        aggPeriod = 'monthly';
         break;
-      case '1Y':
-        startDate = new Date(
-          now.getFullYear() - 1,
-          now.getMonth(),
-          now.getDate()
-        );
+      case '1y':
+        startDate = subYears(now, 1);
+        aggPeriod = 'monthly';
         break;
-      case '3Y':
-        startDate = new Date(
-          now.getFullYear() - 3,
-          now.getMonth(),
-          now.getDate()
-        );
+      case '3y':
+        startDate = subYears(now, 3);
+        aggPeriod = 'quarterly';
         break;
-      case '5Y':
-        startDate = new Date(
-          now.getFullYear() - 5,
-          now.getMonth(),
-          now.getDate()
-        );
+      case '5y':
+        startDate = subYears(now, 5);
+        aggPeriod = 'quarterly';
         break;
-      case '10Y':
-        startDate = new Date(
-          now.getFullYear() - 10,
-          now.getMonth(),
-          now.getDate()
-        );
+      case '10y':
+        startDate = subYears(now, 10);
+        aggPeriod = 'annual';
         break;
-      case 'MAX':
-        startDate = new Date(0); // 모든 데이터
+      case 'max':
+      default:
+        startDate = new Date(0);
+        aggPeriod = 'annual';
         break;
     }
 
-    const filteredData = sortedData.filter(
-      (item) => new Date(item.date) >= startDate
+    const filteredData = data.filter(
+      (item) => parseISO(item.date) >= startDate
     );
 
-    // 데이터 집계
-    const aggregatedData = new Map<string, number>();
-
-    filteredData.forEach((item) => {
-      const date = new Date(item.date);
+    const aggregated = filteredData.reduce((acc, item) => {
+      const date = parseISO(item.date);
       let key: string;
 
-      switch (selectedRange) {
-        case 'YTD':
-        case '1Y':
-          // 월별 집계
-          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-            2,
-            '0'
-          )}`;
-          break;
-        case '3Y':
-          // 분기별 집계
-          const quarter = Math.floor(date.getMonth() / 3) + 1;
-          key = `${date.getFullYear()}-Q${quarter}`;
-          break;
-        case '5Y':
-        case '10Y':
-        case 'MAX':
-          // 연도별 집계
-          key = `${date.getFullYear()}`;
-          break;
+      if (aggPeriod === 'monthly') {
+        key = format(date, 'yyyy-MM');
+      } else if (aggPeriod === 'quarterly') {
+        const quarterStart = startOfQuarter(date);
+        key = format(quarterStart, 'yyyy-QQQ');
+      } else {
+        key = format(date, 'yyyy');
       }
 
-      aggregatedData.set(key, (aggregatedData.get(key) || 0) + item.value);
-    });
-
-    if (selectedRange === 'YTD') {
-      // 올해 1월부터 현재 월까지의 월 키를 생성
-      const ytdMonths = [];
-      for (let i = 0; i <= now.getMonth(); i++) {
-        const monthDate = new Date(now.getFullYear(), i, 1);
-        const monthKey = `${monthDate.getFullYear()}-${String(
-          monthDate.getMonth() + 1
-        ).padStart(2, '0')}`;
-        ytdMonths.push({
-          period: monthKey,
-          total: aggregatedData.get(monthKey) || 0,
-          formatted: (aggregatedData.get(monthKey) || 0).toLocaleString(
-            'ko-KR'
-          ),
-        });
+      if (!acc[key]) {
+        acc[key] = {
+          value: 0,
+          count: 0,
+          yocSum: 0,
+          date: formatISO(date, { representation: 'date' }),
+        };
       }
-      return ytdMonths;
-    }
-
-    if (selectedRange === '1Y') {
-      // 최근 12개월의 월 키를 생성
-      const last12Months = [];
-      for (let i = 11; i >= 0; i--) {
-        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthKey = `${monthDate.getFullYear()}-${String(
-          monthDate.getMonth() + 1
-        ).padStart(2, '0')}`;
-        last12Months.push({
-          period: monthKey,
-          total: aggregatedData.get(monthKey) || 0,
-          formatted: (aggregatedData.get(monthKey) || 0).toLocaleString(
-            'ko-KR'
-          ),
-        });
+      acc[key].value += item.value;
+      if (item.yoc) {
+        acc[key].yocSum += item.yoc;
+        acc[key].count += 1;
       }
-      return last12Months;
-    }
+      return acc;
+    }, {} as Record<string, { value: number; count: number; yocSum: number; date: string }>);
 
-    // 차트 데이터 형식으로 변환
-    const finalData = Array.from(aggregatedData.entries())
-      .map(([period, total]) => ({
+    const sortedChartData = Object.entries(aggregated)
+      .map(([period, values]) => ({
         period,
-        total,
-        formatted: total.toLocaleString('ko-KR'),
+        date: values.date,
+        value: values.value,
+        yoc: values.count > 0 ? values.yocSum / values.count : undefined,
       }))
-      .sort((a, b) => a.period.localeCompare(b.period));
-    return finalData;
-  }, [data, selectedRange]);
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-  const formatTooltipValue = (value: number) => {
-    return `${currency === 'usd' ? '$' : '₩'}${value.toLocaleString('ko-KR')}`;
-  };
+    return { chartData: sortedChartData, aggregationPeriod: aggPeriod };
+  }, [data, timeRange]);
 
-  // 기간 문자열을 한국어 형식으로 변환 (예: 2024-03 -> 2024년 3월, 2024 -> 2024년, 2024-Q1 -> 2024년 Q1분기)
-  const formatPeriodLabel = (period: string | number) => {
-    if (typeof period !== 'string') return String(period);
-    // YYYY-MM
-    const ymMatch = period.match(/^(\d{4})-(\d{2})$/);
-    if (ymMatch) {
-      const year = ymMatch[1];
-      const month = String(Number(ymMatch[2]));
-      return `${year}년 ${month}월`;
+  const formatPeriodLabel = (period: string) => {
+    if (aggregationPeriod === 'monthly') {
+      const date = parseISO(`${period}-01`);
+      return format(date, 'M월', { locale: ko });
     }
-    // YYYY-Qn
-    const qMatch = period.match(/^(\d{4})-Q(\d)$/);
-    if (qMatch) {
-      const year = qMatch[1];
-      const q = qMatch[2];
-      return `${year}년 ${q}분기`;
-    }
-    // YYYY
-    const yMatch = period.match(/^(\d{4})$/);
-    if (yMatch) {
-      return `${period}년`;
+    if (aggregationPeriod === 'quarterly') {
+      return period.split('-')[1];
     }
     return period;
   };
 
-  const getChartTitle = () => {
-    switch (selectedRange) {
-      case 'YTD':
-        return '월별 배당 수익 (올해)';
-      case '1Y':
-        return '월별 배당 수익 (최근 12개월)';
-      case '3Y':
-        return '분기별 배당 수익';
-      case '5Y':
-      case '10Y':
-      case 'MAX':
-        return '연도별 배당 수익';
-    }
-  };
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const formattedLabel =
+        aggregationPeriod === 'monthly'
+          ? format(parseISO(`${label}-01`), 'yyyy년 M월', { locale: ko })
+          : aggregationPeriod === 'quarterly'
+          ? `${label.split('-')[0]}년 ${label.split('-')[1]}`
+          : `${label}년`;
 
-  const getDescription = () => {
-    const totalDividend = processedData.reduce(
-      (sum, item) => sum + item.total,
-      0
-    );
-    return `총 배당 수익: ${
-      currency === 'usd' ? '$' : '₩'
-    }${totalDividend.toLocaleString('ko-KR')}`;
-  };
-
-  return (
-    <Card className="w-full bg-linear-to-br from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border-amber-200 dark:border-amber-800">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <CardTitle className="text-amber-900 dark:text-amber-100">
-              {getChartTitle()}
-            </CardTitle>
-            <CardDescription className="text-amber-700 dark:text-amber-300 font-medium">
-              {getDescription()}
-            </CardDescription>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {(['YTD', '1Y', '3Y', '5Y', '10Y', 'MAX'] as TimeRange[]).map(
-              (range) => (
-                <Button
-                  key={range}
-                  variant={
-                    selectedRange === range ? 'default' : 'outline-solid'
-                  }
-                  size="sm"
-                  onClick={() => setSelectedRange(range)}
-                  className={`text-sm transition-all duration-200 ${
-                    selectedRange === range
-                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-lg'
-                      : 'border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/50'
-                  }`}
-                >
-                  {range}
-                </Button>
-              )
+      return (
+        <div
+          style={glassmorphismTooltipStyle}
+          className="p-3 rounded-lg shadow-lg"
+        >
+          <p className="text-center font-bold text-base mb-2">
+            {formattedLabel}
+          </p>
+          <hr className="border-border my-1" />
+          <div className="space-y-1 mt-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center">
+                <div
+                  className="w-2.5 h-2.5 rounded-full mr-2"
+                  style={{ backgroundColor: themeColor }}
+                />
+                <span>배당금</span>
+              </div>
+              <span className="font-semibold ml-4">
+                {new Intl.NumberFormat('ko-KR', {
+                  style: 'currency',
+                  currency: currency.toUpperCase(),
+                  maximumFractionDigits: 0,
+                }).format(data.value)}
+              </span>
+            </div>
+            {data.yoc !== undefined && (
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full mr-2"
+                    style={{ backgroundColor: themeColor, opacity: 0.6 }}
+                  />
+                  <span>YoC</span>
+                </div>
+                <span className="font-semibold ml-4">
+                  {data.yoc.toFixed(2)}%
+                </span>
+              </div>
             )}
           </div>
         </div>
-      </CardHeader>
+      );
+    }
+    return null;
+  };
 
+  return (
+    <Card className="w-full glass-card">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Landmark style={{ color: themeColor }} className="h-5 w-5" />
+              {title}
+            </CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+          <Tabs
+            defaultValue="ytd"
+            value={timeRange}
+            onValueChange={(value) => setTimeRange(value as TimeRange)}
+            style={
+              { '--active-tab-color': themeColor } as React.CSSProperties
+            }
+          >
+            <TabsList className="grid grid-cols-6">
+              <TabsTrigger value="ytd">YTD</TabsTrigger>
+              <TabsTrigger value="1y">1년</TabsTrigger>
+              <TabsTrigger value="3y">3년</TabsTrigger>
+              <TabsTrigger value="5y">5년</TabsTrigger>
+              <TabsTrigger value="10y">10년</TabsTrigger>
+              <TabsTrigger value="max">MAX</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </CardHeader>
       <CardContent>
-        <div className="h-[400px] w-full">
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={processedData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                className="stroke-amber-200 dark:stroke-amber-800"
-              />
-              <XAxis
-                dataKey="period"
-                className="text-sm fill-amber-600 dark:fill-amber-400"
-                tick={{ fontSize: 12 }}
-                tickFormatter={formatPeriodLabel}
-              />
-              <YAxis
-                className="text-sm fill-amber-600 dark:fill-amber-400"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) =>
-                  `${currency === 'usd' ? '$' : '₩'}${value.toLocaleString()}`
-                }
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    const displayLabel = formatPeriodLabel(label as string);
-                    return (
-                      <div className="rounded-lg border bg-white dark:bg-gray-800 p-3 shadow-xl border-amber-200 dark:border-amber-700">
-                        <div className="flex flex-col gap-2">
-                          <div className="text-center border-b border-amber-100 dark:border-amber-700 pb-2">
-                            <span className="text-xs uppercase text-amber-500 dark:text-amber-400 font-semibold">
-                              기간
-                            </span>
-                            <div className="font-bold text-amber-900 dark:text-amber-100 text-sm">
-                              {displayLabel}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <span className="text-xs uppercase text-amber-500 dark:text-amber-400 font-semibold">
-                              배당금
-                            </span>
-                            <div className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">
-                              {formatTooltipValue(payload[0].value as number)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
+            {chartData.length > 0 ? (
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="period"
+                  tickFormatter={formatPeriodLabel}
+                  fontSize={12}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  fontSize={12}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat('ko-KR', {
+                      style: 'currency',
+                      currency: currency.toUpperCase(),
+                      notation: 'compact',
+                    }).format(value as number)
                   }
-                  return null;
-                }}
-              />
-              <Bar
-                dataKey="total"
-                fill="url(#colorGradient)"
-                radius={[6, 6, 0, 0]}
-                className="drop-shadow-xs"
-                style={{
-                  filter: 'brightness(1)',
-                }}
-              />
-              <defs>
-                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#F59E0B" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#D97706" stopOpacity={0.8} />
-                </linearGradient>
-              </defs>
-            </BarChart>
+                />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ fill: 'var(--dividends-hover-bg)' }}
+                />
+                <Bar
+                  dataKey="value"
+                  radius={[4, 4, 0, 0]}
+                  style={
+                    {
+                      fill: themeColor,
+                    } as React.CSSProperties
+                  }
+                />
+              </BarChart>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">
+                  선택한 기간에 데이터가 없습니다.
+                </p>
+              </div>
+            )}
           </ResponsiveContainer>
         </div>
-
-        {processedData.length === 0 && (
-          <div className="flex items-center justify-center h-[400px] text-amber-500 dark:text-amber-400">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <div>선택한 기간에 배당 데이터가 없습니다.</div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
