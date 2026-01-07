@@ -80,7 +80,7 @@ export default function Page() {
           contentItems={[
             {
               label: '배당금',
-              value: formatCurrency(dashboardData.dividends.amount, currency),
+              value: formatCurrency(dashboardData.dividends.annualDividends, currency),
               valueClassName: 'text-yellow-600',
             },
             {

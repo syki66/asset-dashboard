@@ -193,13 +193,30 @@ export const convertToDashboardData = (
         0
       );
 
-    const dividends = dividendsUsd + dividendsKrw; // 위에서 이미 환전처리 되어있음
+    const annualDividends = dividendsUsd + dividendsKrw; // 위에서 이미 환전처리 되어있음
+
+    // 배당금 (전체기간)
+    const totalDividendsKrw = account.krw.dividends.reduce(
+      (acc, dividend) =>
+        currency === 'usd'
+          ? acc + dividend.price / dividend.fxRate
+          : acc + dividend.price,
+      0
+    );
+    const totalDividendsUsd = account.usd.dividends.reduce(
+      (acc, dividend) =>
+        currency === 'usd'
+          ? acc + dividend.price
+          : acc + dividend.price * dividend.fxRate,
+      0
+    );
+    const totalDividends = totalDividendsUsd + totalDividendsKrw;
 
     // 원금대비배당률
-    const yieldOnCost = Number(((dividends / principal) * 100).toFixed(2));
+    const yieldOnCost = Number(((annualDividends / principal) * 100).toFixed(2));
 
     // 평가금대비배당률
-    const dividendYield = Number(((dividends / currentValue) * 100).toFixed(2));
+    const dividendYield = Number(((annualDividends / currentValue) * 100).toFixed(2));
 
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
     const stocksProfit =
@@ -374,23 +391,24 @@ export const convertToDashboardData = (
       performance: {
       currentValue,
         netCurrentValue,
-      principal,
-      profit,
-      netProfit,
-      returnRate,
-      netReturnRate,
+        principal,
+        profit,
+        netProfit,
+        returnRate,
+        netReturnRate,
         cagr,
         netCagr,
       },
       dividends: {
-        amount: dividends,
+        annualDividends,
+        totalDividends,
         dividendYield,
-      yieldOnCost,
+        yieldOnCost,
       },
       cash: {
         total: cashValue,
         usdCash: account.usd.cash,
-      krwCash: account.krw.cash,
+        krwCash: account.krw.cash,
       },
       costs: {
         totalCost: totalTaxFee,
@@ -412,10 +430,10 @@ export const convertToDashboardData = (
         netExcessReturn: benchmarkNetExcessReturn,
       },
       drawdown: {
-      maxDrawdown,
-      maxDrawdownPeriod,
-      maxDailyDrawdown,
-      maxDailyDrawdownDate,
+        maxDrawdown,
+        maxDrawdownPeriod,
+        maxDailyDrawdown,
+        maxDailyDrawdownDate,
       },
       charts: {
         principal: principalChartData,

@@ -18,7 +18,8 @@ const initialDashboardData: DashboardProps = {
     netCagr: 0,
   },
   dividends: {
-    amount: 0,
+    annualDividends: 0,
+    totalDividends: 0,
     dividendYield: 0,
     yieldOnCost: 0,
   },

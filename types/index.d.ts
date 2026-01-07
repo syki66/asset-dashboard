@@ -77,7 +77,8 @@ export type DashboardProps = {
     netCagr: number; // 순 연평균 성장률
   };
   dividends: {
-    amount: number; // 배당금 (최근 1년)
+    annualDividends: number; // 배당금 (최근 1년)
+    totalDividends: number; // 배당금 (누적)
     dividendYield: number; // 평가금 대비 배당수익률 (최근 1년)
     yieldOnCost: number; // 원가 대비 배당수익률 (최근 1년)
   };

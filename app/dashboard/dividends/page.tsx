@@ -17,15 +17,9 @@ export default function Page() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-4">
         <DashboardCard
           title="배당금"
-          value={formatCurrency(dividends.amount, currency)}
+          value={formatCurrency(dividends.annualDividends, currency)}
           description="최근 1년 동안 받은 배당금"
           icon={<Landmark />}
-        />
-        <DashboardCard
-          title="세후 배당금"
-          value={formatCurrency(dividends.amount, currency)}
-          description="세금(15%)을 제외한 배당금"
-          icon={<Receipt />}
         />
         <DashboardCard
           title="배당률 (현재가 기준)"
@@ -38,6 +32,12 @@ export default function Page() {
           value={`${(dividends.yieldOnCost * 100).toFixed(2)}%`}
           description="총 투자 원금 대비 배당금 비율"
           icon={<CircleDollarSign />}
+        />
+        <DashboardCard
+          title="누적 배당금"
+          value={formatCurrency(dividends.totalDividends, currency)}
+          description="지금까지 받은 누적 배당금"
+          icon={<Receipt />}
         />
       </div>
       <div className="mt-8">
