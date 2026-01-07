@@ -6,53 +6,38 @@ interface DashboardCardProps {
   title: string;
   value: string;
   description: string;
-  icon?: React.ReactNode;
+  icon?: React.ElementType;
   valueClassName?: string;
   descClassName?: string;
-  theme?: {
-    iconClassName: string;
-  };
+  themeColor?: string;
 }
 
 export default function DashboardCard({
   title,
   value,
   description,
-  icon,
+  icon: Icon,
   valueClassName = '',
   descClassName = '',
-  theme,
+  themeColor,
 }: DashboardCardProps) {
   return (
-    <Card className="p-0 overflow-hidden">
-      <div className="flex h-full">
-        <div className="flex-grow p-6">
-          <CardHeader className="p-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className={cn('text-2xl font-bold', valueClassName)}>
-              {value}
-            </div>
-            <p className={cn('text-xs text-muted-foreground mt-1', descClassName)}>
-              {description}
-            </p>
-          </CardContent>
+    <Card className="glass-card">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground" style={{ color: themeColor }} />}
+      </CardHeader>
+      <CardContent>
+        <div
+          className={cn('text-2xl font-bold', valueClassName)}
+          style={{ color: themeColor }}
+        >
+          {value}
         </div>
-        {icon && theme && (
-          <div
-            className={cn(
-              'flex items-center justify-center w-1/3',
-            )}
-          >
-            {React.cloneElement(icon as React.ReactElement, {
-              className: cn('h-8 w-8', theme.iconClassName),
-            })}
-          </div>
-        )}
-      </div>
+        <p className={cn('text-xs text-muted-foreground mt-1', descClassName)}>
+          {description}
+        </p>
+      </CardContent>
     </Card>
   );
 }
