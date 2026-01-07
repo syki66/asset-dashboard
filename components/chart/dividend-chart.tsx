@@ -152,10 +152,11 @@ export function DividendChart({
   const formatPeriodLabel = (period: string) => {
     if (aggregationPeriod === 'monthly') {
       const date = parseISO(`${period}-01`);
-      return format(date, 'M월', { locale: ko });
+      return format(date, 'yy년 M월', { locale: ko });
     }
     if (aggregationPeriod === 'quarterly') {
-      return period.split('-')[1];
+      const [year, quarter] = period.split('-');
+      return `${year.slice(-2)}' ${quarter}`;
     }
     return period;
   };

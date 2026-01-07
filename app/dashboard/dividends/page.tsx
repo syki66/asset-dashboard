@@ -1,15 +1,45 @@
 'use client';
 
 import { AssetChart, DividendChart } from '@/components/chart';
+import DashboardCard from '@/components/ui/dashboard-card';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
+import { formatCurrency } from '@/utils/format';
+import { CircleDollarSign, Landmark, Receipt, TrendingUp } from 'lucide-react';
 
 export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
+  const { dividends } = dashboardData;
 
   return (
     <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-4">
+        <DashboardCard
+          title="배당금"
+          value={formatCurrency(dividends.amount, currency)}
+          description="최근 1년 동안 받은 배당금"
+          icon={<Landmark />}
+        />
+        <DashboardCard
+          title="세후 배당금"
+          value={formatCurrency(dividends.amount, currency)}
+          description="세금(15%)을 제외한 배당금"
+          icon={<Receipt />}
+        />
+        <DashboardCard
+          title="배당률 (현재가 기준)"
+          value={`${(dividends.dividendYield * 100).toFixed(2)}%`}
+          description="현재 자산 평가액 대비 배당금 비율"
+          icon={<TrendingUp />}
+        />
+        <DashboardCard
+          title="배당률 (원금 기준)"
+          value={`${(dividends.yieldOnCost * 100).toFixed(2)}%`}
+          description="총 투자 원금 대비 배당금 비율"
+          icon={<CircleDollarSign />}
+        />
+      </div>
       <div className="mt-8">
         <DividendChart
           themeColor="var(--dividends-theme)"
