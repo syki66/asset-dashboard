@@ -53,6 +53,7 @@ interface AssetSeries {
   name: string;
   color?: string;
   data: AssetDataPoint[];
+  unit?: 'currency' | 'percent';
 }
 
 // 기본 색상 팔레트 - 더 많은 시리즈가 있을 경우 사용
@@ -79,6 +80,8 @@ interface AssetHistoryChartProps {
   chartType?: 'area' | 'line';
   themeColor?: string;
   icon?: React.ElementType;
+  showLogScaleToggle?: boolean;
+  showInflationAdjustToggle?: boolean;
 }
 
 export function AssetChart({
@@ -89,6 +92,8 @@ export function AssetChart({
   chartType = 'area',
   themeColor = 'var(--overview-theme)',
   icon: Icon,
+  showLogScaleToggle = true,
+  showInflationAdjustToggle = true,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -407,13 +412,15 @@ export function AssetChart({
                     />
                     <span>{seriesName}</span>
                   </div>
-                  <span className="font-semibold ml-4">
-                    {new Intl.NumberFormat('ko-KR', {
+              <span className="font-semibold ml-4">
+                {series?.unit === 'percent'
+                  ? `${(pld.value as number).toFixed(2)}%`
+                  : new Intl.NumberFormat('ko-KR', {
                       style: 'currency',
                       currency: 'KRW',
                       maximumFractionDigits: 0,
                     }).format(pld.value as number)}
-                  </span>
+              </span>
                 </div>
               );
             })}
@@ -465,28 +472,33 @@ export function AssetChart({
             {description && <CardDescription>{description}</CardDescription>}
           </div>
           <div className="flex items-center gap-4 pt-1">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="log-scale"
-                checked={useLogScale}
-                onCheckedChange={setUseLogScale}
-                style={{ '--switch-bg': themeColor } as React.CSSProperties}
-              />
-              <Label htmlFor="log-scale" className="text-sm font-medium">
-                로그 스케일
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="inflation-adjust"
-                checked={adjustForInflation}
-                onCheckedChange={setAdjustForInflation}
-                style={{ '--switch-bg': themeColor } as React.CSSProperties}
-              />
-              <Label htmlFor="inflation-adjust" className="text-sm font-medium">
-                인플레이션 보정
-              </Label>
-            </div>
+            {(showLogScaleToggle === undefined || showLogScaleToggle) && (
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="log-scale"
+                  checked={useLogScale}
+                  onCheckedChange={setUseLogScale}
+                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                />
+                <Label htmlFor="log-scale" className="text-sm font-medium">
+                  로그 스케일
+                </Label>
+              </div>
+            )}
+            {(showInflationAdjustToggle === undefined ||
+              showInflationAdjustToggle) && (
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="inflation-adjust"
+                  checked={adjustForInflation}
+                  onCheckedChange={setAdjustForInflation}
+                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                />
+                <Label htmlFor="inflation-adjust" className="text-sm font-medium">
+                  인플레이션 보정
+                </Label>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>

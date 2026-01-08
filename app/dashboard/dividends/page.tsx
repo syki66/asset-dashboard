@@ -60,13 +60,16 @@ export default function Page() {
             {
               id: 'YoC',
               name: '원금대비배당률',
-              color: '#F44336',
+              color: '#FFC107',
               data: dashboardData.charts.yieldOnCost,
+              unit: 'percent',
             },
           ]}
           title="원금대비배당률 차트"
           description="자산 클래스별 원금대비배당률 변화 추이"
           icon={TrendingUpDown}
+          showInflationAdjustToggle={false}
+          showLogScaleToggle={false}
         />
       </div>
       <div className="mt-8">
@@ -76,12 +79,15 @@ export default function Page() {
             {
               id: 'dividendYield',
               name: '배당률',
-              color: '#F44336',
+              color: '#FFEB3B', 
               data: dashboardData.charts.dividendYield,
+              unit: 'percent',
             },
           ]}
           title="배당률 차트"
           description="자산 클래스별 배당률 변화 추이"
+          showInflationAdjustToggle={false}
+          showLogScaleToggle={false}
         />
       </div>
     </>
