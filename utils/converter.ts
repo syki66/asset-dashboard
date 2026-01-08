@@ -29,6 +29,7 @@ import {
   exchangeFee,
 } from '@/constants/keywords';
 import { getAverage } from './math';
+import { differenceInCalendarDays } from 'date-fns';
 
 // 대시보드 표시용 데이터로 가공하는 함수
 export const convertToDashboardData = (
@@ -51,7 +52,9 @@ export const convertToDashboardData = (
   let maxDrawdown = 0; // 역대 MDD (금액)
   let peakValue = 0; // 평가자산 최고점
   let peakDate = ''; // mdd 시작 날짜
-  let maxDrawdownPeriod = ''; // mdd 기간
+  let maxDrawdownStartDate = ''; // 역대 최대 낙폭 시작일
+  let maxDrawdownEndDate = ''; // 역대 최대 낙폭 종료일
+  let recoveryDuration = 0; // 역대 최대 낙폭 회복 기간 (일)
   let maxDailyDrawdown = 0; // 하루 MDD (금액)
   let maxDailyDrawdownDate = ''; // 하루 mdd 낙폭 날짜
   let prevValue = 0; // 전날 평가 자산
@@ -213,10 +216,14 @@ export const convertToDashboardData = (
     const totalDividends = totalDividendsUsd + totalDividendsKrw;
 
     // 원금대비배당률
-    const yieldOnCost = Number(((annualDividends / principal) * 100).toFixed(2));
+    const yieldOnCost = Number(
+      ((annualDividends / principal) * 100).toFixed(2)
+    );
 
     // 평가금대비배당률
-    const dividendYield = Number(((annualDividends / currentValue) * 100).toFixed(2));
+    const dividendYield = Number(
+      ((annualDividends / currentValue) * 100).toFixed(2)
+    );
 
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
     const stocksProfit =
@@ -233,7 +240,12 @@ export const convertToDashboardData = (
     // 최고 낙폭을 갱신하면 업데이트
     if (drawdown > maxDrawdown) {
       maxDrawdown = drawdown;
-      maxDrawdownPeriod = `${peakDate} ~ ${account.date}`;
+      maxDrawdownStartDate = peakDate;
+      maxDrawdownEndDate = account.date;
+      recoveryDuration = differenceInCalendarDays(
+        new Date(maxDrawdownEndDate),
+        new Date(maxDrawdownStartDate)
+      );
     }
 
     // 하루 MDD 계산
@@ -389,7 +401,7 @@ export const convertToDashboardData = (
       lastUpdated: account.lastUpdated,
       fxRate: Number(account.fxRate.toFixed(2)),
       performance: {
-      currentValue,
+        currentValue,
         netCurrentValue,
         principal,
         profit,
@@ -430,9 +442,11 @@ export const convertToDashboardData = (
         netExcessReturn: benchmarkNetExcessReturn,
       },
       drawdown: {
-        maxDrawdown,
-        maxDrawdownPeriod,
-        maxDailyDrawdown,
+        maxDrawdown: -maxDrawdown,
+        maxDrawdownStartDate,
+        maxDrawdownEndDate,
+        recoveryDuration,
+        maxDailyDrawdown: -maxDailyDrawdown,
         maxDailyDrawdownDate,
       },
       charts: {

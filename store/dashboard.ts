@@ -49,7 +49,9 @@ const initialDashboardData: DashboardProps = {
   },
   drawdown: {
     maxDrawdown: 0,
-    maxDrawdownPeriod: '1970-01-01 ~ 1970-01-01',
+    maxDrawdownStartDate: '1970-01-01',
+    maxDrawdownEndDate: '1970-01-01',
+    recoveryDuration: 0,
     maxDailyDrawdown: 0,
     maxDailyDrawdownDate: '1970-01-01',
   },

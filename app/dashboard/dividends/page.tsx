@@ -77,7 +77,7 @@ export default function Page() {
           series={[
             {
               id: 'YoC',
-              name: '원금대비배당률',
+              name: '원금 대비 배당률',
               color: '#FFC107',
               data: dashboardData.charts.yieldOnCost,
               unit: 'percent',

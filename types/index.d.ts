@@ -108,7 +108,9 @@ export type DashboardProps = {
   };
   drawdown: {
     maxDrawdown: number; // 역대 최대 낙폭
-    maxDrawdownPeriod: string; // 역대 최대 낙폭 기간
+    maxDrawdownStartDate: string; // 역대 최대 낙폭 시작일
+    maxDrawdownEndDate: string; // 역대 최대 낙폭 종료일
+    recoveryDuration: number; // 회복 기간 (일)
     maxDailyDrawdown: number; // 최대 일간 낙폭
     maxDailyDrawdownDate: string; // 최대 일간 낙폭 날짜
   };

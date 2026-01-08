@@ -527,11 +527,11 @@ export function AssetChart({
                 <TabsTrigger value="6m" className="rounded-full text-xs">
                   6개월
                 </TabsTrigger>
-                <TabsTrigger value="1y" className="rounded-full text-xs">
-                  1년
-                </TabsTrigger>
                 <TabsTrigger value="ytd" className="rounded-full text-xs">
                   YTD
+                </TabsTrigger>
+                <TabsTrigger value="1y" className="rounded-full text-xs">
+                  1년
                 </TabsTrigger>
                 <TabsTrigger value="3y" className="rounded-full text-xs">
                   3년
