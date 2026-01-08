@@ -1,7 +1,7 @@
 'use client';
 
 import { AssetChart, DividendChart } from '@/components/chart';
-import DashboardCard from '@/components/ui/dashboard-card';
+import DashboardCard from '@/components/dashboard/dashboard-card';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';

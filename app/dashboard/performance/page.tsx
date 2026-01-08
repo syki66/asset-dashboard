@@ -91,66 +91,28 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-        <DashboardOverviewCard
-          title='자산 분석'
-          icon={Award}
-          themeColor={themeColor}
-          contentItems={[
-            {
-              label: '평가자산',
-              value: formatCurrency(
-                dashboardData.performance.currentValue,
-                currency
-              ),
-              valueClassName: 'animate-gradient-text text-lg',
-            },
-            {
-              label: '순평가자산',
-              value: formatCurrency(
-                dashboardData.performance.netCurrentValue,
-                currency
-              ),
-            },
-            {
-              label: '원금',
-              value: formatCurrency(
-                dashboardData.performance.principal,
-                currency
-              ),
-            },
-          ]}
-        />
-        <DashboardOverviewCard
-          title='투자 성과'
-          icon={ChartLine}
-          themeColor={themeColor}
-          contentItems={[
-            {
-              label: '수익금',
-              value: formatCurrency(dashboardData.performance.profit, currency),
-            },
-            {
-              label: '수익률',
-              value: `${dashboardData.performance.returnRate}%`,
-            },
-            {
-              label: '순수익금',
-              value: formatCurrency(
-                dashboardData.performance.netProfit,
-                currency
-              ),
-            },
-            {
-              label: '순수익률',
-              value: `${dashboardData.performance.netReturnRate}%`,
-            },
-            {
-              label: '연평균 수익률',
-              value: `${dashboardData.performance.cagr}%`,
-            },
-          ]}
-        />
+      <div className='grid md:grid-cols-1 xl:grid-cols-3 gap-y-4 xl:gap-4'>
+        <div className='col-span-2'>
+          <ComparisonTable
+            title={`벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
+            icon={<ChartLine className='h-5 w-5 theme-performance' />}
+            themeColor={themeColor}
+            comparisonData={showAfterTax ? afterTaxData : beforeTaxData}
+            addon={
+              <div className='flex items-center space-x-2'>
+                <Switch
+                  id='tax-switch'
+                  checked={showAfterTax}
+                  onCheckedChange={handleToggle}
+                  style={
+                    { '--switch-bg': themeColor } as React.CSSProperties
+                  }
+                />
+                <Label htmlFor='tax-switch'>세후</Label>
+              </div>
+            }
+          />
+        </div>
         <DashboardOverviewCard
           title='세금 및 제비용'
           icon={Landmark}
@@ -177,27 +139,6 @@ export default function Page() {
               value: formatCurrency(dashboardData.costs.totalCost, currency),
             },
           ]}
-        />
-      </div>
-      <div className='mt-4'>
-        <ComparisonTable
-          title={`벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
-          icon={<ChartLine className='h-5 w-5 theme-performance' />}
-          themeColor={themeColor}
-          comparisonData={showAfterTax ? afterTaxData : beforeTaxData}
-          addon={
-            <div className='flex items-center space-x-2'>
-              <Switch
-                id='tax-switch'
-                checked={showAfterTax}
-                onCheckedChange={handleToggle}
-                style={
-                  { '--switch-bg': themeColor } as React.CSSProperties
-                }
-              />
-              <Label htmlFor='tax-switch'>세후</Label>
-            </div>
-          }
         />
       </div>
       <div className='mt-4'>

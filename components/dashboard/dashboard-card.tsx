@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import React from 'react';
 
 interface DashboardCardProps {
