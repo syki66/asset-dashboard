@@ -5,7 +5,7 @@ import DashboardCard from '@/components/dashboard/dashboard-card';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
-import { CircleDollarSign, Landmark, Receipt, TrendingUp } from 'lucide-react';
+import { CircleDollarSign, Landmark, Receipt, TrendingUp, TrendingUpDown } from 'lucide-react';
 
 export default function Page() {
   const themeColor = 'var(--dividends-theme)';
@@ -66,6 +66,7 @@ export default function Page() {
           ]}
           title="원금대비배당률 차트"
           description="자산 클래스별 원금대비배당률 변화 추이"
+          icon={TrendingUpDown}
         />
       </div>
       <div className="mt-8">

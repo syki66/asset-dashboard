@@ -78,6 +78,7 @@ interface AssetHistoryChartProps {
   reverseYAxis?: boolean;
   chartType?: 'area' | 'line';
   themeColor?: string;
+  icon?: React.ElementType;
 }
 
 export function AssetChart({
@@ -87,6 +88,7 @@ export function AssetChart({
   reverseYAxis = false,
   chartType = 'area',
   themeColor = 'var(--overview-theme)',
+  icon: Icon,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -429,7 +431,11 @@ export function AssetChart({
       <Card className="w-full glass-card">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 theme-overview" />
+            {Icon ? (
+              <Icon style={{ color: themeColor }} className="h-5 w-5" />
+            ) : (
+              <TrendingUp style={{ color: themeColor }} className="h-5 w-5" />
+            )}
             {title}
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
@@ -449,7 +455,11 @@ export function AssetChart({
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-1">
             <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 theme-overview" />
+              {Icon ? (
+                <Icon style={{ color: themeColor }} className="h-5 w-5" />
+              ) : (
+                <TrendingUp style={{ color: themeColor }} className="h-5 w-5" />
+              )}
               {title}
             </CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
