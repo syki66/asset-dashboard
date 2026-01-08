@@ -36,7 +36,6 @@ import { cn } from '@/lib/utils';
 interface DividendData {
   date: string;
   value: number;
-  yoc?: number;
 }
 
 interface DividendChartProps {
@@ -124,25 +123,18 @@ export function DividendChart({
       if (!acc[key]) {
         acc[key] = {
           value: 0,
-          count: 0,
-          yocSum: 0,
           date: formatISO(date, { representation: 'date' }),
         };
       }
       acc[key].value += item.value;
-      if (item.yoc) {
-        acc[key].yocSum += item.yoc;
-        acc[key].count += 1;
-      }
       return acc;
-    }, {} as Record<string, { value: number; count: number; yocSum: number; date: string }>);
+    }, {} as Record<string, { value: number; date: string }>);
 
     const sortedChartData = Object.entries(aggregated)
       .map(([period, values]) => ({
         period,
         date: values.date,
         value: values.value,
-        yoc: values.count > 0 ? values.yocSum / values.count : undefined,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -197,20 +189,7 @@ export function DividendChart({
                 }).format(data.value)}
               </span>
             </div>
-            {data.yoc !== undefined && (
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full mr-2"
-                    style={{ backgroundColor: themeColor, opacity: 0.6 }}
-                  />
-                  <span>YoC</span>
-                </div>
-                <span className="font-semibold ml-4">
-                  {data.yoc.toFixed(2)}%
-                </span>
-              </div>
-            )}
+
           </div>
         </div>
       );

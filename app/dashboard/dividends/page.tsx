@@ -24,7 +24,7 @@ export default function Page() {
           themeColor={themeColor}
         />
         <DashboardCard
-          title="배당률 (현재가 기준)"
+          title="배당률"
           value={`${dividends.dividendYield}%`}
           description="현재 자산 평가액 대비 배당금 비율"
           icon={TrendingUp}
@@ -58,16 +58,15 @@ export default function Page() {
           themeColor={themeColor}
           series={[
             {
-              id: 'YoC',
-              name: '원금대비배당률',
-              color: '#FFC107',
-              data: dashboardData.charts.yieldOnCost,
+              id: 'dividendYield',
+              name: '배당률',
+              color: '#FFEB3B', 
+              data: dashboardData.charts.dividendYield,
               unit: 'percent',
             },
           ]}
-          title="원금대비배당률 차트"
-          description="자산 클래스별 원금대비배당률 변화 추이"
-          icon={TrendingUpDown}
+          title="배당률 변화 추이"
+          description="자산 평가액 대비 배당률 (Dividend Yield)"
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
         />
@@ -77,19 +76,21 @@ export default function Page() {
           themeColor={themeColor}
           series={[
             {
-              id: 'dividendYield',
-              name: '배당률',
-              color: '#FFEB3B', 
-              data: dashboardData.charts.dividendYield,
+              id: 'YoC',
+              name: '원금대비배당률',
+              color: '#FFC107',
+              data: dashboardData.charts.yieldOnCost,
               unit: 'percent',
             },
           ]}
-          title="배당률 차트"
-          description="자산 클래스별 배당률 변화 추이"
+          title="원금 대비 배당률 변화 추이"
+          description="원금 대비 배당률 (Yield on Cost)"
+          icon={TrendingUpDown}
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
         />
       </div>
+
     </>
   );
 }

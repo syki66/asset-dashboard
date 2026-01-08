@@ -55,7 +55,7 @@ const categories = [
   },
   {
     id: 'dividends' as const,
-    name: '배당',
+    name: '이자 및 배당',
     subtitle: '배당금 및 수익률',
     description:
       '수령한 배당금 내역과 배당 수익률 추이를 시각적으로 분석합니다.',
