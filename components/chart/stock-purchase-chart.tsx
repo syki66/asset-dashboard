@@ -36,6 +36,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import {
+  SeriesToggleButtons,
+  SeriesInfo,
+} from '../ui/series-toggle-buttons';
 
 interface StockData {
   date: string;
@@ -49,13 +53,24 @@ interface StockPurchaseChartProps {
   themeColor?: string;
 }
 
-
-
 const generateStockColor = (index: number): string => {
   const colors = [
-    '#3B82F6', '#EC4899', '#EF4444', '#06B6D4', '#10B981',
-    '#84CC16', '#8B5CF6', '#F59E0B', '#F97316', '#14B8A6',
-    '#8B5A2B', '#DC2626', '#7C3AED', '#059669', '#DB2777', '#2563EB',
+    '#3B82F6',
+    '#EC4899',
+    '#EF4444',
+    '#06B6D4',
+    '#10B981',
+    '#84CC16',
+    '#8B5CF6',
+    '#F59E0B',
+    '#F97316',
+    '#14B8A6',
+    '#8B5A2B',
+    '#DC2626',
+    '#7C3AED',
+    '#059669',
+    '#DB2777',
+    '#2563EB',
   ];
   return colors[index % colors.length];
 };
@@ -78,10 +93,17 @@ export function StockPurchaseChart({
 }: StockPurchaseChartProps) {
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
 
-  const allStocks = useMemo(() =>
-    Array.from(
-      new Set(data.flatMap(item => Object.keys(item).filter(key => key !== 'date')))
-    ).sort((a, b) => a.localeCompare(b)), [data]);
+  const allStocks = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          data.flatMap((item) =>
+            Object.keys(item).filter((key) => key !== 'date')
+          )
+        )
+      ).sort((a, b) => a.localeCompare(b)),
+    [data]
+  );
 
   const [selectedStocks, setSelectedStocks] = useState<string[]>(allStocks);
 
@@ -89,13 +111,14 @@ export function StockPurchaseChart({
     setSelectedStocks(allStocks);
   }, [allStocks]);
 
-
-  const stockColors = useMemo(() =>
-    allStocks.reduce((acc, stock, index) => {
-      acc[stock] = generateStockColor(index);
-      return acc;
-    }, {} as { [key: string]: string }),
-  [allStocks]);
+  const stockColors = useMemo(
+    () =>
+      allStocks.reduce((acc, stock, index) => {
+        acc[stock] = generateStockColor(index);
+        return acc;
+      }, {} as { [key: string]: string }),
+    [allStocks]
+  );
 
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -104,40 +127,56 @@ export function StockPurchaseChart({
     let currentEndDate: Date;
 
     if (dateRange.from && dateRange.to) {
-        currentStartDate = dateRange.from;
-        currentEndDate = dateRange.to;
+      currentStartDate = dateRange.from;
+      currentEndDate = dateRange.to;
     } else {
-        // If no custom date range is set, use the full range of available data
-        const allDates = data.map(item => parseISO(item.date)).sort((a, b) => a.getTime() - b.getTime());
-        currentStartDate = allDates[0];
-        currentEndDate = allDates[allDates.length - 1];
+      // If no custom date range is set, use the full range of available data
+      const allDates = data
+        .map((item) => parseISO(item.date))
+        .sort((a, b) => a.getTime() - b.getTime());
+      currentStartDate = allDates[0];
+      currentEndDate = allDates[allDates.length - 1];
     }
-    
-    const filtered = data.filter(item => {
-        const itemDate = parseISO(item.date);
-        return isWithinInterval(itemDate, { start: currentStartDate, end: currentEndDate });
+
+    const filtered = data.filter((item) => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, {
+        start: currentStartDate,
+        end: currentEndDate,
+      });
     });
 
-    return filtered.map(item => {
+    return filtered
+      .map((item) => {
         const filteredItem: StockData = { date: item.date };
-        selectedStocks.forEach(stock => {
-            if (item[stock]) {
-                filteredItem[stock] = item[stock];
-            }
+        selectedStocks.forEach((stock) => {
+          if (item[stock]) {
+            filteredItem[stock] = item[stock];
+          }
         });
         return filteredItem;
-    }).sort((a, b) => a.date.localeCompare(b.date));
-
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [data, dateRange, selectedStocks]);
 
+  const stockSeries: SeriesInfo[] = useMemo(
+    () =>
+      allStocks.map((stock) => ({
+        id: stock,
+        name: stock,
+        color: stockColors[stock],
+      })),
+    [allStocks, stockColors]
+  );
+
   const toggleStock = (stock: string) => {
-    setSelectedStocks(prev =>
+    setSelectedStocks((prev) =>
       prev.includes(stock)
-        ? prev.filter(s => s !== stock)
+        ? prev.filter((s) => s !== stock)
         : [...prev, stock].sort((a, b) => a.localeCompare(b))
     );
   };
-  
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const sortedPayload = [...payload].sort((a, b) =>
@@ -147,37 +186,43 @@ export function StockPurchaseChart({
         (sum: number, entry: any) => sum + entry.value,
         0
       );
-  
+
       return (
-        <div style={glassmorphismTooltipStyle} className="p-3 rounded-lg shadow-lg min-w-[220px]">
-          <p className="text-center font-bold text-base mb-2">
+        <div
+          style={glassmorphismTooltipStyle}
+          className='p-3 rounded-lg shadow-lg min-w-[220px]'
+        >
+          <p className='text-center font-bold text-base mb-2'>
             {format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
           </p>
-          <hr className="border-border my-1" />
-          <div className="space-y-1.5 mt-2">
+          <hr className='border-border my-1' />
+          <div className='space-y-1.5 mt-2'>
             {sortedPayload.map((entry: any, index: number) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+              <div
+                key={index}
+                className='flex items-center justify-between text-sm'
+              >
+                <div className='flex items-center gap-2'>
                   <div
-                    className="w-2.5 h-2.5 rounded-full"
+                    className='w-2.5 h-2.5 rounded-full'
                     style={{ backgroundColor: entry.color }}
                   />
-                  <span className="font-medium">{entry.dataKey}</span>
+                  <span className='font-medium'>{entry.dataKey}</span>
                 </div>
-                <span className="font-semibold ml-4">
+                <span className='font-semibold ml-4'>
                   {entry.value.toLocaleString()}주
                 </span>
               </div>
             ))}
           </div>
           {totalShares > 0 && (
-             <>
-             <hr className="border-border my-2" />
-             <div className="flex items-center justify-between font-bold">
-               <span>총 매수량</span>
-               <span>{totalShares.toLocaleString()}주</span>
-             </div>
-           </>
+            <>
+              <hr className='border-border my-2' />
+              <div className='flex items-center justify-between font-bold'>
+                <span>총 매수량</span>
+                <span>{totalShares.toLocaleString()}주</span>
+              </div>
+            </>
           )}
         </div>
       );
@@ -209,65 +254,59 @@ export function StockPurchaseChart({
   }, [chartData]);
 
   return (
-    <Card className="w-full glass-card">
+    <Card className='w-full glass-card'>
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp style={{ color: themeColor }} className="h-5 w-5" />
+        <div className='flex items-start justify-between'>
+          <div className='flex flex-col gap-1'>
+            <CardTitle className='text-lg flex items-center gap-2'>
+              <TrendingUp style={{ color: themeColor }} className='h-5 w-5' />
               {title}
             </CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
-            {/* 총 매수량 (Total Purchase Quantity) Display */}
-            <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                <span className="font-semibold">총 매수량:</span>
-                <span className="text-foreground text-base font-bold">
-                    {totalPurchases.toLocaleString()}주
-                </span>
-            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSelectAllPeriod}
-                className="h-9"
+              variant='outline'
+              size='sm'
+              onClick={handleSelectAllPeriod}
+              className='h-9'
             >
-                전체 기간
+              전체 기간
             </Button>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                        "w-[240px] justify-start text-left font-normal h-9",
-                        (!dateRange.from || !dateRange.to) && "text-muted-foreground"
-                    )}
+                  id='date'
+                  variant={'outline'}
+                  className={cn(
+                    'w-[240px] justify-start text-left font-normal h-9',
+                    (!dateRange.from || !dateRange.to) &&
+                      'text-muted-foreground'
+                  )}
                 >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.from ? (
-                        dateRange.to ? (
-                            <>
-                                {format(dateRange.from, "yy.MM.dd", {locale: ko})} -{" "}
-                                {format(dateRange.to, "yy.MM.dd", {locale: ko})}
-                            </>
-                        ) : (
-                            format(dateRange.from, "yy.MM.dd", {locale: ko})
-                        )
+                  <CalendarIcon className='mr-2 h-4 w-4' />
+                  {dateRange.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, 'yy.MM.dd', { locale: ko })} -{' '}
+                        {format(dateRange.to, 'yy.MM.dd', { locale: ko })}
+                      </>
                     ) : (
-                        <span>날짜 범위 선택</span>
-                    )}
+                      format(dateRange.from, 'yy.MM.dd', { locale: ko })
+                    )
+                  ) : (
+                    <span>날짜 범위 선택</span>
+                  )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className='w-auto p-0' align='end'>
                 <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange.from}
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
+                  initialFocus
+                  mode='range'
+                  defaultMonth={dateRange.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
@@ -275,49 +314,20 @@ export function StockPurchaseChart({
         </div>
       </CardHeader>
       <CardContent>
-        {allStocks.length > 0 && (
-            <div className="mb-4 flex flex-wrap justify-center gap-2">
-                {allStocks.map(stock => (
-                    <Button
-                        key={stock}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleStock(stock)}
-                        className={cn(
-                            'rounded-full h-8 transition-all duration-200 ease-in-out flex items-center',
-                            !selectedStocks.includes(stock) && 'bg-transparent text-muted-foreground border-dashed'
-                        )}
-                        style={ selectedStocks.includes(stock) ? {
-                            borderColor: stockColors[stock],
-                            backgroundColor: `${stockColors[stock]}20`,
-                            color: stockColors[stock]
-                        } : {}}
-                    >
-                        <div
-                            className="w-2.5 h-2.5 rounded-full mr-2 transition-all"
-                            style={{ 
-                                backgroundColor: stockColors[stock],
-                                opacity: selectedStocks.includes(stock) ? 1 : 0.5
-                            }}
-                        />
-                        <span className="font-medium">{stock}</span>
-                    </Button>
-                ))}
-            </div>
-        )}
-
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             {chartData.length > 0 ? (
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray='3 3' />
                 <XAxis
-                  dataKey="date"
-                  tickFormatter={(dateStr) => format(parseISO(dateStr), 'yy/MM/dd')}
+                  dataKey='date'
+                  tickFormatter={(dateStr) =>
+                    format(parseISO(dateStr), 'yy/MM/dd')
+                  }
                   fontSize={12}
                   axisLine={false}
                   tickLine={false}
-                  interval="preserveStartEnd"
+                  interval='preserveStartEnd'
                 />
                 <YAxis
                   fontSize={12}
@@ -333,11 +343,11 @@ export function StockPurchaseChart({
                   content={<CustomTooltip />}
                   cursor={{ fill: 'var(--info-hover-bg)' }}
                 />
-                {selectedStocks.map(stock => (
+                {selectedStocks.map((stock) => (
                   <Bar
                     key={stock}
                     dataKey={stock}
-                    stackId="a"
+                    stackId='a'
                     fill={stockColors[stock]}
                     radius={[4, 4, 0, 0]}
                     name={stock}
@@ -345,13 +355,27 @@ export function StockPurchaseChart({
                 ))}
               </BarChart>
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">
+              <div className='flex items-center justify-center h-full'>
+                <p className='text-muted-foreground'>
                   선택한 기간에 데이터가 없습니다.
                 </p>
               </div>
             )}
           </ResponsiveContainer>
+        </div>
+
+        <SeriesToggleButtons
+          series={stockSeries}
+          activeSeries={selectedStocks}
+          onToggle={toggleStock}
+          className="mt-4"
+        />
+        {/* 총 매수량 (Total Purchase Quantity) Display */}
+        <div className='mt-4 text-sm text-muted-foreground flex items-center gap-2'>
+          <span className='font-semibold'>총 매수량:</span>
+          <span className='text-foreground text-base font-bold'>
+            {totalPurchases.toLocaleString()}주
+          </span>
         </div>
       </CardContent>
     </Card>

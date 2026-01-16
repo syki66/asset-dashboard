@@ -41,6 +41,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { inflationRates } from '@/constants/keywords';
 import { Button } from '../ui/button';
+import {
+  SeriesToggleButtons,
+  SeriesInfo,
+} from '../ui/series-toggle-buttons';
 
 // 차트 시리즈 타입 정의
 interface AssetDataPoint {
@@ -652,52 +656,12 @@ export function AssetChart({
         </div>
 
         {/* 시리즈 선택 토글 */}
-        {seriesWithColors.length > 0 && (
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            {seriesWithColors.map((series) => (
-              <Button
-                key={series.id}
-                variant="outline"
-                size="sm"
-                className={cn(
-                  'rounded-full h-8 transition-all duration-200 ease-in-out flex items-center justify-center',
-                  {
-                    'bg-transparent text-muted-foreground border-dashed hover:text-muted-foreground':
-                      !activeSeries.includes(series.id),
-                    'shadow-md': activeSeries.includes(series.id),
-                  }
-                )}
-                onClick={() => toggleSeries(series.id)}
-                style={{
-                  borderColor: activeSeries.includes(series.id)
-                    ? series.color
-                    : '' /* 비활성 상태에서는 기본 테두리 사용 */,
-                  background: activeSeries.includes(series.id)
-                    ? `${series.color}20`
-                    : 'transparent',
-                }}
-              >
-                <div
-                  className="w-3 h-3 rounded-full mr-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: series.color,
-                    opacity: activeSeries.includes(series.id) ? 1 : 0.4,
-                  }}
-                />
-                <span
-                  className="font-medium transition-colors duration-200"
-                  style={{
-                    color: activeSeries.includes(series.id)
-                      ? series.color
-                      : '' /* 기본 텍스트 색상 사용 */,
-                  }}
-                >
-                  {series.name}
-                </span>
-              </Button>
-            ))}
-          </div>
-        )}
+        <SeriesToggleButtons
+          series={seriesWithColors}
+          activeSeries={activeSeries}
+          onToggle={toggleSeries}
+          className="mt-4"
+        />
       </CardContent>
     </Card>
   );
