@@ -373,16 +373,6 @@ export function AssetChart({
     return ticks;
   }, [chartData, timeRange]);
 
-  const glassmorphismTooltipStyle = {
-    backgroundColor: 'var(--card)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
-    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-    color: 'var(--card-foreground)',
-  };
-
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const formattedLabel = label
@@ -391,8 +381,7 @@ export function AssetChart({
 
       return (
         <div
-          style={glassmorphismTooltipStyle}
-          className="p-3 rounded-lg shadow-lg"
+          className="glassmorphism-tooltip"
         >
           <p className="text-center font-bold text-base mb-2">
             {formattedLabel}

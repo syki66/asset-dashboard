@@ -75,15 +75,6 @@ const generateStockColor = (index: number): string => {
   return colors[index % colors.length];
 };
 
-const glassmorphismTooltipStyle = {
-  backgroundColor: 'var(--card)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  border: '1px solid var(--border)',
-  borderRadius: '12px',
-  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-  color: 'var(--card-foreground)',
-};
 
 export function StockPurchaseChart({
   data = [],
@@ -189,8 +180,7 @@ export function StockPurchaseChart({
 
       return (
         <div
-          style={glassmorphismTooltipStyle}
-          className='p-3 rounded-lg shadow-lg min-w-[220px]'
+          className='glassmorphism-tooltip min-w-[220px]'
         >
           <p className='text-center font-bold text-base mb-2'>
             {format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
@@ -341,7 +331,7 @@ export function StockPurchaseChart({
                 />
                 <Tooltip
                   content={<CustomTooltip />}
-                  cursor={{ fill: 'var(--info-hover-bg)' }}
+                  cursor={{ fill: 'var(--transaction-hover-bg)' }}
                 />
                 {selectedStocks.map((stock) => (
                   <Bar

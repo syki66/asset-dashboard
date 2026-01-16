@@ -48,16 +48,6 @@ interface DividendChartProps {
 type AggregationPeriod = 'monthly' | 'quarterly' | 'annual';
 type TimeRange = 'ytd' | '1y' | '3y' | '5y' | '10y' | 'max';
 
-const glassmorphismTooltipStyle = {
-  backgroundColor: 'var(--card)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  border: '1px solid var(--border)',
-  borderRadius: '12px',
-  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-  color: 'var(--card-foreground)',
-};
-
 export function DividendChart({
   data = [],
   title = '배당금 내역 차트',
@@ -165,8 +155,7 @@ export function DividendChart({
 
       return (
         <div
-          style={glassmorphismTooltipStyle}
-          className="p-3 rounded-lg shadow-lg"
+          className="glassmorphism-tooltip"
         >
           <p className="text-center font-bold text-base mb-2">
             {formattedLabel}
