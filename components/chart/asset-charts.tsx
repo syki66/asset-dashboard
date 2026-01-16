@@ -440,7 +440,7 @@ export function AssetChart({
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[300px]">
+        <CardContent className="flex items-center justify-center h-[18.75rem]">
           <p className="text-muted-foreground">
             데이터가 없습니다. 자산 데이터를 추가해주세요.
           </p>

@@ -143,7 +143,7 @@ export function CalendarPicker({
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <h2 className="text-lg font-semibold text-foreground min-w-[120px] text-center">
+            <h2 className="text-lg font-semibold text-foreground min-w-[7.5rem] text-center">
               {viewDate.getFullYear()}년 {monthNames[viewDate.getMonth()]}
             </h2>
 

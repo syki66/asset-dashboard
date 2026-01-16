@@ -180,7 +180,7 @@ export function StockPurchaseChart({
 
       return (
         <div
-          className='glassmorphism-tooltip min-w-[220px]'
+          className='glassmorphism-tooltip min-w-[13.75rem]'
         >
           <p className='text-center font-bold text-base mb-2'>
             {format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
@@ -269,7 +269,7 @@ export function StockPurchaseChart({
                   id='date'
                   variant={'outline'}
                   className={cn(
-                    'w-[240px] justify-start text-left font-normal h-9',
+                    'w-[15rem] justify-start text-left font-normal h-9',
                     (!dateRange.from || !dateRange.to) &&
                       'text-muted-foreground'
                   )}
