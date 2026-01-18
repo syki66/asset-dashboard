@@ -141,22 +141,30 @@ export function StockPurchaseChart({
       });
     });
 
-    // Transform data based on view mode
-    return filtered
-      .map((item) => {
-        const dataSource =
-          viewMode === 'quantity' ? item.quantityBySymbol : item.priceBySymbol;
-        const filteredItem: StockData = { date: item.date };
+    // Transform data based on view mode and aggregate by date
+    const aggregatedByDate = new Map<string, StockData>();
 
-        selectedStocks.forEach((stock) => {
-          if (dataSource[stock]) {
-            filteredItem[stock] = dataSource[stock];
-          }
-        });
+    filtered.forEach((item) => {
+      const dataSource =
+        viewMode === 'quantity' ? item.quantityBySymbol : item.priceBySymbol;
 
-        return filteredItem;
-      })
-      .sort((a, b) => a.date.localeCompare(b.date));
+      if (!aggregatedByDate.has(item.date)) {
+        aggregatedByDate.set(item.date, { date: item.date });
+      }
+
+      const aggregatedItem = aggregatedByDate.get(item.date)!;
+      selectedStocks.forEach((stock) => {
+        if (dataSource[stock]) {
+          aggregatedItem[stock] =
+            (aggregatedItem[stock] || 0) + dataSource[stock];
+        }
+      });
+    });
+
+    // Convert map to array and sort by date
+    return Array.from(aggregatedByDate.values()).sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
   }, [data, dateRange, selectedStocks, viewMode]);
 
   const stockSeries: SeriesInfo[] = useMemo(

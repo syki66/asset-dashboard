@@ -627,6 +627,17 @@ export const createAccountData = async (
               (stock) => stock.code === transaction.ISIN,
             );
 
+            // 주식 매수 이력 추가
+            account[currency].stockTradeHistory.push({
+              date: transaction.date,
+              type: 'buy',
+              pricesBySymbol: {
+                [stockInfo?.symbol]: Array(transaction.quantity).fill(
+                  transaction.price,
+                ),
+              },
+            });
+
             if (!stockToBuy) {
               // 종목이 없으면 초기값과 정보 추가
               account[currency].stocks.push({
@@ -650,31 +661,6 @@ export const createAccountData = async (
                   fxRate: account.fxRate,
                 });
               }
-            }
-
-            const stockTradeHistory = account[currency].stockTradeHistory;
-
-            // 같은 날짜는 같은 객체에 합산해서 저장하기
-            const existingStockBuyHistory = stockTradeHistory.find(
-              (history) =>
-                history.date === transaction.date && history.type === 'buy',
-            );
-            if (existingStockBuyHistory) {
-              existingStockBuyHistory.pricesBySymbol[stockInfo?.symbol] = [
-                ...(existingStockBuyHistory.pricesBySymbol[stockInfo?.symbol] ||
-                  []),
-                ...Array(transaction.quantity).fill(transaction.price),
-              ];
-            } else {
-              stockTradeHistory.push({
-                date: transaction.date,
-                type: 'buy',
-                pricesBySymbol: {
-                  [stockInfo?.symbol]: Array(transaction.quantity).fill(
-                    transaction.price,
-                  ),
-                },
-              });
             }
             break;
           case 'sell':
