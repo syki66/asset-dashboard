@@ -7,6 +7,7 @@ import {
   TransactionProps,
   DashboardProps,
   ChartProps,
+  StockBuySellHistoryProps,
 } from '@/types';
 import {
   dateToTimestamp,
@@ -34,7 +35,7 @@ import { differenceInCalendarDays } from 'date-fns';
 // 대시보드 표시용 데이터로 가공하는 함수
 export const convertToDashboardData = (
   accountData: AccountProps[],
-  currency: Currency
+  currency: Currency,
 ): DashboardProps[] => {
   // 자산 증감 내역 차트용 데이터
   const principalChartData: ChartProps[] = [];
@@ -47,6 +48,7 @@ export const convertToDashboardData = (
   const dividendYieldChartData: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
+  let stockBuyHistoryChartData: StockBuySellHistoryProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -64,13 +66,13 @@ export const convertToDashboardData = (
     // USD 주식 총 금액 계산
     const usdStockValue = account.usd.stocks.reduce(
       (acc, stock) => acc + stock.price * stock.balance.length,
-      0
+      0,
     );
 
     // KRW 주식 총 금액 계산
     const krwStockValue = account.krw.stocks.reduce(
       (acc, stock) => acc + stock.price * stock.balance.length,
-      0
+      0,
     );
 
     // 주식 평가금액 총합
@@ -102,7 +104,7 @@ export const convertToDashboardData = (
             return profit - fee;
           })
           .reduce((a, b) => a + b, 0),
-      0
+      0,
     ); // 미국주식 양도소득세 계산을 위한 추정손익 (원화로 계산, 거래수수료 비용 제외 적용)
 
     const usFee = usdStockValue * (usBrokerFee + usSecFee) * account.fxRate; // 미국주식 매도 수수료
@@ -139,7 +141,7 @@ export const convertToDashboardData = (
 
     // 순수익률
     const netReturnRate = Number(
-      (((profit - totalTaxFee) / principal) * 100).toFixed(2)
+      (((profit - totalTaxFee) / principal) * 100).toFixed(2),
     );
 
     // CAGR
@@ -151,8 +153,8 @@ export const convertToDashboardData = (
       years > 0
         ? Number(
             ((Math.pow(currentValue / principal, 1 / years) - 1) * 100).toFixed(
-              2
-            )
+              2,
+            ),
           )
         : 0;
 
@@ -162,7 +164,7 @@ export const convertToDashboardData = (
             (
               (Math.pow(netCurrentValue / principal, 1 / years) - 1) *
               100
-            ).toFixed(2)
+            ).toFixed(2),
           )
         : 0;
 
@@ -180,7 +182,7 @@ export const convertToDashboardData = (
           currency === 'usd'
             ? acc + dividend.price / dividend.fxRate
             : acc + dividend.price,
-        0
+        0,
       );
 
     const dividendsUsd = account.usd.dividends
@@ -193,7 +195,7 @@ export const convertToDashboardData = (
           currency === 'usd'
             ? acc + dividend.price
             : acc + dividend.price * dividend.fxRate,
-        0
+        0,
       );
 
     const annualDividends = dividendsUsd + dividendsKrw; // 위에서 이미 환전처리 되어있음
@@ -204,25 +206,25 @@ export const convertToDashboardData = (
         currency === 'usd'
           ? acc + dividend.price / dividend.fxRate
           : acc + dividend.price,
-      0
+      0,
     );
     const totalDividendsUsd = account.usd.dividends.reduce(
       (acc, dividend) =>
         currency === 'usd'
           ? acc + dividend.price
           : acc + dividend.price * dividend.fxRate,
-      0
+      0,
     );
     const totalDividends = totalDividendsUsd + totalDividendsKrw;
 
     // 원금대비배당률
     const yieldOnCost = Number(
-      ((annualDividends / principal) * 100).toFixed(2)
+      ((annualDividends / principal) * 100).toFixed(2),
     );
 
     // 평가금대비배당률
     const dividendYield = Number(
-      ((annualDividends / currentValue) * 100).toFixed(2)
+      ((annualDividends / currentValue) * 100).toFixed(2),
     );
 
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
@@ -244,7 +246,7 @@ export const convertToDashboardData = (
       maxDrawdownEndDate = account.date;
       recoveryDuration = differenceInCalendarDays(
         new Date(maxDrawdownEndDate),
-        new Date(maxDrawdownStartDate)
+        new Date(maxDrawdownStartDate),
       );
     }
 
@@ -270,7 +272,7 @@ export const convertToDashboardData = (
 
     // 벤치마크 순수익률
     const benchmarkReturnRate = Number(
-      (((benchmarkValue - principal) / principal) * 100).toFixed(2)
+      (((benchmarkValue - principal) / principal) * 100).toFixed(2),
     );
 
     // 벤치마크 순 CAGR
@@ -280,7 +282,7 @@ export const convertToDashboardData = (
             (
               (Math.pow(benchmarkValue / principal, 1 / years) - 1) *
               100
-            ).toFixed(2)
+            ).toFixed(2),
           )
         : 0;
 
@@ -298,7 +300,7 @@ export const convertToDashboardData = (
 
     // 벤치마크 순수익률
     const benchmarkNetReturnRate = Number(
-      (((benchmarkNetValue - principal) / principal) * 100).toFixed(2)
+      (((benchmarkNetValue - principal) / principal) * 100).toFixed(2),
     );
 
     // 벤치마크 순 CAGR
@@ -308,7 +310,7 @@ export const convertToDashboardData = (
             (
               (Math.pow(benchmarkNetValue / principal, 1 / years) - 1) *
               100
-            ).toFixed(2)
+            ).toFixed(2),
           )
         : 0;
 
@@ -396,6 +398,47 @@ export const convertToDashboardData = (
       value: benchmarkNetValue - principal,
     });
 
+    // 주식 매수 기록 차트 데이터
+    const krwStockBuyHistory = account.krw.stockTradeHistory
+      .filter((trade) => trade.type === 'buy')
+      .map((trade) => ({
+        date: trade.date,
+        quantityBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.length,
+          ]),
+        ),
+        priceBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.reduce((a, b) => a + b, 0),
+          ]),
+        ),
+      }));
+
+    const usdStockBuyHistory = account.usd.stockTradeHistory
+      .filter((trade) => trade.type === 'buy')
+      .map((trade) => ({
+        date: trade.date,
+        quantityBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.length,
+          ]),
+        ),
+        priceBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.reduce((a, b) => a + b, 0),
+          ]),
+        ),
+      }));
+
+    stockBuyHistoryChartData = [...krwStockBuyHistory, ...usdStockBuyHistory];
+    stockBuyHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
+
+
     return {
       date: account.date,
       lastUpdated: account.lastUpdated,
@@ -460,6 +503,7 @@ export const convertToDashboardData = (
         dividendYield: dividendYieldChartData,
         benchmark: benchmarkChartData,
         benchmarkProfit: benchmarkProfitChartData,
+        stockBuyHistory: stockBuyHistoryChartData,
       },
     };
   });
@@ -471,7 +515,7 @@ export const convertToDashboardData = (
 const updatePrincipal = (
   account: AccountProps,
   transaction: TransactionProps, // 1 (입금: deposit) 또는 -1 (출금: withdrawal)
-  multiplier: number
+  multiplier: number,
 ) => {
   const currency: Currency = transaction.currency as Currency;
   const amount = transaction.price * transaction.quantity;
@@ -493,7 +537,7 @@ const updateStockPrice = (
   stockData: {
     code: string;
     prices: { date: string; preSplitClose: number }[];
-  }[]
+  }[],
 ) => {
   // 주식 코드에 해당하는 데이터 찾기
   const stockInfo = stockData.find((item) => item.code === stock.code);
@@ -516,7 +560,7 @@ const updateStockPrice = (
 export const createAccountData = async (
   transactions: TransactionProps[],
   startDate?: string,
-  endDate?: string
+  endDate?: string,
 ) => {
   // 계좌 병합 시 계좌들의 날짜값들이 안 맞으면 값이 틀어짐. 병합할때 부족분을 더미로 넣는다면 환율과 주가정보 등 최신정보 반영이 불가능함. 따라서 여기서 당일 날짜로 받고 endDate를 줄이고 싶다면 데이터를 잘라서 쓰는게 맞을듯
   const today = timestampToDate(Math.floor(new Date().getTime() / 1000));
@@ -532,7 +576,7 @@ export const createAccountData = async (
 
   // 시작 날짜 기준으로 transactions 자르기
   const filteredTransactions = transactions.filter(
-    (transaction) => new Date(transaction.date) >= new Date(startDate)
+    (transaction) => new Date(transaction.date) >= new Date(startDate),
   );
 
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
@@ -542,7 +586,7 @@ export const createAccountData = async (
 
   const { stockData } = await getStockInfo(startDate, today, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
   const fxRates = stockData.find(
-    (stock) => stock.code === USD_KRW_SYMBOL
+    (stock) => stock.code === USD_KRW_SYMBOL,
   )?.prices;
 
   const accountData = filteredTransactions
@@ -557,7 +601,7 @@ export const createAccountData = async (
 
         // 환율이 존재하면 가져오고 없다면 이전 환율 사용
         const currentFxRate = fxRates.find(
-          (data: StockHistoryProps) => data.date === transaction.date
+          (data: StockHistoryProps) => data.date === transaction.date,
         )?.close;
 
         if (currentFxRate) {
@@ -576,15 +620,15 @@ export const createAccountData = async (
             updatePrincipal(account, transaction, -1);
             break;
           case 'buy':
+            const stockInfo = stockData.find(
+              (stock) => stock.code === transaction.ISIN,
+            );
             const stockToBuy = account[currency].stocks.find(
-              (stock) => stock.code === transaction.ISIN
+              (stock) => stock.code === transaction.ISIN,
             );
 
             if (!stockToBuy) {
               // 종목이 없으면 초기값과 정보 추가
-              const stockInfo = stockData.find(
-                (stock) => stock.code === transaction.ISIN
-              );
               account[currency].stocks.push({
                 shortName: stockInfo?.shortName,
                 longName: stockInfo?.longName,
@@ -607,10 +651,35 @@ export const createAccountData = async (
                 });
               }
             }
+
+            const stockTradeHistory = account[currency].stockTradeHistory;
+
+            // 같은 날짜는 같은 객체에 합산해서 저장하기
+            const existingStockBuyHistory = stockTradeHistory.find(
+              (history) =>
+                history.date === transaction.date && history.type === 'buy',
+            );
+            if (existingStockBuyHistory) {
+              existingStockBuyHistory.pricesBySymbol[stockInfo?.symbol] = [
+                ...(existingStockBuyHistory.pricesBySymbol[stockInfo?.symbol] ||
+                  []),
+                ...Array(transaction.quantity).fill(transaction.price),
+              ];
+            } else {
+              stockTradeHistory.push({
+                date: transaction.date,
+                type: 'buy',
+                pricesBySymbol: {
+                  [stockInfo?.symbol]: Array(transaction.quantity).fill(
+                    transaction.price,
+                  ),
+                },
+              });
+            }
             break;
           case 'sell':
             const stockToSell = account[currency].stocks.find(
-              (stock) => stock.code === transaction.ISIN
+              (stock) => stock.code === transaction.ISIN,
             );
 
             // 잔고가 있으면 첫번째 값 제거
@@ -622,13 +691,13 @@ export const createAccountData = async (
             // 잔고가 비어있으면 삭제
             if (stockToSell?.balance.length === 0) {
               account[currency].stocks = account[currency].stocks.filter(
-                (stock) => stock.code !== transaction.ISIN
+                (stock) => stock.code !== transaction.ISIN,
               );
             }
             break;
           case 'dividend': // 매년 배당금 누적 계산 (세전)
             const foundDividend = account[currency].dividends.find(
-              (dividend) => dividend.date === transaction.date
+              (dividend) => dividend.date === transaction.date,
             );
             if (!foundDividend) {
               account[currency].dividends.push({
@@ -657,6 +726,7 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
+            stockTradeHistory: [],
             benchmarkValue: 0,
             benchmarkNetValue: 0,
           },
@@ -666,11 +736,12 @@ export const createAccountData = async (
             cash: 0,
             stocks: [],
             stocksProfit: 0,
+            stockTradeHistory: [],
             benchmarkValue: 0,
             benchmarkNetValue: 0,
           },
         },
-      ] as AccountProps[]
+      ] as AccountProps[],
     )
     .slice(1); // 첫번째 빈 데이터 제거
 
@@ -690,7 +761,7 @@ export const createAccountData = async (
 
       // 환율 업데이트 (데이터 사이에 빈 날짜가 있을 경우 환율도 그대로 복사되는데, 이때 환율을 업데이트)
       const foundFxRate = fxRates.find(
-        (data: StockHistoryProps) => data.date === date.date
+        (data: StockHistoryProps) => data.date === date.date,
       )?.close;
       if (foundFxRate) {
         dummyData.fxRate = foundFxRate;
@@ -700,7 +771,7 @@ export const createAccountData = async (
       }
 
       return dummyData;
-    }
+    },
   );
 
   // 날짜별 주식 현재가 및 MDD를 위한 주식 수익값 업데이트
@@ -716,7 +787,7 @@ export const createAccountData = async (
           stock.price * stock.balance.length -
           getAverage(stock.balance.map((item) => item.price)) *
             stock.balance.length,
-        0
+        0,
       );
     });
     return data;
@@ -729,7 +800,7 @@ export const createAccountData = async (
 export const getStockInfo = async (
   startDate: string,
   endDate: string,
-  stockCodes: string[]
+  stockCodes: string[],
 ) => {
   stockCodes.push(USD_KRW_SYMBOL); // 환율 심볼 추가
 
@@ -743,8 +814,8 @@ export const getStockInfo = async (
 
         const priceResponse = await axios.get(
           `/api/history/${symbol}?startDate=${dateToTimestamp(
-            startDate
-          )}&endDate=${dateToTimestamp(endDate)}`
+            startDate,
+          )}&endDate=${dateToTimestamp(endDate)}`,
         );
 
         return {
@@ -766,14 +837,14 @@ export const getStockInfo = async (
           message: error.response?.data?.message || error.message, // API 응답 메시지 또는 기본 오류 메시지
         };
       }
-    })
+    }),
   );
 
   stockData.forEach((result) => {
     if (result.status === 'rejected') {
       const { api, code, message, status } = result.reason;
       toast.error(
-        `🚨 ${api} failed!\nStock Code: ${code}\nError: ${message} (Status: ${status})`
+        `🚨 ${api} failed!\nStock Code: ${code}\nError: ${message} (Status: ${status})`,
       );
     }
   });
@@ -797,7 +868,7 @@ export const mergeAccountData = (
       benchmarkNetValueKrw: number;
       benchmarkNetValueUsd: number;
     }[];
-  }[]
+  }[],
 ): AccountProps[] => {
   // Helper: merge two dividend arrays (같은 날짜의 dividend 데이터를 입력받아야 함)
   const mergeDividends = (arr1: DividendProps[], arr2: DividendProps[]) => {
@@ -860,7 +931,7 @@ export const mergeAccountData = (
         const merged = mergedMap.get(date)!;
         merged.lastUpdated = getLatestDate(
           merged.lastUpdated,
-          data.lastUpdated
+          data.lastUpdated,
         );
 
         (['usd', 'krw'] as const).forEach((currency) => {
@@ -869,11 +940,11 @@ export const mergeAccountData = (
           merged[currency].stocksProfit += data[currency].stocksProfit;
           merged[currency].dividends = mergeDividends(
             merged[currency].dividends,
-            data[currency].dividends
+            data[currency].dividends,
           );
           merged[currency].stocks = mergeStocks(
             merged[currency].stocks,
-            data[currency].stocks
+            data[currency].stocks,
           );
         });
       }
@@ -901,7 +972,7 @@ export const mergeAccountData = (
   });
 
   const mergedArray: AccountProps[] = Array.from(mergedMap.values()).sort(
-    (a, b) => a.date.localeCompare(b.date)
+    (a, b) => a.date.localeCompare(b.date),
   );
 
   return mergedArray;

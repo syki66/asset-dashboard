@@ -23,6 +23,7 @@ type AccountDetails = {
   cash: number;
   stocksProfit: number;
   stocks: StockProps[];
+  stockTradeHistory: StockTradeHistoryProps[];
   benchmarkValue: number;
   benchmarkNetValue: number;
 };
@@ -44,6 +45,18 @@ export type StockProps = {
     fxRate: number;
   }[];
   price: number;
+};
+
+export type StockTradeHistoryProps = {
+  date: string;
+  type: 'buy' | 'sell';
+  pricesBySymbol: Record<string, number[]>; // 종목별 거래 가격 배열
+};
+
+export type StockBuySellHistoryProps = {
+  date: string;
+  quantityBySymbol: Record<string, number>; // 종목별 거래 수량 합계
+  priceBySymbol: Record<string, number>; // 종목별 거래 가격 합계
 };
 
 export type Currency = 'krw' | 'usd';
@@ -125,6 +138,7 @@ export type DashboardProps = {
     yieldOnCost: ChartProps[]; // 원가 대비 배당수익률 차트
     benchmark: ChartProps[]; // 벤치마크 평가금 차트
     benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
+    stockBuyHistory: StockBuySellHistoryProps[]; // 매수 주식 히스토리
   };
 };
 
