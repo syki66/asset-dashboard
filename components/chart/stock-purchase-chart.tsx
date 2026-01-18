@@ -36,10 +36,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import {
-  SeriesToggleButtons,
-  SeriesInfo,
-} from '../ui/series-toggle-buttons';
+import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 
 interface StockData {
   date: string;
@@ -75,7 +72,6 @@ const generateStockColor = (index: number): string => {
   return colors[index % colors.length];
 };
 
-
 export function StockPurchaseChart({
   data = [],
   title = '일별 주식 매수 수량',
@@ -89,11 +85,11 @@ export function StockPurchaseChart({
       Array.from(
         new Set(
           data.flatMap((item) =>
-            Object.keys(item).filter((key) => key !== 'date')
-          )
-        )
+            Object.keys(item).filter((key) => key !== 'date'),
+          ),
+        ),
       ).sort((a, b) => a.localeCompare(b)),
-    [data]
+    [data],
   );
 
   const [selectedStocks, setSelectedStocks] = useState<string[]>(allStocks);
@@ -104,11 +100,14 @@ export function StockPurchaseChart({
 
   const stockColors = useMemo(
     () =>
-      allStocks.reduce((acc, stock, index) => {
-        acc[stock] = generateStockColor(index);
-        return acc;
-      }, {} as { [key: string]: string }),
-    [allStocks]
+      allStocks.reduce(
+        (acc, stock, index) => {
+          acc[stock] = generateStockColor(index);
+          return acc;
+        },
+        {} as { [key: string]: string },
+      ),
+    [allStocks],
   );
 
   const chartData = useMemo(() => {
@@ -137,17 +136,34 @@ export function StockPurchaseChart({
       });
     });
 
-    return filtered
-      .map((item) => {
-        const filteredItem: StockData = { date: item.date };
+    // Merge duplicate dates by summing up stock quantities
+    const mergedData = new Map<string, StockData>();
+
+    filtered.forEach((item) => {
+      const filteredItem: StockData = { date: item.date };
+      selectedStocks.forEach((stock) => {
+        if (item[stock]) {
+          filteredItem[stock] = item[stock];
+        }
+      });
+
+      if (mergedData.has(item.date)) {
+        const existing = mergedData.get(item.date)!;
         selectedStocks.forEach((stock) => {
-          if (item[stock]) {
-            filteredItem[stock] = item[stock];
+          if (filteredItem[stock]) {
+            existing[stock] =
+              ((existing[stock] as number) || 0) +
+              (filteredItem[stock] as number);
           }
         });
-        return filteredItem;
-      })
-      .sort((a, b) => a.date.localeCompare(b.date));
+      } else {
+        mergedData.set(item.date, filteredItem);
+      }
+    });
+
+    return Array.from(mergedData.values()).sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
   }, [data, dateRange, selectedStocks]);
 
   const stockSeries: SeriesInfo[] = useMemo(
@@ -157,31 +173,29 @@ export function StockPurchaseChart({
         name: stock,
         color: stockColors[stock],
       })),
-    [allStocks, stockColors]
+    [allStocks, stockColors],
   );
 
   const toggleStock = (stock: string) => {
     setSelectedStocks((prev) =>
       prev.includes(stock)
         ? prev.filter((s) => s !== stock)
-        : [...prev, stock].sort((a, b) => a.localeCompare(b))
+        : [...prev, stock].sort((a, b) => a.localeCompare(b)),
     );
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const sortedPayload = [...payload].sort((a, b) =>
-        a.dataKey.localeCompare(b.dataKey)
+        a.dataKey.localeCompare(b.dataKey),
       );
       const totalShares = sortedPayload.reduce(
         (sum: number, entry: any) => sum + entry.value,
-        0
+        0,
       );
 
       return (
-        <div
-          className='glassmorphism-tooltip min-w-[13.75rem]'
-        >
+        <div className='glassmorphism-tooltip min-w-[13.75rem]'>
           <p className='text-center font-bold text-base mb-2'>
             {format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
           </p>
@@ -271,7 +285,7 @@ export function StockPurchaseChart({
                   className={cn(
                     'w-[15rem] justify-start text-left font-normal h-9',
                     (!dateRange.from || !dateRange.to) &&
-                      'text-muted-foreground'
+                      'text-muted-foreground',
                   )}
                 >
                   <CalendarIcon className='mr-2 h-4 w-4' />
@@ -304,8 +318,8 @@ export function StockPurchaseChart({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className='h-80'>
+          <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray='3 3' />
@@ -358,7 +372,7 @@ export function StockPurchaseChart({
           series={stockSeries}
           activeSeries={selectedStocks}
           onToggle={toggleStock}
-          className="mt-4"
+          className='mt-4'
         />
         {/* 총 매수량 (Total Purchase Quantity) Display */}
         <div className='mt-4 text-sm text-muted-foreground flex items-center gap-2'>
