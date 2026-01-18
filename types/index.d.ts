@@ -139,6 +139,7 @@ export type DashboardProps = {
     benchmark: ChartProps[]; // 벤치마크 평가금 차트
     benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
     stockBuyHistory: StockBuySellHistoryProps[]; // 매수 주식 히스토리
+    stockSellHistory: StockBuySellHistoryProps[]; // 매도 주식 히스토리
   };
 };
 

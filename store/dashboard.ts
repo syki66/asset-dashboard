@@ -117,6 +117,7 @@ const initialDashboardData: DashboardProps = {
       },
     ],
     stockBuyHistory: [],
+    stockSellHistory: [],
   },
 };
 
