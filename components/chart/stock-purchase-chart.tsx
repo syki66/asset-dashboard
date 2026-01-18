@@ -38,17 +38,25 @@ import {
 import { cn } from '@/lib/utils';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 
+export type StockBuySellHistoryProps = {
+  date: string;
+  quantityBySymbol: Record<string, number>;
+  priceBySymbol: Record<string, number>;
+};
+
 interface StockData {
   date: string;
   [key: string]: string | number;
 }
 
 interface StockPurchaseChartProps {
-  data: StockData[];
+  data: StockBuySellHistoryProps[];
   title?: string;
   description?: string;
   themeColor?: string;
 }
+
+type DataViewMode = 'quantity' | 'price';
 
 const generateStockColor = (index: number): string => {
   const colors = [
@@ -79,15 +87,12 @@ export function StockPurchaseChart({
   themeColor = '#EF4444', // Default to a red theme
 }: StockPurchaseChartProps) {
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [viewMode, setViewMode] = useState<DataViewMode>('quantity');
 
   const allStocks = useMemo(
     () =>
       Array.from(
-        new Set(
-          data.flatMap((item) =>
-            Object.keys(item).filter((key) => key !== 'date'),
-          ),
-        ),
+        new Set(data.flatMap((item) => Object.keys(item.quantityBySymbol))),
       ).sort((a, b) => a.localeCompare(b)),
     [data],
   );
@@ -136,35 +141,23 @@ export function StockPurchaseChart({
       });
     });
 
-    // Merge duplicate dates by summing up stock quantities
-    const mergedData = new Map<string, StockData>();
+    // Transform data based on view mode
+    return filtered
+      .map((item) => {
+        const dataSource =
+          viewMode === 'quantity' ? item.quantityBySymbol : item.priceBySymbol;
+        const filteredItem: StockData = { date: item.date };
 
-    filtered.forEach((item) => {
-      const filteredItem: StockData = { date: item.date };
-      selectedStocks.forEach((stock) => {
-        if (item[stock]) {
-          filteredItem[stock] = item[stock];
-        }
-      });
-
-      if (mergedData.has(item.date)) {
-        const existing = mergedData.get(item.date)!;
         selectedStocks.forEach((stock) => {
-          if (filteredItem[stock]) {
-            existing[stock] =
-              ((existing[stock] as number) || 0) +
-              (filteredItem[stock] as number);
+          if (dataSource[stock]) {
+            filteredItem[stock] = dataSource[stock];
           }
         });
-      } else {
-        mergedData.set(item.date, filteredItem);
-      }
-    });
 
-    return Array.from(mergedData.values()).sort((a, b) =>
-      a.date.localeCompare(b.date),
-    );
-  }, [data, dateRange, selectedStocks]);
+        return filteredItem;
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [data, dateRange, selectedStocks, viewMode]);
 
   const stockSeries: SeriesInfo[] = useMemo(
     () =>
@@ -189,7 +182,7 @@ export function StockPurchaseChart({
       const sortedPayload = [...payload].sort((a, b) =>
         a.dataKey.localeCompare(b.dataKey),
       );
-      const totalShares = sortedPayload.reduce(
+      const total = sortedPayload.reduce(
         (sum: number, entry: any) => sum + entry.value,
         0,
       );
@@ -214,17 +207,23 @@ export function StockPurchaseChart({
                   <span className='font-medium'>{entry.dataKey}</span>
                 </div>
                 <span className='font-semibold ml-4'>
-                  {entry.value.toLocaleString()}주
+                  {entry.value.toLocaleString()}
+                  {viewMode === 'quantity' ? '주' : '원'}
                 </span>
               </div>
             ))}
           </div>
-          {totalShares > 0 && (
+          {total > 0 && (
             <>
               <hr className='border-border my-2' />
               <div className='flex items-center justify-between font-bold'>
-                <span>총 매수량</span>
-                <span>{totalShares.toLocaleString()}주</span>
+                <span>
+                  {viewMode === 'quantity' ? '총 매수량' : '총 거래액'}
+                </span>
+                <span>
+                  {total.toLocaleString()}
+                  {viewMode === 'quantity' ? '주' : '원'}
+                </span>
               </div>
             </>
           )}
@@ -246,7 +245,7 @@ export function StockPurchaseChart({
     }
   };
 
-  const totalPurchases = useMemo(() => {
+  const totalValue = useMemo(() => {
     return chartData.reduce((total, item) => {
       return (
         total +
@@ -256,6 +255,31 @@ export function StockPurchaseChart({
       );
     }, 0);
   }, [chartData]);
+
+  const getYAxisLabel = () => {
+    if (viewMode === 'quantity') {
+      return (value: number) =>
+        new Intl.NumberFormat('ko-KR', {
+          notation: 'compact',
+        }).format(value) + '주';
+    } else {
+      return (value: number) =>
+        new Intl.NumberFormat('ko-KR', {
+          notation: 'compact',
+          style: 'currency',
+          currency: 'KRW',
+          maximumFractionDigits: 0,
+        }).format(value);
+    }
+  };
+
+  const getTotalLabel = () => {
+    return viewMode === 'quantity' ? '총 매수량' : '총 거래액';
+  };
+
+  const getTotalUnit = () => {
+    return viewMode === 'quantity' ? '주' : '원';
+  };
 
   return (
     <Card className='w-full glass-card'>
@@ -268,7 +292,25 @@ export function StockPurchaseChart({
             </CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-2 flex-wrap justify-end'>
+            <div className='flex gap-1 border border-border rounded-md p-1'>
+              <Button
+                variant={viewMode === 'quantity' ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => setViewMode('quantity')}
+                className='h-7'
+              >
+                수량
+              </Button>
+              <Button
+                variant={viewMode === 'price' ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => setViewMode('price')}
+                className='h-7'
+              >
+                가격
+              </Button>
+            </div>
             <Button
               variant='outline'
               size='sm'
@@ -337,11 +379,7 @@ export function StockPurchaseChart({
                   fontSize={12}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(value) =>
-                    new Intl.NumberFormat('ko-KR', {
-                      notation: 'compact',
-                    }).format(value as number) + '주'
-                  }
+                  tickFormatter={getYAxisLabel()}
                 />
                 <Tooltip
                   content={<CustomTooltip />}
@@ -374,11 +412,12 @@ export function StockPurchaseChart({
           onToggle={toggleStock}
           className='mt-4'
         />
-        {/* 총 매수량 (Total Purchase Quantity) Display */}
+        {/* 총 값 Display */}
         <div className='mt-4 text-sm text-muted-foreground flex items-center gap-2'>
-          <span className='font-semibold'>총 매수량:</span>
+          <span className='font-semibold'>{getTotalLabel()}:</span>
           <span className='text-foreground text-base font-bold'>
-            {totalPurchases.toLocaleString()}주
+            {totalValue.toLocaleString()}
+            {getTotalUnit()}
           </span>
         </div>
       </CardContent>
