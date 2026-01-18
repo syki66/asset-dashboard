@@ -50,6 +50,7 @@ export type StockProps = {
 export type StockTradeHistoryProps = {
   date: string;
   type: 'buy' | 'sell';
+  fxRate: number;
   pricesBySymbol: Record<string, number[]>; // 종목별 거래 가격 배열
 };
 

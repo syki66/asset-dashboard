@@ -413,7 +413,11 @@ export const convertToDashboardData = (
         priceBySymbol: Object.fromEntries(
           Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
             symbol,
-            prices.reduce((a, b) => a + b, 0),
+            prices.reduce(
+              (acc, price) =>
+                currency === 'usd' ? acc + price / trade.fxRate : acc + price,
+              0,
+            ),
           ]),
         ),
       }));
@@ -431,7 +435,11 @@ export const convertToDashboardData = (
         priceBySymbol: Object.fromEntries(
           Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
             symbol,
-            prices.reduce((a, b) => a + b, 0),
+            prices.reduce(
+              (acc, price) =>
+                currency === 'usd' ? acc + price : acc + price * trade.fxRate,
+              0,
+            ),
           ]),
         ),
       }));
@@ -453,7 +461,11 @@ export const convertToDashboardData = (
         priceBySymbol: Object.fromEntries(
           Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
             symbol,
-            prices.reduce((a, b) => a + b, 0),
+            prices.reduce(
+              (acc, price) =>
+                currency === 'usd' ? acc + price / trade.fxRate : acc + price,
+              0,
+            ),
           ]),
         ),
       }));
@@ -471,7 +483,11 @@ export const convertToDashboardData = (
         priceBySymbol: Object.fromEntries(
           Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
             symbol,
-            prices.reduce((a, b) => a + b, 0),
+            prices.reduce(
+              (acc, price) =>
+                currency === 'usd' ? acc + price : acc + price * trade.fxRate,
+              0,
+            ),
           ]),
         ),
       }));
@@ -675,6 +691,7 @@ export const createAccountData = async (
             account[currency].stockTradeHistory.push({
               date: transaction.date,
               type: 'buy',
+              fxRate: account.fxRate,
               pricesBySymbol: {
                 [stockInfo?.symbol]: Array(transaction.quantity).fill(
                   transaction.price,
@@ -716,6 +733,7 @@ export const createAccountData = async (
             account[currency].stockTradeHistory.push({
               date: transaction.date,
               type: 'sell',
+              fxRate: account.fxRate,
               pricesBySymbol: {
                 [stockToSell?.symbol!]: Array(transaction.quantity).fill(
                   transaction.price,
