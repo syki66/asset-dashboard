@@ -11,7 +11,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   } = await getStockInfo(
     transactions[0].date,
     timestampToDate(Math.floor(new Date().getTime() / 1000)),
-    []
+    [],
   );
 
   const startDate = transactions[0].date;
@@ -37,7 +37,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
             ? transaction.quantity *
                 transaction.price *
                 getFxRate(fxTable.prices, transaction.date)
-            : transaction.quantity * transaction.price
+            : transaction.quantity * transaction.price,
         );
       } else if (transaction.type === 'withdrawal') {
         foundData.withdrawal += Math.round(
@@ -45,7 +45,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
             ? transaction.quantity *
                 transaction.price *
                 getFxRate(fxTable.prices, transaction.date)
-            : transaction.quantity * transaction.price
+            : transaction.quantity * transaction.price,
         );
       }
     }
@@ -131,11 +131,11 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       date: flow.date,
       benchmarkValueKrw: Math.round(currentValue),
       benchmarkValueUsd: Math.round(
-        currentValue / getFxRate(fxTable.prices, flow.date)
+        currentValue / getFxRate(fxTable.prices, flow.date),
       ),
       benchmarkNetValueKrw: Math.round(netCurrentValue),
       benchmarkNetValueUsd: Math.round(
-        netCurrentValue / getFxRate(fxTable.prices, flow.date)
+        netCurrentValue / getFxRate(fxTable.prices, flow.date),
       ),
     });
   });
@@ -146,14 +146,16 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
 // 가장 가까운 날짜의 환율 찾기
 export function getFxRate(
   entries: StockHistoryProps[],
-  targetDate: string
+  targetDate: string,
 ): number {
+  // 정확한 날짜가 있고 close 값이 null이 아닐 때
   const exact = entries.find((e) => e.date === targetDate);
-  if (exact) {
+  if (exact && exact.close != null) {
     return exact.close;
   }
 
-  const earlier = entries.filter((e) => e.date < targetDate);
+  // 가장 가까운 close 값이 있는 과거 날짜 찾기
+  const earlier = entries.filter((e) => e.date < targetDate && e.close != null);
   if (earlier.length === 0) {
     return DEFAULT_FX_RATE;
   }
@@ -194,7 +196,7 @@ const getCurrentRate = (date: string) => {
 
   // 가장 최근(가장 가까운 과거) 금리 반환
   pastRates.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
   return pastRates[0].interestRate;
 };
