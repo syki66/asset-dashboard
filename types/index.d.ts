@@ -151,3 +151,15 @@ export type TermsProps = {
   interest: number;
   interestRate: number;
 };
+
+export type MergeAccountDataInput = {
+  name: string;
+  accountData: AccountProps[];
+  benchmarkData?: {
+    date: string;
+    benchmarkValueKrw: number;
+    benchmarkValueUsd: number;
+    benchmarkNetValueKrw: number;
+    benchmarkNetValueUsd: number;
+  }[];
+};

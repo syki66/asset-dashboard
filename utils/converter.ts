@@ -8,6 +8,8 @@ import {
   DashboardProps,
   ChartProps,
   StockBuySellHistoryProps,
+  MergeAccountDataInput,
+  StockTradeHistoryProps,
 } from '@/types';
 import {
   dateToTimestamp,
@@ -916,17 +918,7 @@ export const getStockInfo = async (
 
 // 여러개의 계좌 데이터 병합
 export const mergeAccountData = (
-  accountDataArray: {
-    name: string;
-    accountData: AccountProps[];
-    benchmarkData?: {
-      date: string;
-      benchmarkValueKrw: number;
-      benchmarkValueUsd: number;
-      benchmarkNetValueKrw: number;
-      benchmarkNetValueUsd: number;
-    }[];
-  }[],
+  accountDataArray: MergeAccountDataInput[],
 ): AccountProps[] => {
   // Helper: merge two dividend arrays (같은 날짜의 dividend 데이터를 입력받아야 함)
   const mergeDividends = (arr1: DividendProps[], arr2: DividendProps[]) => {
@@ -973,6 +965,35 @@ export const mergeAccountData = (
     return Array.from(stockMap.values());
   };
 
+  // Helper: merge stock trade history arrays by date and type
+  const mergeStockTradeHistory = (
+    arr1: StockTradeHistoryProps[],
+    arr2: StockTradeHistoryProps[],
+  ): StockTradeHistoryProps[] => {
+    const tradeHistoryArr = [...arr1];
+
+    arr2.forEach((trade) => {
+      const existingTrade = tradeHistoryArr.find(
+        (t) => t.date === trade.date && t.type === trade.type,
+      );
+      if (existingTrade) {
+        // 같은 날짜와 타입의 거래내역이 있으면 pricesBySymbol 병합
+        Object.entries(trade.pricesBySymbol).forEach(([symbol, prices]) => {
+          if (!existingTrade.pricesBySymbol[symbol]) {
+            existingTrade.pricesBySymbol[symbol] = [];
+          }
+          existingTrade.pricesBySymbol[symbol] =
+            existingTrade.pricesBySymbol[symbol].concat(prices);
+        });
+      } else {
+        // 없으면 새로 추가
+        tradeHistoryArr.push(structuredClone(trade));
+      }
+    });
+
+    return tradeHistoryArr;
+  };
+
   // 계좌 데이터를 날짜별로 합치기 위해 Map을 사용
   const mergedMap = new Map<string, AccountProps>();
 
@@ -1004,28 +1025,10 @@ export const mergeAccountData = (
             merged[currency].stocks,
             data[currency].stocks,
           );
-
-          // 주식거래내역 병합
-          data[currency].stockTradeHistory.forEach((trade) => {
-            const existingTrade = merged[currency].stockTradeHistory.find(
-              (t) => t.date === trade.date && t.type === trade.type,
-            );
-            if (existingTrade) {
-              // 같은 날짜와 타입의 거래내역이 있으면 pricesBySymbol 병합
-              Object.entries(trade.pricesBySymbol).forEach(
-                ([symbol, prices]) => {
-                  if (!existingTrade.pricesBySymbol[symbol]) {
-                    existingTrade.pricesBySymbol[symbol] = [];
-                  }
-                  existingTrade.pricesBySymbol[symbol] =
-                    existingTrade.pricesBySymbol[symbol].concat(prices);
-                },
-              );
-            } else {
-              // 없으면 새로 추가
-              merged[currency].stockTradeHistory.push(structuredClone(trade));
-            }
-          });
+          merged[currency].stockTradeHistory = mergeStockTradeHistory(
+            merged[currency].stockTradeHistory,
+            data[currency].stockTradeHistory,
+          );
         });
       }
     });
