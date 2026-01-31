@@ -1004,6 +1004,28 @@ export const mergeAccountData = (
             merged[currency].stocks,
             data[currency].stocks,
           );
+
+          // 주식거래내역 병합
+          data[currency].stockTradeHistory.forEach((trade) => {
+            const existingTrade = merged[currency].stockTradeHistory.find(
+              (t) => t.date === trade.date && t.type === trade.type,
+            );
+            if (existingTrade) {
+              // 같은 날짜와 타입의 거래내역이 있으면 pricesBySymbol 병합
+              Object.entries(trade.pricesBySymbol).forEach(
+                ([symbol, prices]) => {
+                  if (!existingTrade.pricesBySymbol[symbol]) {
+                    existingTrade.pricesBySymbol[symbol] = [];
+                  }
+                  existingTrade.pricesBySymbol[symbol] =
+                    existingTrade.pricesBySymbol[symbol].concat(prices);
+                },
+              );
+            } else {
+              // 없으면 새로 추가
+              merged[currency].stockTradeHistory.push(structuredClone(trade));
+            }
+          });
         });
       }
     });
