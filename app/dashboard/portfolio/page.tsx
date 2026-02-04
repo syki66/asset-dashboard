@@ -2,6 +2,7 @@
 
 import { AssetChart } from '@/components/chart';
 import DashboardCard from '@/components/dashboard/dashboard-card';
+import { HoldingsView } from '@/components/dashboard/holdings-view';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
@@ -12,6 +13,9 @@ export default function Page() {
 
   return (
     <>
+      <div className="mb-8">
+        <HoldingsView themeColor="var(--portfolio-theme)" />
+      </div>
       <DashboardCard
         title="현금"
         value={formatCurrency(dashboardData.cash.total, currency)}
