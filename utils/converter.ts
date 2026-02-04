@@ -538,6 +538,7 @@ export const convertToDashboardData = (
         usTax,
         usFxFee,
       },
+      stocks: account.krw.stocks.concat(account.usd.stocks),
       benchmark: {
         value: benchmarkValue,
         netValue: benchmarkNetValue,

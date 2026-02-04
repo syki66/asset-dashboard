@@ -35,6 +35,7 @@ const initialDashboardData: DashboardProps = {
     usTax: 0,
     usFxFee: 0,
   },
+  stocks: [],
   benchmark: {
     value: 0,
     netValue: 0,

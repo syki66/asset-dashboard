@@ -14,7 +14,7 @@ export default function Page() {
   return (
     <>
       <div className="mb-8">
-        <HoldingsView themeColor="var(--portfolio-theme)" />
+        <HoldingsView stocks={dashboardData.stocks} themeColor="var(--portfolio-theme)" />
       </div>
       <DashboardCard
         title="현금"
