@@ -54,8 +54,9 @@ export type StockTradeHistoryProps = {
   pricesBySymbol: Record<string, number[]>; // 종목별 거래 가격 배열
 };
 
-export type StockBuySellHistoryProps = {
+export type StockTradeHistoryChartProps = {
   date: string;
+  type: 'buy' | 'sell'; // 종목 매매 타입 추가
   quantityBySymbol: Record<string, number>; // 종목별 거래 수량 합계
   priceBySymbol: Record<string, number>; // 종목별 거래 가격 합계
 };
@@ -140,8 +141,7 @@ export type DashboardProps = {
     yieldOnCost: ChartProps[]; // 원가 대비 배당수익률 차트
     benchmark: ChartProps[]; // 벤치마크 평가금 차트
     benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
-    stockBuyHistory: StockBuySellHistoryProps[]; // 매수 주식 히스토리
-    stockSellHistory: StockBuySellHistoryProps[]; // 매도 주식 히스토리
+    stockTradeHistory: StockTradeHistoryChartProps[]; // 매수 및 매도 주식 통합 히스토리
   };
 };
 

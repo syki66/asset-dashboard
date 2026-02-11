@@ -7,7 +7,7 @@ import {
   TransactionProps,
   DashboardProps,
   ChartProps,
-  StockBuySellHistoryProps,
+  StockTradeHistoryChartProps,
   MergeAccountDataInput,
   StockTradeHistoryProps,
 } from '@/types';
@@ -55,8 +55,7 @@ export const convertToDashboardData = (
   const dividendYieldChartData: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
-  let stockBuyHistoryChartData: StockBuySellHistoryProps[] = [];
-  let stockSellHistoryChartData: StockBuySellHistoryProps[] = [];
+  let stockTradeHistoryChartData: StockTradeHistoryChartProps[] = [];
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -406,104 +405,54 @@ export const convertToDashboardData = (
       value: benchmarkNetValue - principal,
     });
 
-    // 주식 매수 기록 차트 데이터
-    const krwStockBuyHistory = account.krw.stockTradeHistory
-      .filter((trade) => trade.type === 'buy')
-      .map((trade) => ({
-        date: trade.date,
-        quantityBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.length,
-          ]),
-        ),
-        priceBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.reduce(
-              (acc, price) =>
-                currency === 'usd' ? acc + price / trade.fxRate : acc + price,
-              0,
-            ),
-          ]),
-        ),
-      }));
+    // 주식 매매 기록 차트 데이터 (매수, 매도 통합)
+    const krwStockTradeHistory = account.krw.stockTradeHistory.map((trade) => ({
+      date: trade.date,
+      type: trade.type,
+      quantityBySymbol: Object.fromEntries(
+        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+          symbol,
+          prices.length,
+        ]),
+      ),
+      priceBySymbol: Object.fromEntries(
+        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+          symbol,
+          prices.reduce(
+            (acc, price) =>
+              currency === 'usd' ? acc + price / trade.fxRate : acc + price,
+            0,
+          ),
+        ]),
+      ),
+    }));
 
-    const usdStockBuyHistory = account.usd.stockTradeHistory
-      .filter((trade) => trade.type === 'buy')
-      .map((trade) => ({
-        date: trade.date,
-        quantityBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.length,
-          ]),
-        ),
-        priceBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.reduce(
-              (acc, price) =>
-                currency === 'usd' ? acc + price : acc + price * trade.fxRate,
-              0,
-            ),
-          ]),
-        ),
-      }));
+    const usdStockTradeHistory = account.usd.stockTradeHistory.map((trade) => ({
+      date: trade.date,
+      type: trade.type,
+      quantityBySymbol: Object.fromEntries(
+        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+          symbol,
+          prices.length,
+        ]),
+      ),
+      priceBySymbol: Object.fromEntries(
+        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+          symbol,
+          prices.reduce(
+            (acc, price) =>
+              currency === 'usd' ? acc + price : acc + price * trade.fxRate,
+            0,
+          ),
+        ]),
+      ),
+    }));
 
-    stockBuyHistoryChartData = [...krwStockBuyHistory, ...usdStockBuyHistory];
-    stockBuyHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
-
-    // 주식 매도 기록 차트 데이터
-    const krwStockSellHistory = account.krw.stockTradeHistory
-      .filter((trade) => trade.type === 'sell')
-      .map((trade) => ({
-        date: trade.date,
-        quantityBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.length,
-          ]),
-        ),
-        priceBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.reduce(
-              (acc, price) =>
-                currency === 'usd' ? acc + price / trade.fxRate : acc + price,
-              0,
-            ),
-          ]),
-        ),
-      }));
-
-    const usdStockSellHistory = account.usd.stockTradeHistory
-      .filter((trade) => trade.type === 'sell')
-      .map((trade) => ({
-        date: trade.date,
-        quantityBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.length,
-          ]),
-        ),
-        priceBySymbol: Object.fromEntries(
-          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-            symbol,
-            prices.reduce(
-              (acc, price) =>
-                currency === 'usd' ? acc + price : acc + price * trade.fxRate,
-              0,
-            ),
-          ]),
-        ),
-      }));
-
-    stockSellHistoryChartData = [
-      ...krwStockSellHistory,
-      ...usdStockSellHistory,
+    stockTradeHistoryChartData = [
+      ...krwStockTradeHistory,
+      ...usdStockTradeHistory,
     ];
-    stockSellHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
+    stockTradeHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
 
     return {
       date: account.date,
@@ -570,8 +519,7 @@ export const convertToDashboardData = (
         dividendYield: dividendYieldChartData,
         benchmark: benchmarkChartData,
         benchmarkProfit: benchmarkProfitChartData,
-        stockBuyHistory: stockBuyHistoryChartData,
-        stockSellHistory: stockSellHistoryChartData,
+        stockTradeHistory: stockTradeHistoryChartData,
       },
     };
   });
