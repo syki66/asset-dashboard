@@ -10,9 +10,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { parseISO, format, isWithinInterval } from 'date-fns';
+import { parseISO, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { TrendingUp, CalendarIcon } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 import {
   Card,
@@ -22,13 +22,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 import { StockTradeHistoryChartProps } from '@/types';
 
@@ -45,6 +38,7 @@ interface StockTradeChartProps {
 }
 
 type DataViewMode = 'quantity' | 'price';
+type AggregationMode = 'daily' | 'monthly' | 'yearly';
 
 const generateStockColor = (index: number): string => {
   const colors = [
@@ -74,8 +68,9 @@ export function StockTradeChart({
   description = '각 날짜별로 매매한 주식 종목과 수량/금액을 확인합니다.',
   themeColor = '#EF4444', // Default to a red theme
 }: StockTradeChartProps) {
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<DataViewMode>('quantity');
+  const [aggregationMode, setAggregationMode] = useState<AggregationMode>('daily');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
 
   const allStocks = useMemo(
     () =>
@@ -85,11 +80,26 @@ export function StockTradeChart({
     [data],
   );
 
+  const availableYears = useMemo(() => {
+    return Array.from(
+      new Set(data.map((item) => item.date.substring(0, 4))),
+    ).sort();
+  }, [data]);
+
+  const filteredStocks = useMemo(() => {
+    const filtered = selectedPeriod === 'all'
+      ? data
+      : data.filter((item) => item.date.startsWith(selectedPeriod));
+    return Array.from(
+      new Set(filtered.flatMap((item) => Object.keys(item.quantityBySymbol))),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [data, selectedPeriod]);
+
   const [selectedStocks, setSelectedStocks] = useState<string[]>(allStocks);
 
   useEffect(() => {
-    setSelectedStocks(allStocks);
-  }, [allStocks]);
+    setSelectedStocks(filteredStocks);
+  }, [filteredStocks]);
 
   const stockColors = useMemo(
     () =>
@@ -103,43 +113,34 @@ export function StockTradeChart({
     [allStocks],
   );
 
+  const getAggregationKey = (date: string): string => {
+    switch (aggregationMode) {
+      case 'monthly': return date.substring(0, 7);   // YYYY-MM
+      case 'yearly': return date.substring(0, 4);   // YYYY
+      default: return date;                    // YYYY-MM-DD
+    }
+  };
+
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    let currentStartDate: Date;
-    let currentEndDate: Date;
+    const filtered = selectedPeriod === 'all'
+      ? data
+      : data.filter((item) => item.date.startsWith(selectedPeriod));
 
-    if (dateRange.from && dateRange.to) {
-      currentStartDate = dateRange.from;
-      currentEndDate = dateRange.to;
-    } else {
-      const allDates = data
-        .map((item) => parseISO(item.date))
-        .sort((a, b) => a.getTime() - b.getTime());
-      currentStartDate = allDates.length > 0 ? allDates[0] : new Date();
-      currentEndDate =
-        allDates.length > 0 ? allDates[allDates.length - 1] : new Date();
-    }
-
-    const filtered = data.filter((item) => {
-      const itemDate = parseISO(item.date);
-      return isWithinInterval(itemDate, {
-        start: currentStartDate,
-        end: currentEndDate,
-      });
-    });
-
-    const aggregatedByDate = new Map<string, AggregatedTradeData>();
+    const aggregatedByKey = new Map<string, AggregatedTradeData>();
 
     filtered.forEach((item) => {
       const dataSource =
         viewMode === 'quantity' ? item.quantityBySymbol : item.priceBySymbol;
 
-      if (!aggregatedByDate.has(item.date)) {
-        aggregatedByDate.set(item.date, { date: item.date });
+      const key = getAggregationKey(item.date);
+
+      if (!aggregatedByKey.has(key)) {
+        aggregatedByKey.set(key, { date: key });
       }
 
-      const aggregatedItem = aggregatedByDate.get(item.date)!;
+      const aggregatedItem = aggregatedByKey.get(key)!;
       selectedStocks.forEach((stock) => {
         if (dataSource[stock]) {
           const buyKey = `${stock}(매수)`;
@@ -153,19 +154,19 @@ export function StockTradeChart({
       });
     });
 
-    return Array.from(aggregatedByDate.values()).sort((a, b) =>
+    return Array.from(aggregatedByKey.values()).sort((a, b) =>
       a.date.localeCompare(b.date),
     );
-  }, [data, dateRange, selectedStocks, viewMode]);
+  }, [data, selectedPeriod, selectedStocks, viewMode, aggregationMode]);
 
   const stockSeries: SeriesInfo[] = useMemo(
     () =>
-      allStocks.map((stock) => ({
+      filteredStocks.map((stock) => ({
         id: stock,
         name: stock,
         color: stockColors[stock],
       })),
-    [allStocks, stockColors],
+    [filteredStocks, stockColors],
   );
 
   const toggleStock = (stock: string) => {
@@ -200,7 +201,11 @@ export function StockTradeChart({
       return (
         <div className='glassmorphism-tooltip min-w-[13.75rem]'>
           <p className='text-center font-bold text-base mb-2'>
-            {format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
+            {aggregationMode === 'yearly'
+              ? `${label}년`
+              : aggregationMode === 'monthly'
+                ? `${label.substring(0, 4)}년 ${parseInt(label.substring(5, 7))}월`
+                : format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
           </p>
           <hr className='border-border my-1' />
           <div className='space-y-1.5 mt-2'>
@@ -245,17 +250,7 @@ export function StockTradeChart({
     return null;
   };
 
-  const handleSelectAllPeriod = () => {
-    if (data.length > 0) {
-      const dates = data
-        .map((item) => parseISO(item.date))
-        .sort((a, b) => a.getTime() - b.getTime());
-      setDateRange({
-        from: dates[0],
-        to: dates[dates.length - 1],
-      });
-    }
-  };
+
 
   const { totalBuy, totalSell } = useMemo(() => {
     let buy = 0;
@@ -325,51 +320,27 @@ export function StockTradeChart({
                 가격
               </Button>
             </div>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleSelectAllPeriod}
-              className='h-9'
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className='h-9 rounded-md border border-border bg-background px-3 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring'
             >
-              전체 기간
-            </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id='date'
-                  variant={'outline'}
-                  className={cn(
-                    'w-[15rem] justify-start text-left font-normal h-9',
-                    (!dateRange.from || !dateRange.to) &&
-                    'text-muted-foreground',
-                  )}
-                >
-                  <CalendarIcon className='mr-2 h-4 w-4' />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, 'yy.MM.dd', { locale: ko })} -{' '}
-                        {format(dateRange.to, 'yy.MM.dd', { locale: ko })}
-                      </>
-                    ) : (
-                      format(dateRange.from, 'yy.MM.dd', { locale: ko })
-                    )
-                  ) : (
-                    <span>날짜 범위 선택</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-auto p-0' align='end'>
-                <Calendar
-                  initialFocus
-                  mode='range'
-                  defaultMonth={dateRange.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
+              <option value='all'>전체기간</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}년
+                </option>
+              ))}
+            </select>
+            <select
+              value={aggregationMode}
+              onChange={(e) => setAggregationMode(e.target.value as AggregationMode)}
+              className='h-9 rounded-md border border-border bg-background px-3 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring'
+            >
+              <option value='daily'>일별 합산</option>
+              <option value='monthly'>월별 합산</option>
+              <option value='yearly'>연도별 합산</option>
+            </select>
           </div>
         </div>
       </CardHeader>
@@ -382,7 +353,11 @@ export function StockTradeChart({
                 <XAxis
                   dataKey='date'
                   tickFormatter={(dateStr) =>
-                    format(parseISO(dateStr), 'yy/MM/dd')
+                    aggregationMode === 'yearly'
+                      ? `${dateStr}년`
+                      : aggregationMode === 'monthly'
+                        ? `${dateStr.substring(2, 4)}/${dateStr.substring(5, 7)}`
+                        : format(parseISO(dateStr), 'yy/MM/dd')
                   }
                   fontSize={12}
                   axisLine={false}
@@ -400,23 +375,23 @@ export function StockTradeChart({
                   content={<CustomTooltip />}
                   cursor={{ fill: 'var(--transaction-hover-bg)' }}
                 />
-                {selectedStocks.map((stock) => (
+                {selectedStocks.map((stock, index) => (
                   <Bar
                     key={`${stock}-buy`}
                     dataKey={`${stock}(매수)`}
                     stackId='a'
                     fill={stockColors[stock]}
-                    radius={[4, 4, 0, 0]}
+                    radius={index === selectedStocks.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                     name={`${stock}(매수)`}
                   />
                 ))}
-                {selectedStocks.map((stock) => (
+                {selectedStocks.map((stock, index) => (
                   <Bar
                     key={`${stock}-sell`}
                     dataKey={`${stock}(매도)`}
                     stackId='a'
                     fill={stockColors[stock]}
-                    radius={[0, 0, 4, 4]}
+                    radius={index === selectedStocks.length - 1 ? [0, 0, 4, 4] : [0, 0, 0, 0]}
                     name={`${stock}(매도)`}
                     fillOpacity={0.5}
                   />
