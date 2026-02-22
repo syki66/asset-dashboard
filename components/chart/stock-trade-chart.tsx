@@ -10,13 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  parseISO,
-  format,
-  subYears,
-  startOfYear,
-  isWithinInterval,
-} from 'date-fns';
+import { parseISO, format, isWithinInterval } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { TrendingUp, CalendarIcon } from 'lucide-react';
 
@@ -27,7 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -37,20 +30,15 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
+import { StockTradeHistoryChartProps } from '@/types';
 
-export type StockBuySellHistoryProps = {
+interface AggregatedTradeData {
   date: string;
-  quantityBySymbol: Record<string, number>;
-  priceBySymbol: Record<string, number>;
-};
-
-interface StockData {
-  date: string;
-  [key: string]: string | number;
+  [key: string]: any;
 }
 
-interface StockPurchaseChartProps {
-  data: StockBuySellHistoryProps[];
+interface StockTradeChartProps {
+  data: StockTradeHistoryChartProps[];
   title?: string;
   description?: string;
   themeColor?: string;
@@ -80,12 +68,12 @@ const generateStockColor = (index: number): string => {
   return colors[index % colors.length];
 };
 
-export function StockPurchaseChart({
+export function StockTradeChart({
   data = [],
-  title = '일별 주식 매수 수량',
-  description = '각 날짜별로 매수한 주식 종목과 수량을 확인합니다.',
+  title = '일별 주식 매매 현황',
+  description = '각 날짜별로 매매한 주식 종목과 수량/금액을 확인합니다.',
   themeColor = '#EF4444', // Default to a red theme
-}: StockPurchaseChartProps) {
+}: StockTradeChartProps) {
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<DataViewMode>('quantity');
 
@@ -125,12 +113,12 @@ export function StockPurchaseChart({
       currentStartDate = dateRange.from;
       currentEndDate = dateRange.to;
     } else {
-      // If no custom date range is set, use the full range of available data
       const allDates = data
         .map((item) => parseISO(item.date))
         .sort((a, b) => a.getTime() - b.getTime());
-      currentStartDate = allDates[0];
-      currentEndDate = allDates[allDates.length - 1];
+      currentStartDate = allDates.length > 0 ? allDates[0] : new Date();
+      currentEndDate =
+        allDates.length > 0 ? allDates[allDates.length - 1] : new Date();
     }
 
     const filtered = data.filter((item) => {
@@ -141,8 +129,7 @@ export function StockPurchaseChart({
       });
     });
 
-    // Transform data based on view mode and aggregate by date
-    const aggregatedByDate = new Map<string, StockData>();
+    const aggregatedByDate = new Map<string, AggregatedTradeData>();
 
     filtered.forEach((item) => {
       const dataSource =
@@ -155,13 +142,17 @@ export function StockPurchaseChart({
       const aggregatedItem = aggregatedByDate.get(item.date)!;
       selectedStocks.forEach((stock) => {
         if (dataSource[stock]) {
-          aggregatedItem[stock] =
-            (aggregatedItem[stock] || 0) + dataSource[stock];
+          const buyKey = `${stock}(매수)`;
+          const sellKey = `${stock}(매도)`;
+          if (item.type === 'buy') {
+            aggregatedItem[buyKey] = (aggregatedItem[buyKey] || 0) + dataSource[stock];
+          } else {
+            aggregatedItem[sellKey] = (aggregatedItem[sellKey] || 0) - dataSource[stock];
+          }
         }
       });
     });
 
-    // Convert map to array and sort by date
     return Array.from(aggregatedByDate.values()).sort((a, b) =>
       a.date.localeCompare(b.date),
     );
@@ -187,13 +178,24 @@ export function StockPurchaseChart({
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const sortedPayload = [...payload].sort((a, b) =>
+      const filteredPayload = payload.filter((p: any) => p.value !== 0);
+      if (filteredPayload.length === 0) return null;
+
+      const sortedPayload = [...filteredPayload].sort((a: any, b: any) =>
         a.dataKey.localeCompare(b.dataKey),
       );
-      const total = sortedPayload.reduce(
-        (sum: number, entry: any) => sum + entry.value,
-        0,
-      );
+
+      const unit = viewMode === 'quantity' ? '주' : '원';
+
+      const buyTotal = sortedPayload
+        .filter((e: any) => e.dataKey.endsWith('(매수)'))
+        .reduce((sum: number, e: any) => sum + e.value, 0);
+
+      const sellTotal = sortedPayload
+        .filter((e: any) => e.dataKey.endsWith('(매도)'))
+        .reduce((sum: number, e: any) => sum + e.value, 0);
+
+      const netTotal = buyTotal + sellTotal;
 
       return (
         <div className='glassmorphism-tooltip min-w-[13.75rem]'>
@@ -215,26 +217,28 @@ export function StockPurchaseChart({
                   <span className='font-medium'>{entry.dataKey}</span>
                 </div>
                 <span className='font-semibold ml-4'>
-                  {entry.value.toLocaleString()}
-                  {viewMode === 'quantity' ? '주' : '원'}
+                  {entry.value.toLocaleString()}{unit}
                 </span>
               </div>
             ))}
           </div>
-          {total > 0 && (
-            <>
-              <hr className='border-border my-2' />
-              <div className='flex items-center justify-between font-bold'>
-                <span>
-                  {viewMode === 'quantity' ? '총 매수량' : '총 거래액'}
-                </span>
-                <span>
-                  {total.toLocaleString()}
-                  {viewMode === 'quantity' ? '주' : '원'}
-                </span>
+          <hr className='border-border my-2' />
+          <div className='space-y-1 text-sm'>
+            <div className='flex items-center justify-between font-bold'>
+              <span>총 매수</span>
+              <span>{buyTotal.toLocaleString()}{unit}</span>
+            </div>
+            <div className='flex items-center justify-between font-bold'>
+              <span>총 매도</span>
+              <span>{sellTotal.toLocaleString()}{unit}</span>
+            </div>
+            {netTotal !== 0 && (
+              <div className='flex items-center justify-between font-bold text-muted-foreground'>
+                <span>순매매</span>
+                <span>{netTotal.toLocaleString()}{unit}</span>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       );
     }
@@ -253,15 +257,21 @@ export function StockPurchaseChart({
     }
   };
 
-  const totalValue = useMemo(() => {
-    return chartData.reduce((total, item) => {
-      return (
-        total +
-        Object.entries(item)
-          .filter(([key]) => key !== 'date')
-          .reduce((sum, [, value]) => sum + (value as number), 0)
-      );
-    }, 0);
+  const { totalBuy, totalSell } = useMemo(() => {
+    let buy = 0;
+    let sell = 0;
+    chartData.forEach((item) => {
+      Object.entries(item)
+        .filter(([key]) => key !== 'date')
+        .forEach(([key, value]) => {
+          if (key.endsWith('(매수)')) {
+            buy += value as number;
+          } else if (key.endsWith('(매도)')) {
+            sell += value as number;
+          }
+        });
+    });
+    return { totalBuy: buy, totalSell: sell };
   }, [chartData]);
 
   const getYAxisLabel = () => {
@@ -279,10 +289,6 @@ export function StockPurchaseChart({
           maximumFractionDigits: 0,
         }).format(value);
     }
-  };
-
-  const getTotalLabel = () => {
-    return viewMode === 'quantity' ? '총 매수량' : '총 거래액';
   };
 
   const getTotalUnit = () => {
@@ -335,7 +341,7 @@ export function StockPurchaseChart({
                   className={cn(
                     'w-[15rem] justify-start text-left font-normal h-9',
                     (!dateRange.from || !dateRange.to) &&
-                      'text-muted-foreground',
+                    'text-muted-foreground',
                   )}
                 >
                   <CalendarIcon className='mr-2 h-4 w-4' />
@@ -371,7 +377,7 @@ export function StockPurchaseChart({
         <div className='h-80'>
           <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (
-              <BarChart data={chartData}>
+              <BarChart data={chartData} stackOffset='sign'>
                 <CartesianGrid strokeDasharray='3 3' />
                 <XAxis
                   dataKey='date'
@@ -388,6 +394,7 @@ export function StockPurchaseChart({
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={getYAxisLabel()}
+                  allowDecimals={false}
                 />
                 <Tooltip
                   content={<CustomTooltip />}
@@ -395,12 +402,23 @@ export function StockPurchaseChart({
                 />
                 {selectedStocks.map((stock) => (
                   <Bar
-                    key={stock}
-                    dataKey={stock}
+                    key={`${stock}-buy`}
+                    dataKey={`${stock}(매수)`}
                     stackId='a'
                     fill={stockColors[stock]}
                     radius={[4, 4, 0, 0]}
-                    name={stock}
+                    name={`${stock}(매수)`}
+                  />
+                ))}
+                {selectedStocks.map((stock) => (
+                  <Bar
+                    key={`${stock}-sell`}
+                    dataKey={`${stock}(매도)`}
+                    stackId='a'
+                    fill={stockColors[stock]}
+                    radius={[0, 0, 4, 4]}
+                    name={`${stock}(매도)`}
+                    fillOpacity={0.5}
                   />
                 ))}
               </BarChart>
@@ -421,12 +439,25 @@ export function StockPurchaseChart({
           className='mt-4'
         />
         {/* 총 값 Display */}
-        <div className='mt-4 text-sm text-muted-foreground flex items-center gap-2'>
-          <span className='font-semibold'>{getTotalLabel()}:</span>
-          <span className='text-foreground text-base font-bold'>
-            {totalValue.toLocaleString()}
-            {getTotalUnit()}
-          </span>
+        <div className='mt-4 text-sm text-muted-foreground flex items-center gap-4'>
+          <div className='flex items-center gap-1'>
+            <span className='font-semibold'>총 매수:</span>
+            <span className='text-foreground text-base font-bold'>
+              {totalBuy.toLocaleString()}{getTotalUnit()}
+            </span>
+          </div>
+          <div className='flex items-center gap-1'>
+            <span className='font-semibold'>총 매도:</span>
+            <span className='text-foreground text-base font-bold'>
+              {totalSell.toLocaleString()}{getTotalUnit()}
+            </span>
+          </div>
+          <div className='flex items-center gap-1'>
+            <span className='font-semibold'>순매매:</span>
+            <span className='text-foreground text-base font-bold'>
+              {(totalBuy + totalSell).toLocaleString()}{getTotalUnit()}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>

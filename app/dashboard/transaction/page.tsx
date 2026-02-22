@@ -1,6 +1,6 @@
 'use client';
 
-import { StockPurchaseChart } from '@/components/chart';
+import { StockTradeChart } from '@/components/chart';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 
@@ -9,14 +9,16 @@ export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
 
-  const { stockBuyHistory, stockSellHistory } = dashboardData.charts;
+  const { stockTradeHistory } = dashboardData.charts;
+
+  console.log('stockTradeHistory', stockTradeHistory);
 
   return (
     <>
-      <StockPurchaseChart data={stockBuyHistory} />
-      <StockPurchaseChart
-        title='일별 주식 매도 수량'
-        data={stockSellHistory}
+      <StockTradeChart
+        title='주식 매수/매도 수량'
+        description='각 날짜별로 매수(+)한 주식과 매도(-)한 주식을 확인합니다.'
+        data={stockTradeHistory}
         themeColor={themeColor}
       />
     </>
