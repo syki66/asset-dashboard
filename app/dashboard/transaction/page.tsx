@@ -11,8 +11,6 @@ export default function Page() {
 
   const { stockTradeHistory } = dashboardData.charts;
 
-  console.log('stockTradeHistory', stockTradeHistory);
-
   return (
     <>
       <StockTradeChart

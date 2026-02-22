@@ -62,6 +62,71 @@ const generateStockColor = (index: number): string => {
   return colors[index % colors.length];
 };
 
+const DynamicBarShape = (props: any) => {
+  const { x, y, width, height, fill, fillOpacity, payload, selectedStocks, stock, position } = props;
+  if (!width || !height) return null;
+
+  let shouldRound = false;
+
+  if (position === 'top') { // buy
+    for (let i = selectedStocks.length - 1; i >= 0; i--) {
+      const s = selectedStocks[i];
+      if (payload[`${s}(매수)`] && payload[`${s}(매수)`] !== 0) {
+        if (s === stock) shouldRound = true;
+        break;
+      }
+    }
+  } else if (position === 'bottom') { // sell
+    for (let i = selectedStocks.length - 1; i >= 0; i--) {
+      const s = selectedStocks[i];
+      if (payload[`${s}(매도)`] && payload[`${s}(매도)`] !== 0) {
+        if (s === stock) shouldRound = true;
+        break;
+      }
+    }
+  }
+
+  const h = Math.abs(height);
+  const r = shouldRound ? Math.min(4, h / 2, width / 2) : 0;
+  const topY = Math.min(y, y + height);
+  const bottomY = topY + h;
+
+  let d = '';
+
+  if (r === 0) {
+    // Normal rectangle
+    d = `
+      M ${x},${topY}
+      L ${x + width},${topY}
+      L ${x + width},${bottomY}
+      L ${x},${bottomY}
+      Z
+    `;
+  } else if (position === 'top') {
+    d = `
+      M ${x},${bottomY}
+      L ${x + width},${bottomY}
+      L ${x + width},${topY + r}
+      Q ${x + width},${topY} ${x + width - r},${topY}
+      L ${x + r},${topY}
+      Q ${x},${topY} ${x},${topY + r}
+      Z
+    `;
+  } else if (position === 'bottom') {
+    d = `
+      M ${x},${topY}
+      L ${x + width},${topY}
+      L ${x + width},${bottomY - r}
+      Q ${x + width},${bottomY} ${x + width - r},${bottomY}
+      L ${x + r},${bottomY}
+      Q ${x},${bottomY} ${x},${bottomY - r}
+      Z
+    `;
+  }
+
+  return <path d={d} fill={fill} fillOpacity={fillOpacity ?? 1} />;
+};
+
 export function StockTradeChart({
   data = [],
   title = '일별 주식 매매 현황',
@@ -130,6 +195,15 @@ export function StockTradeChart({
 
     const aggregatedByKey = new Map<string, AggregatedTradeData>();
 
+    // Pre-fill 12 months if viewing a specific year with monthly aggregation
+    if (selectedPeriod !== 'all' && aggregationMode === 'monthly') {
+      for (let i = 1; i <= 12; i++) {
+        const monthStr = i.toString().padStart(2, '0');
+        const key = `${selectedPeriod}-${monthStr}`;
+        aggregatedByKey.set(key, { date: key });
+      }
+    }
+
     filtered.forEach((item) => {
       const dataSource =
         viewMode === 'quantity' ? item.quantityBySymbol : item.priceBySymbol;
@@ -154,9 +228,21 @@ export function StockTradeChart({
       });
     });
 
-    return Array.from(aggregatedByKey.values()).sort((a, b) =>
-      a.date.localeCompare(b.date),
-    );
+    return Array.from(aggregatedByKey.values())
+      .filter((item) => {
+        // Always show all 12 months when viewing a specific year with monthly aggregation
+        if (selectedPeriod !== 'all' && aggregationMode === 'monthly') {
+          return true;
+        }
+
+        // Otherwise, filter out dates that have no non-zero values for currently active stocks
+        return selectedStocks.some((stock) => {
+          const buyKey = `${stock}(매수)`;
+          const sellKey = `${stock}(매도)`;
+          return (item[buyKey] && item[buyKey] !== 0) || (item[sellKey] && item[sellKey] !== 0);
+        });
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [data, selectedPeriod, selectedStocks, viewMode, aggregationMode]);
 
   const stockSeries: SeriesInfo[] = useMemo(
@@ -198,6 +284,34 @@ export function StockTradeChart({
 
       const netTotal = buyTotal + sellTotal;
 
+      const buyItems = sortedPayload.filter((e: any) => e.dataKey.endsWith('(매수)'));
+      const sellItems = sortedPayload.filter((e: any) => e.dataKey.endsWith('(매도)'));
+
+      const renderSection = (title: string, items: any[], textColorClass: string) => {
+        if (items.length === 0) return null;
+        return (
+          <div className='my-2'>
+            <div className={`text-xs font-bold mb-1 ${textColorClass}`}>{title}</div>
+            <div className='space-y-1.5'>
+              {items.map((entry: any, index: number) => (
+                <div key={index} className='flex items-center justify-between text-sm'>
+                  <div className='flex items-center gap-2'>
+                    <div
+                      className='w-2.5 h-2.5 rounded-full'
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className={`font-medium ${textColorClass}`}>{entry.dataKey.replace(/\(매수\)|\(매도\)/g, '')}</span>
+                  </div>
+                  <span className={`font-semibold ml-4 ${textColorClass}`}>
+                    {Math.round(entry.value).toLocaleString()}{unit}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
       return (
         <div className='glassmorphism-tooltip min-w-[13.75rem]'>
           <p className='text-center font-bold text-base mb-2'>
@@ -208,41 +322,21 @@ export function StockTradeChart({
                 : format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
           </p>
           <hr className='border-border my-1' />
-          <div className='space-y-1.5 mt-2'>
-            {sortedPayload.map((entry: any, index: number) => (
-              <div
-                key={index}
-                className='flex items-center justify-between text-sm'
-              >
-                <div className='flex items-center gap-2'>
-                  <div
-                    className='w-2.5 h-2.5 rounded-full'
-                    style={{ backgroundColor: entry.color }}
-                  />
-                  <span className='font-medium'>{entry.dataKey}</span>
-                </div>
-                <span className='font-semibold ml-4'>
-                  {entry.value.toLocaleString()}{unit}
-                </span>
-              </div>
-            ))}
-          </div>
+
+          {renderSection('매수', buyItems, 'text-red-500')}
+
+          {buyItems.length > 0 && sellItems.length > 0 && (
+            <div className='h-px bg-border/50 my-2 w-full mx-auto' />
+          )}
+
+          {renderSection('매도', sellItems, 'text-blue-500')}
+
           <hr className='border-border my-2' />
-          <div className='space-y-1 text-sm'>
-            <div className='flex items-center justify-between font-bold'>
-              <span>총 매수</span>
-              <span>{buyTotal.toLocaleString()}{unit}</span>
-            </div>
-            <div className='flex items-center justify-between font-bold'>
-              <span>총 매도</span>
-              <span>{sellTotal.toLocaleString()}{unit}</span>
-            </div>
-            {netTotal !== 0 && (
-              <div className='flex items-center justify-between font-bold text-muted-foreground'>
-                <span>순매매</span>
-                <span>{netTotal.toLocaleString()}{unit}</span>
-              </div>
-            )}
+          <div className='flex items-center justify-between font-bold text-sm text-foreground'>
+            <span>합계</span>
+            <span className={netTotal > 0 ? 'text-red-500' : netTotal < 0 ? 'text-blue-500' : ''}>
+              {netTotal > 0 ? '+' : ''}{Math.round(netTotal).toLocaleString()}{unit}
+            </span>
           </div>
         </div>
       );
@@ -274,6 +368,7 @@ export function StockTradeChart({
       return (value: number) =>
         new Intl.NumberFormat('ko-KR', {
           notation: 'compact',
+          maximumFractionDigits: 0,
         }).format(value) + '주';
     } else {
       return (value: number) =>
@@ -308,6 +403,7 @@ export function StockTradeChart({
                 size='sm'
                 onClick={() => setViewMode('quantity')}
                 className='h-7'
+                style={viewMode === 'quantity' ? { backgroundColor: themeColor } : {}}
               >
                 수량
               </Button>
@@ -316,13 +412,20 @@ export function StockTradeChart({
                 size='sm'
                 onClick={() => setViewMode('price')}
                 className='h-7'
+                style={viewMode === 'price' ? { backgroundColor: themeColor } : {}}
               >
                 가격
               </Button>
             </div>
             <select
               value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
+              onChange={(e) => {
+                const newPeriod = e.target.value;
+                setSelectedPeriod(newPeriod);
+                if (newPeriod !== 'all' && aggregationMode === 'yearly') {
+                  setAggregationMode('monthly');
+                }
+              }}
               className='h-9 rounded-md border border-border bg-background px-3 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring'
             >
               <option value='all'>전체기간</option>
@@ -339,7 +442,9 @@ export function StockTradeChart({
             >
               <option value='daily'>일별 합산</option>
               <option value='monthly'>월별 합산</option>
-              <option value='yearly'>연도별 합산</option>
+              {selectedPeriod === 'all' && (
+                <option value='yearly'>연도별 합산</option>
+              )}
             </select>
           </div>
         </div>
@@ -375,14 +480,44 @@ export function StockTradeChart({
                   content={<CustomTooltip />}
                   cursor={{ fill: 'var(--transaction-hover-bg)' }}
                 />
+                <defs>
+                  {selectedStocks.map((stock) => (
+                    <pattern
+                      key={`pattern-${stock}`}
+                      id={`pattern-${stock}`}
+                      patternUnits='userSpaceOnUse'
+                      width='8'
+                      height='8'
+                      patternTransform='rotate(45)'
+                    >
+                      <rect width='8' height='8' fill={stockColors[stock]} />
+                      <line
+                        x1='0'
+                        y1='0'
+                        x2='0'
+                        y2='8'
+                        stroke='#ffffff'
+                        strokeWidth='3'
+                        strokeOpacity='0.4'
+                      />
+                    </pattern>
+                  ))}
+                </defs>
                 {selectedStocks.map((stock, index) => (
                   <Bar
                     key={`${stock}-buy`}
                     dataKey={`${stock}(매수)`}
                     stackId='a'
                     fill={stockColors[stock]}
-                    radius={index === selectedStocks.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                     name={`${stock}(매수)`}
+                    shape={(props: any) => (
+                      <DynamicBarShape
+                        {...props}
+                        selectedStocks={selectedStocks}
+                        stock={stock}
+                        position='top'
+                      />
+                    )}
                   />
                 ))}
                 {selectedStocks.map((stock, index) => (
@@ -390,10 +525,16 @@ export function StockTradeChart({
                     key={`${stock}-sell`}
                     dataKey={`${stock}(매도)`}
                     stackId='a'
-                    fill={stockColors[stock]}
-                    radius={index === selectedStocks.length - 1 ? [0, 0, 4, 4] : [0, 0, 0, 0]}
+                    fill={`url(#pattern-${stock})`}
                     name={`${stock}(매도)`}
-                    fillOpacity={0.5}
+                    shape={(props: any) => (
+                      <DynamicBarShape
+                        {...props}
+                        selectedStocks={selectedStocks}
+                        stock={stock}
+                        position='bottom'
+                      />
+                    )}
                   />
                 ))}
               </BarChart>
@@ -414,23 +555,23 @@ export function StockTradeChart({
           className='mt-4'
         />
         {/* 총 값 Display */}
-        <div className='mt-4 text-sm text-muted-foreground flex items-center gap-4'>
-          <div className='flex items-center gap-1'>
-            <span className='font-semibold'>총 매수:</span>
-            <span className='text-foreground text-base font-bold'>
-              {totalBuy.toLocaleString()}{getTotalUnit()}
+        <div className='mt-6 grid grid-cols-3 gap-4 border-t border-border/50 pt-4'>
+          <div className='flex flex-col gap-1'>
+            <span className='text-sm font-medium text-muted-foreground'>총 매수</span>
+            <span className='text-lg font-bold text-red-500'>
+              {Math.round(totalBuy).toLocaleString()}{getTotalUnit()}
             </span>
           </div>
-          <div className='flex items-center gap-1'>
-            <span className='font-semibold'>총 매도:</span>
-            <span className='text-foreground text-base font-bold'>
-              {totalSell.toLocaleString()}{getTotalUnit()}
+          <div className='flex flex-col gap-1'>
+            <span className='text-sm font-medium text-muted-foreground'>총 매도</span>
+            <span className='text-lg font-bold text-blue-500'>
+              {Math.round(totalSell).toLocaleString()}{getTotalUnit()}
             </span>
           </div>
-          <div className='flex items-center gap-1'>
-            <span className='font-semibold'>순매매:</span>
-            <span className='text-foreground text-base font-bold'>
-              {(totalBuy + totalSell).toLocaleString()}{getTotalUnit()}
+          <div className='flex flex-col gap-1'>
+            <span className='text-sm font-medium text-muted-foreground'>합계</span>
+            <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-red-500' : totalBuy + totalSell < 0 ? 'text-blue-500' : 'text-foreground'}`}>
+              {totalBuy + totalSell > 0 ? '+' : ''}{Math.round(totalBuy + totalSell).toLocaleString()}{getTotalUnit()}
             </span>
           </div>
         </div>
