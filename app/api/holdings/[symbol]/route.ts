@@ -55,12 +55,15 @@ async function fetchHoldings(url: string, symbol: string) {
                 formattedData = data.fund.entity.map((item: any) => ({
                     name: item.longName,
                     ticker: item.ticker,
-                    weight: item.percentWeight
+                    weight: parseFloat(item.percentWeight)
                 }));
             }
         }
 
-        return NextResponse.json(formattedData);
+        // weight가 0이거나 유효하지 않은 항목, 그리고 ticker나 name이 없는 항목 제외
+        const result = formattedData.filter(item => item.ticker && item.name && item.weight);
+
+        return NextResponse.json(result);
     } catch (error) {
         console.error('Error fetching holdings:', error);
         return NextResponse.json(
