@@ -1,11 +1,9 @@
 'use client';
 
-import { AssetChart } from '@/components/chart';
-import DashboardCard from '@/components/dashboard/dashboard-card';
+import { PortfolioAllocationChart } from '@/components/chart';
 import { HoldingsView } from '@/components/dashboard/holdings-view';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
-import { formatCurrency } from '@/utils/format';
 
 export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
@@ -13,33 +11,15 @@ export default function Page() {
 
   return (
     <>
-      <div className="mb-8">
-        <HoldingsView stocks={dashboardData.stocks} themeColor="var(--portfolio-theme)" />
-      </div>
-      <DashboardCard
-        title="현금"
-        value={formatCurrency(dashboardData.cash.total, currency)}
-        description={`${formatCurrency(
-          dashboardData.cash.usdCash,
-          'usd'
-        )} + ${formatCurrency(dashboardData.cash.krwCash, 'krw')}`}
-        valueClassName="text-red-600"
-      />
-
-      <div className="mt-8">
-        <AssetChart
+      <div>
+        <PortfolioAllocationChart
+          stocks={dashboardData.stocks}
+          // cash={dashboardData.cash.total}
           themeColor="var(--portfolio-theme)"
-          series={[
-            {
-              id: 'cash',
-              name: '현금',
-              color: '#F44336',
-              data: dashboardData.charts.currentValue,
-            },
-          ]}
-          title="현금 포트폴리오 차트"
-          description="자산 클래스별 포트폴리오 변화 추이"
         />
+      </div>
+      <div className="mt-8">
+        <HoldingsView stocks={dashboardData.stocks} themeColor="var(--portfolio-theme)" />
       </div>
     </>
   );
