@@ -109,7 +109,7 @@ export type DashboardProps = {
     usTax: number; // 미국주식 양도소득세
     usFxFee: number; // 미국주식 환전 수수료
   };
-  stocks: StockProps[]; // 보유 주식 목록
+  stocks: StockProps[]; // 보유 주식 목록 (환전 처리된 값)
   benchmark: {
     value: number; // 벤치마크 평가금
     netValue: number; // 벤치마크 평가금 (세후)

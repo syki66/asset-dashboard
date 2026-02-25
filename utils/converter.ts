@@ -175,6 +175,32 @@ export const convertToDashboardData = (
           )
         : 0;
 
+    // 환전 처리된 총 보유 주식 목록
+    const stocksConverted =
+      currency === 'usd'
+        ? [
+            ...account.usd.stocks,
+            ...account.krw.stocks.map((stock) => ({
+              ...stock,
+              balance: stock.balance.map((b) => ({
+                ...b,
+                price: b.price / b.fxRate, // KRW → USD (각각의 fxRate 사용)
+              })),
+              price: stock.price / account.fxRate, // KRW → USD
+            })),
+          ]
+        : [
+            ...account.krw.stocks,
+            ...account.usd.stocks.map((stock) => ({
+              ...stock,
+              balance: stock.balance.map((b) => ({
+                ...b,
+                price: b.price * b.fxRate, // USD → KRW (각각의 fxRate 사용)
+              })),
+              price: stock.price * account.fxRate, // USD → KRW
+            })),
+          ];
+
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -487,7 +513,7 @@ export const convertToDashboardData = (
         usTax,
         usFxFee,
       },
-      stocks: account.krw.stocks.concat(account.usd.stocks),
+      stocks: stocksConverted,
       benchmark: {
         value: benchmarkValue,
         netValue: benchmarkNetValue,

@@ -15,11 +15,14 @@ export default function Page() {
         <PortfolioAllocationChart
           stocks={dashboardData.stocks}
           // cash={dashboardData.cash.total}
-          themeColor="var(--portfolio-theme)"
+          themeColor='var(--portfolio-theme)'
         />
       </div>
-      <div className="mt-8">
-        <HoldingsView stocks={dashboardData.stocks} themeColor="var(--portfolio-theme)" />
+      <div className='mt-8'>
+        <HoldingsView
+          stocks={dashboardData.stocks}
+          themeColor='var(--portfolio-theme)'
+        />
       </div>
     </>
   );
