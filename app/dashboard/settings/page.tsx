@@ -26,13 +26,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
 import { Currency, DashboardProps } from '@/types';
 import { useAccountStore } from '@/store/account';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
+import { useSelectedAccountsStore } from '@/store/selectedAccounts';
 
 export default function Page() {
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
@@ -42,14 +41,14 @@ export default function Page() {
     setCurrency: (currency: Currency) => void;
   };
 
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const { selectedAccounts, setSelectedAccounts } = useSelectedAccountsStore();
   const [isExpanded, setIsExpanded] = useState(true);
 
   const handleAccountToggle = (accountName: string) => {
-    setSelectedAccounts((prev) =>
-      prev.includes(accountName)
-        ? prev.filter((name) => name !== accountName)
-        : [...prev, accountName]
+    setSelectedAccounts(
+      selectedAccounts.includes(accountName)
+        ? selectedAccounts.filter((name) => name !== accountName)
+        : [...selectedAccounts, accountName],
     );
   };
 
@@ -68,7 +67,7 @@ export default function Page() {
     const filteredData =
       selectedAccounts.length > 0
         ? totalAccountData.filter((data) =>
-            selectedAccounts.includes(data.name)
+            selectedAccounts.includes(data.name),
           )
         : [];
     return mergeAccountData(filteredData);
@@ -83,9 +82,9 @@ export default function Page() {
   }, [mergedAccountData, currency]);
 
   return (
-    <div className="relative mb-8">
-      <Card className="relative z-10">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div className='relative mb-8'>
+      <Card className='relative z-10'>
+        <CardHeader className='flex flex-row items-center justify-between pb-2'>
           <div>
             <CardTitle>대시보드 설정</CardTitle>
             <CardDescription>
@@ -93,49 +92,49 @@ export default function Page() {
             </CardDescription>
           </div>
           <Button
-            variant="ghost"
-            size="sm"
-            className="w-9 p-0"
+            variant='ghost'
+            size='sm'
+            className='w-9 p-0'
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className='h-4 w-4' />
             ) : (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className='h-4 w-4' />
             )}
-            <span className="sr-only">{isExpanded ? '접기' : '펼치기'}</span>
+            <span className='sr-only'>{isExpanded ? '접기' : '펼치기'}</span>
           </Button>
         </CardHeader>
 
         {isExpanded && (
           <CardContent>
             {/* 세금 설정과 통화 설정을 가로로 배치 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">통화 설정</h3>
-                <div className="flex items-center space-x-2">
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='space-y-4'>
+                <h3 className='text-lg font-medium'>통화 설정</h3>
+                <div className='flex items-center space-x-2'>
                   <Switch
-                    id="currency-mode"
+                    id='currency-mode'
                     checked={currency === 'usd'}
                     onCheckedChange={(checked) =>
                       setCurrency(checked ? 'usd' : 'krw')
                     }
                   />
-                  <Label htmlFor="currency-mode" className="flex items-center">
+                  <Label htmlFor='currency-mode' className='flex items-center'>
                     {currency === 'usd' ? (
                       <>
-                        <DollarSign className="h-4 w-4 mr-1" />
+                        <DollarSign className='h-4 w-4 mr-1' />
                         <span>달러 (USD) 표시</span>
                       </>
                     ) : (
                       <>
-                        <Won className="h-4 w-4 mr-1" />
+                        <Won className='h-4 w-4 mr-1' />
                         <span>원화 (KRW) 표시</span>
                       </>
                     )}
                   </Label>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className='text-sm text-muted-foreground'>
                   {currency === 'usd'
                     ? `모든 금액은 달러(USD)로 표시됩니다.`
                     : '모든 금액은 원화(KRW)로 표시됩니다.'}
@@ -145,29 +144,29 @@ export default function Page() {
 
             <Separator />
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">계좌 선택</h3>
-                <div className="flex items-center space-x-2">
+            <div className='space-y-4'>
+              <div className='flex items-center justify-between'>
+                <h3 className='text-lg font-medium'>계좌 선택</h3>
+                <div className='flex items-center space-x-2'>
                   <Checkbox
-                    id="select-all"
+                    id='select-all'
                     checked={
                       selectedAccounts.length === totalAccountData?.length
                     }
                     onCheckedChange={handleSelectAllAccounts}
                   />
-                  <Label htmlFor="select-all" className="text-sm">
+                  <Label htmlFor='select-all' className='text-sm'>
                     전체 선택
                   </Label>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 {totalAccountData?.map((account) => (
                   <div
                     key={account.name}
-                    className="flex items-center justify-between border p-3 rounded-md"
+                    className='flex items-center justify-between border p-3 rounded-md'
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className='flex items-center space-x-2'>
                       <Checkbox
                         id={`account-${account.name}`}
                         checked={selectedAccounts.includes(account.name)}
@@ -182,7 +181,7 @@ export default function Page() {
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className='text-sm text-muted-foreground'>
                 선택한 계좌의 데이터만 대시보드에 표시됩니다.
               </p>
             </div>
