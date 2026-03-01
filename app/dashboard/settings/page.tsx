@@ -29,7 +29,7 @@ import { Switch } from '@/components/ui/switch';
 import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
 import { Currency, DashboardProps } from '@/types';
 import { useAccountStore } from '@/store/account';
-import { useDashboardStore } from '@/store/dashboard';
+import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
 
@@ -67,8 +67,8 @@ export default function Page() {
     const filteredData =
       selectedAccounts.length > 0
         ? totalAccountData.filter((data) =>
-            selectedAccounts.includes(data.name),
-          )
+          selectedAccounts.includes(data.name),
+        )
         : [];
     return mergeAccountData(filteredData);
   }, [totalAccountData, selectedAccounts]);
@@ -78,6 +78,8 @@ export default function Page() {
     const dashboardData = convertToDashboardData(mergedAccountData, currency);
     if (dashboardData.length > 0) {
       setDashboardData(dashboardData.at(-1) as DashboardProps);
+    } else {
+      setDashboardData(initialDashboardData);
     }
   }, [mergedAccountData, currency]);
 

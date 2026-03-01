@@ -2,7 +2,7 @@ import { DEFAULT_FX_RATE } from '@/constants/keywords';
 import { DashboardProps } from '@/types';
 import { create } from 'zustand';
 
-const initialDashboardData: DashboardProps = {
+export const initialDashboardData: DashboardProps = {
   date: '1970-01-01',
   lastUpdated: '1970-01-01',
   fxRate: DEFAULT_FX_RATE,
