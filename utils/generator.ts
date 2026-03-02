@@ -18,13 +18,21 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   const endDate = timestampToDate(Math.floor(new Date().getTime() / 1000)); // 종료 날짜는 당일로 설정
 
   // 입출금 데이터 생성
-  const cashFlowData: { date: string; deposit: number; withdrawal: number }[] =
-    generateDateObjects(startDate, endDate).map((dateObj) => ({
-      ...dateObj,
-      deposit: 0,
-      withdrawal: 0,
-    }));
+  const cashFlowData: {
+    date: string;
+    deposit: number;
+    withdrawal: number;
+    depositUsd: number;
+    withdrawalUsd: number;
+  }[] = generateDateObjects(startDate, endDate).map((dateObj) => ({
+    ...dateObj,
+    deposit: 0,
+    withdrawal: 0,
+    depositUsd: 0,
+    withdrawalUsd: 0,
+  }));
 
+  // 입출금 데이터 생성
   transactions.forEach((transaction) => {
     const foundData = cashFlowData.find((account) => {
       return account.date === transaction.date;
@@ -32,26 +40,41 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
 
     if (foundData) {
       if (transaction.type === 'deposit') {
-        foundData.deposit += Math.round(
+        const krwAmount =
           transaction.currency === 'usd'
             ? transaction.quantity *
-                transaction.price *
-                getFxRate(fxTable.prices, transaction.date)
-            : transaction.quantity * transaction.price,
-        );
+              transaction.price *
+              getFxRate(fxTable.prices, transaction.date)
+            : transaction.quantity * transaction.price;
+        const usdAmount =
+          transaction.currency === 'usd'
+            ? transaction.quantity * transaction.price
+            : (transaction.quantity * transaction.price) /
+              getFxRate(fxTable.prices, transaction.date);
+
+        foundData.deposit += krwAmount;
+        foundData.depositUsd += usdAmount;
       } else if (transaction.type === 'withdrawal') {
-        foundData.withdrawal += Math.round(
+        const krwAmount =
           transaction.currency === 'usd'
             ? transaction.quantity *
-                transaction.price *
-                getFxRate(fxTable.prices, transaction.date)
-            : transaction.quantity * transaction.price,
-        );
+              transaction.price *
+              getFxRate(fxTable.prices, transaction.date)
+            : transaction.quantity * transaction.price;
+        const usdAmount =
+          transaction.currency === 'usd'
+            ? transaction.quantity * transaction.price
+            : (transaction.quantity * transaction.price) /
+              getFxRate(fxTable.prices, transaction.date);
+
+        foundData.withdrawal += krwAmount;
+        foundData.withdrawalUsd += usdAmount;
       }
     }
   });
 
-  let terms: TermsProps[] = []; // 예금 상품
+  let terms: TermsProps[] = []; // 예금 상품 (KRW)
+  let termsUsd: TermsProps[] = []; // 예금 상품 (USD)
   let result: {
     date: string;
     benchmarkNetValueKrw: number;
@@ -72,7 +95,17 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       });
     }
 
-    // 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
+    if (flow.depositUsd > 0) {
+      termsUsd.push({
+        startDate: flow.date,
+        maturityDate: addOneYear(flow.date),
+        principal: flow.depositUsd,
+        interest: 0,
+        interestRate: getCurrentRate(flow.date),
+      });
+    }
+
+    // KRW 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
     while (flow.withdrawal > 0) {
       // 예금 상품 역방향 정렬
       terms.sort((a, b) => {
@@ -107,6 +140,44 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       }
     }
 
+    // USD 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감
+    while (flow.withdrawalUsd > 0) {
+      // 예금 상품 역방향 정렬
+      termsUsd.sort((a, b) => {
+        return (
+          new Date(b.maturityDate).getTime() -
+          new Date(a.maturityDate).getTime()
+        );
+      });
+
+      const findTermUsd = termsUsd[0];
+      if (findTermUsd) {
+        // 출금액이 예금 상품의 원금+이자보다 크면 해당 상품 삭제
+        if (
+          findTermUsd.principal + findTermUsd.interest <=
+          flow.withdrawalUsd
+        ) {
+          flow.withdrawalUsd -= findTermUsd.principal + findTermUsd.interest; // 출금액 차감
+          termsUsd.shift(); // 예금 상품 삭제
+        } else {
+          // 출금액이 원금+이자보다 작을 경우
+          if (findTermUsd.principal < flow.withdrawalUsd) {
+            // 원금보다 크다면 원금 제거하고 이자만 남김
+            flow.withdrawalUsd -= findTermUsd.principal; // 원금만큼 출금액 차감
+            findTermUsd.principal = 0; // 원금 차감
+            findTermUsd.interest -= flow.withdrawalUsd; // 이자까지 차감
+          } else {
+            // 원금보다 작다면 원금만큼 차감
+            findTermUsd.principal -= flow.withdrawalUsd; // 원금 차감
+          }
+          flow.withdrawalUsd = 0; // 출금액 0으로 초기화
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+
     let currentValue = 0; // 현재 평가금액
     let netCurrentValue = 0; // 순평가금액
 
@@ -129,16 +200,32 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       }
     });
 
+    let currentValueUsd = 0; // 현재 USD 평가금액
+    let netCurrentValueUsd = 0; // 순 USD 평가금액
+
+    termsUsd.forEach((term) => {
+      currentValueUsd += term.principal + term.interest;
+      netCurrentValueUsd +=
+        term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE);
+
+      term.interest += term.principal * (term.interestRate / 100 / 365);
+
+      if (term.maturityDate < flow.date) {
+        term.startDate = flow.date;
+        term.maturityDate = addOneYear(flow.date);
+        term.principal = term.principal + term.interest;
+        term.interest = 0;
+        term.interestRate =
+          getCurrentRate(flow.date) * (1 - KR_DIVIDEND_TAX_RATE);
+      }
+    });
+
     result.push({
       date: flow.date,
-      benchmarkValueKrw: Math.round(currentValue),
-      benchmarkValueUsd: Math.round(
-        currentValue / getFxRate(fxTable.prices, flow.date),
-      ),
-      benchmarkNetValueKrw: Math.round(netCurrentValue),
-      benchmarkNetValueUsd: Math.round(
-        netCurrentValue / getFxRate(fxTable.prices, flow.date),
-      ),
+      benchmarkValueKrw: currentValue,
+      benchmarkValueUsd: currentValueUsd,
+      benchmarkNetValueKrw: netCurrentValue,
+      benchmarkNetValueUsd: netCurrentValueUsd,
     });
   });
 
