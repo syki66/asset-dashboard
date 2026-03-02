@@ -421,8 +421,8 @@ export const convertToDashboardData = (
         date: dividend.date,
         value:
           currency === 'usd'
-            ? Math.round(dividend.price)
-            : Math.round(dividend.price * dividend.fxRate),
+            ? dividend.price
+            : dividend.price * dividend.fxRate,
       };
     });
 
@@ -431,8 +431,8 @@ export const convertToDashboardData = (
         date: dividend.date,
         value:
           currency === 'usd'
-            ? Math.round(dividend.price / dividend.fxRate)
-            : Math.round(dividend.price),
+            ? dividend.price / dividend.fxRate
+            : dividend.price,
       };
     });
 
