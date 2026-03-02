@@ -30,10 +30,13 @@ export const initialDashboardData: DashboardProps = {
   },
   costs: {
     totalCost: 0,
-    krTaxFee: 0,
-    usFee: 0,
-    usTax: 0,
+    krBrokerFee: 0,
+    krRegulatoryFee: 0,
+    krTransferTax: 0,
+    usBrokerFee: 0,
+    usSecFee: 0,
     usFxFee: 0,
+    usTax: 0,
   },
   stocks: [],
   benchmark: {

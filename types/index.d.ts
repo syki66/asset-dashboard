@@ -104,10 +104,13 @@ export type DashboardProps = {
   };
   costs: {
     totalCost: number; // 총 비용 (세금 + 수수료)
-    krTaxFee: number; // 한국주식 총 비용
-    usFee: number; // 미국주식 매도 수수료
+    krBrokerFee: number; // 한국주식 증권사 거래수수료
+    krRegulatoryFee: number; // 한국주식 유관기관수수료
+    krTransferTax: number; // 한국주식 증권거래세
+    usBrokerFee: number; // 미국주식 증권사 거래수수료
+    usSecFee: number; // 미국 SEC 수수료
+    usFxFee: number; // 환전 수수료
     usTax: number; // 미국주식 양도소득세
-    usFxFee: number; // 미국주식 환전 수수료
   };
   stocks: StockProps[]; // 보유 주식 목록 (환전 처리된 값)
   benchmark: {

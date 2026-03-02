@@ -104,9 +104,7 @@ export default function Page() {
                   id='tax-switch'
                   checked={showAfterTax}
                   onCheckedChange={handleToggle}
-                  style={
-                    { '--switch-bg': themeColor } as React.CSSProperties
-                  }
+                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
                 />
                 <Label htmlFor='tax-switch'>세후</Label>
               </div>
@@ -128,11 +126,23 @@ export default function Page() {
             },
             {
               label: '해외주식 매도 수수료',
-              value: formatCurrency(costs.usFee, currency),
+              value: formatCurrency(costs.usBrokerFee, currency),
             },
             {
-              label: '기타 비용 (국내주식 비용)',
-              value: formatCurrency(costs.krTaxFee, currency),
+              label: '미국 SEC 수수료',
+              value: formatCurrency(costs.usSecFee, currency),
+            },
+            {
+              label: '국내 증권거래세',
+              value: formatCurrency(costs.krTransferTax, currency),
+            },
+            {
+              label: '국내 매도 수수료',
+              value: formatCurrency(costs.krBrokerFee, currency),
+            },
+            {
+              label: '국내 유관기관제비용',
+              value: formatCurrency(costs.krRegulatoryFee, currency),
             },
             {
               label: '합산',

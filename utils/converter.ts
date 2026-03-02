@@ -94,11 +94,6 @@ export const convertToDashboardData = (
         ? account.usd.cash + account.krw.cash / account.fxRate
         : account.krw.cash + account.usd.cash * account.fxRate;
 
-    // 세금 및 제비용 (원화로만 계산)
-    const krTaxFee =
-      krwStockValue *
-      (KR_BROKER_FEE_RATE + KR_REGULATORY_FEE_RATE + KR_TRANSFER_TAX_RATE); // 국내 주식 세금 및 제비용
-
     const usEstimatedProfit = account.usd.stocks.reduce(
       (acc, stock) =>
         acc +
@@ -115,17 +110,52 @@ export const convertToDashboardData = (
       0,
     ); // 미국주식 양도소득세 계산을 위한 추정손익 (원화로 계산, 거래수수료 비용 제외 적용)
 
-    const usFee =
-      usdStockValue * (US_BROKER_FEE_RATE + US_SEC_FEE_RATE) * account.fxRate; // 미국주식 매도 수수료
+    // 세금 및 제비용
+    const krBrokerFee =
+      currency === 'usd'
+        ? (krwStockValue / account.fxRate) * KR_BROKER_FEE_RATE
+        : krwStockValue * KR_BROKER_FEE_RATE; // 국내 주식 증권사 수수료
+    const krRegulatoryFee =
+      currency === 'usd'
+        ? (krwStockValue / account.fxRate) * KR_REGULATORY_FEE_RATE
+        : krwStockValue * KR_REGULATORY_FEE_RATE; // 국내 유관기관수수료
+    const krTransferTax =
+      currency === 'usd'
+        ? (krwStockValue / account.fxRate) * KR_TRANSFER_TAX_RATE
+        : krwStockValue * KR_TRANSFER_TAX_RATE; // 국내 주식 증권거래세
+
+    const usBrokerFee =
+      currency === 'usd'
+        ? usdStockValue * US_BROKER_FEE_RATE
+        : usdStockValue * account.fxRate * US_BROKER_FEE_RATE; // 미국 주식 증권사 수수료
+    const usSecFee =
+      currency === 'usd'
+        ? usdStockValue * US_SEC_FEE_RATE
+        : usdStockValue * account.fxRate * US_SEC_FEE_RATE; // 미국 SEC Fee
     const usFxFee =
-      (usdStockValue + account.usd.cash) /
-      (account.fxRate * EXCHANGE_SPREAD_RATE * EXCHANGE_FEE_RATE); // 환전 수수료 (원화로 계산)
+      currency === 'usd'
+        ? (usdStockValue + account.usd.cash) *
+          EXCHANGE_FEE_RATE *
+          EXCHANGE_SPREAD_RATE
+        : (usdStockValue + account.usd.cash) *
+          account.fxRate *
+          EXCHANGE_FEE_RATE *
+          EXCHANGE_SPREAD_RATE; // 미국 주식 환전 수수료
     const usTax =
       usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE > 0
-        ? usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE
-        : 0; // 미국주식 양도소득세 계산 (마이너스일 경우 0원 처리)
+        ? currency === 'usd'
+          ? (usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE) / account.fxRate // usEstimatedProfit이 원화로 계산됨
+          : usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE
+        : 0; // 미국 주식 양도소득세 (마이너스일 경우 0원 처리)
 
-    const totalTaxFee = krTaxFee + usFee + usTax + usFxFee; // 총 세금 및 수수료 (원화)
+    const totalTaxFee =
+      usBrokerFee +
+      usSecFee +
+      usTax +
+      usFxFee +
+      krBrokerFee +
+      krRegulatoryFee +
+      krTransferTax;
 
     // 평가 금액
     const currentValue = stockValue + cashValue;
@@ -510,10 +540,13 @@ export const convertToDashboardData = (
       },
       costs: {
         totalCost: totalTaxFee,
-        krTaxFee,
-        usFee,
-        usTax,
+        krBrokerFee,
+        krRegulatoryFee,
+        krTransferTax,
+        usBrokerFee,
+        usSecFee,
         usFxFee,
+        usTax,
       },
       stocks: stocksConverted,
       benchmark: {
