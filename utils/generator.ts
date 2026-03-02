@@ -1,7 +1,7 @@
 import { TermsProps, StockHistoryProps, TransactionProps } from '@/types';
 import { generateDateObjects, timestampToDate } from './format';
 import { getStockInfo } from './converter';
-import { DEFAULT_FX_RATE, krDividendTax } from '@/constants/keywords';
+import { DEFAULT_FX_RATE, KR_DIVIDEND_TAX_RATE } from '@/constants/keywords';
 import { useInterestRateStore } from '@/store/account';
 
 // 벤치마크 데이터 생성
@@ -113,7 +113,8 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
     // 이자 지급
     terms.forEach((term) => {
       currentValue += term.principal + term.interest; // 평가금액 계산
-      netCurrentValue += term.principal + term.interest * (1 - krDividendTax); // 순평가금액 계산
+      netCurrentValue +=
+        term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 순평가금액 계산
 
       term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 계산
 
@@ -123,7 +124,8 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
         term.maturityDate = addOneYear(flow.date);
         term.principal = term.principal + term.interest; // 원금에 이자 합산해서 재예치
         term.interest = 0; // 이자 초기화
-        term.interestRate = getCurrentRate(flow.date) * (1 - krDividendTax); // 출금 이자 계산 로직이 복잡해져서 그냥 세후 이자율로 계산
+        term.interestRate =
+          getCurrentRate(flow.date) * (1 - KR_DIVIDEND_TAX_RATE); // 출금 이자 계산 로직이 복잡해져서 그냥 세후 이자율로 계산
       }
     });
 

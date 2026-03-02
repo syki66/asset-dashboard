@@ -27,14 +27,14 @@ import { toast } from 'sonner';
 import {
   USD_KRW_SYMBOL,
   DEFAULT_FX_RATE,
-  usBrokerFee,
-  usSecFee,
-  usCapitalGainsTax,
-  krBrokerFee,
-  krRegulatoryFee,
-  krTransferTax,
-  exchangeSpread,
-  exchangeFee,
+  US_BROKER_FEE_RATE,
+  US_SEC_FEE_RATE,
+  US_CAPITAL_GAINS_TAX_RATE,
+  KR_BROKER_FEE_RATE,
+  KR_REGULATORY_FEE_RATE,
+  KR_TRANSFER_TAX_RATE,
+  EXCHANGE_SPREAD_RATE,
+  EXCHANGE_FEE_RATE,
 } from '@/constants/keywords';
 import { getAverage } from './math';
 import { differenceInCalendarDays } from 'date-fns';
@@ -96,7 +96,8 @@ export const convertToDashboardData = (
 
     // 세금 및 제비용 (원화로만 계산)
     const krTaxFee =
-      krwStockValue * (krBrokerFee + krRegulatoryFee + krTransferTax); // 국내 주식 세금 및 제비용
+      krwStockValue *
+      (KR_BROKER_FEE_RATE + KR_REGULATORY_FEE_RATE + KR_TRANSFER_TAX_RATE); // 국내 주식 세금 및 제비용
 
     const usEstimatedProfit = account.usd.stocks.reduce(
       (acc, stock) =>
@@ -107,20 +108,21 @@ export const convertToDashboardData = (
               stock.price * account.fxRate - item.price * item.fxRate;
             const fee =
               (stock.price * account.fxRate + item.price * item.fxRate) *
-              (usBrokerFee + usSecFee);
+              (US_BROKER_FEE_RATE + US_SEC_FEE_RATE);
             return profit - fee;
           })
           .reduce((a, b) => a + b, 0),
       0,
     ); // 미국주식 양도소득세 계산을 위한 추정손익 (원화로 계산, 거래수수료 비용 제외 적용)
 
-    const usFee = usdStockValue * (usBrokerFee + usSecFee) * account.fxRate; // 미국주식 매도 수수료
+    const usFee =
+      usdStockValue * (US_BROKER_FEE_RATE + US_SEC_FEE_RATE) * account.fxRate; // 미국주식 매도 수수료
     const usFxFee =
       (usdStockValue + account.usd.cash) /
-      (account.fxRate * exchangeSpread * exchangeFee); // 환전 수수료 (원화로 계산)
+      (account.fxRate * EXCHANGE_SPREAD_RATE * EXCHANGE_FEE_RATE); // 환전 수수료 (원화로 계산)
     const usTax =
-      usEstimatedProfit * usCapitalGainsTax > 0
-        ? usEstimatedProfit * usCapitalGainsTax
+      usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE > 0
+        ? usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE
         : 0; // 미국주식 양도소득세 계산 (마이너스일 경우 0원 처리)
 
     const totalTaxFee = krTaxFee + usFee + usTax + usFxFee; // 총 세금 및 수수료 (원화)
