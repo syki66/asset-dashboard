@@ -20,60 +20,43 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
   // 입출금 데이터 생성
   const cashFlowData: {
     date: string;
-    deposit: number;
-    withdrawal: number;
+    depositKrw: number;
+    withdrawalKrw: number;
     depositUsd: number;
     withdrawalUsd: number;
   }[] = generateDateObjects(startDate, endDate).map((dateObj) => ({
     ...dateObj,
-    deposit: 0,
-    withdrawal: 0,
+    depositKrw: 0,
+    withdrawalKrw: 0,
     depositUsd: 0,
     withdrawalUsd: 0,
   }));
 
   // 입출금 데이터 생성
   transactions.forEach((transaction) => {
-    const foundData = cashFlowData.find((account) => {
-      return account.date === transaction.date;
-    });
+    const foundData = cashFlowData.find(
+      (account) => account.date === transaction.date,
+    );
 
     if (foundData) {
-      if (transaction.type === 'deposit') {
-        const krwAmount =
-          transaction.currency === 'usd'
-            ? transaction.quantity *
-              transaction.price *
-              getFxRate(fxTable.prices, transaction.date)
-            : transaction.quantity * transaction.price;
-        const usdAmount =
-          transaction.currency === 'usd'
-            ? transaction.quantity * transaction.price
-            : (transaction.quantity * transaction.price) /
-              getFxRate(fxTable.prices, transaction.date);
+      const isUsd = transaction.currency === 'usd';
+      const fxRate = getFxRate(fxTable.prices, transaction.date);
+      const amount = transaction.quantity * transaction.price;
 
-        foundData.deposit += krwAmount;
+      const krwAmount = isUsd ? amount * fxRate : amount;
+      const usdAmount = isUsd ? amount : amount / fxRate;
+
+      if (transaction.type === 'deposit') {
+        foundData.depositKrw += krwAmount;
         foundData.depositUsd += usdAmount;
       } else if (transaction.type === 'withdrawal') {
-        const krwAmount =
-          transaction.currency === 'usd'
-            ? transaction.quantity *
-              transaction.price *
-              getFxRate(fxTable.prices, transaction.date)
-            : transaction.quantity * transaction.price;
-        const usdAmount =
-          transaction.currency === 'usd'
-            ? transaction.quantity * transaction.price
-            : (transaction.quantity * transaction.price) /
-              getFxRate(fxTable.prices, transaction.date);
-
-        foundData.withdrawal += krwAmount;
+        foundData.withdrawalKrw += krwAmount;
         foundData.withdrawalUsd += usdAmount;
       }
     }
   });
 
-  let terms: TermsProps[] = []; // 예금 상품 (KRW)
+  let termsKrw: TermsProps[] = []; // 예금 상품 (KRW)
   let termsUsd: TermsProps[] = []; // 예금 상품 (USD)
   let result: {
     date: string;
@@ -83,13 +66,18 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
     benchmarkValueUsd: number;
   }[] = [];
 
+  /* 입출금 데이터에 따라 예금 상품 생성 및 출금 처리, 평가자산 계산을 반복 (매일마다)
+      - 입금이 발생하면 예금 상품 생성 (만기일은 1년 뒤로 설정)
+      - 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
+      - 평가자산 계산 시점에 이자 지급 및 만기일이 지난 상품은 재예치 (원금에 이자 합산해서 재예치)
+  */
   cashFlowData.forEach((flow) => {
     // 오늘 날짜에 걸쳐있는 terms는 제외하고, 그외 terms는 오늘이 올때까지 다시 생성해서 계산 (maturityDate를 startDate에 대입 후)
-    if (flow.deposit > 0) {
-      terms.push({
+    if (flow.depositKrw > 0) {
+      termsKrw.push({
         startDate: flow.date,
         maturityDate: addOneYear(flow.date),
-        principal: flow.deposit,
+        principal: flow.depositKrw,
         interest: 0,
         interestRate: getCurrentRate(flow.date),
       });
@@ -105,127 +93,20 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
       });
     }
 
-    // KRW 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
-    while (flow.withdrawal > 0) {
-      // 예금 상품 역방향 정렬
-      terms.sort((a, b) => {
-        return (
-          new Date(b.maturityDate).getTime() -
-          new Date(a.maturityDate).getTime()
-        );
-      });
+    // 출금 프로세스 진행
+    processWithdrawal(termsKrw, flow.withdrawalKrw);
+    processWithdrawal(termsUsd, flow.withdrawalUsd);
 
-      const findTerm = terms[0];
-      if (findTerm) {
-        // 출금액이 예금 상품의 원금+이자보다 크면 해당 상품 삭제
-        if (findTerm.principal + findTerm.interest <= flow.withdrawal) {
-          flow.withdrawal -= findTerm.principal + findTerm.interest; // 출금액 차감
-          terms.shift(); // 예금 상품 삭제
-        } else {
-          // 출금액이 원금+이자보다 작을 경우
-          if (findTerm.principal < flow.withdrawal) {
-            // 원금보다 크다면 원금 제거하고 이자만 남김
-            flow.withdrawal -= findTerm.principal; // 원금만큼 출금액 차감
-            findTerm.principal = 0; // 원금 차감
-            findTerm.interest -= flow.withdrawal; // 이자까지 차감
-          } else {
-            // 원금보다 작다면 원금만큼 차감
-            findTerm.principal -= flow.withdrawal; // 원금 차감
-          }
-          flow.withdrawal = 0; // 출금액 0으로 초기화
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-
-    // USD 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감
-    while (flow.withdrawalUsd > 0) {
-      // 예금 상품 역방향 정렬
-      termsUsd.sort((a, b) => {
-        return (
-          new Date(b.maturityDate).getTime() -
-          new Date(a.maturityDate).getTime()
-        );
-      });
-
-      const findTermUsd = termsUsd[0];
-      if (findTermUsd) {
-        // 출금액이 예금 상품의 원금+이자보다 크면 해당 상품 삭제
-        if (
-          findTermUsd.principal + findTermUsd.interest <=
-          flow.withdrawalUsd
-        ) {
-          flow.withdrawalUsd -= findTermUsd.principal + findTermUsd.interest; // 출금액 차감
-          termsUsd.shift(); // 예금 상품 삭제
-        } else {
-          // 출금액이 원금+이자보다 작을 경우
-          if (findTermUsd.principal < flow.withdrawalUsd) {
-            // 원금보다 크다면 원금 제거하고 이자만 남김
-            flow.withdrawalUsd -= findTermUsd.principal; // 원금만큼 출금액 차감
-            findTermUsd.principal = 0; // 원금 차감
-            findTermUsd.interest -= flow.withdrawalUsd; // 이자까지 차감
-          } else {
-            // 원금보다 작다면 원금만큼 차감
-            findTermUsd.principal -= flow.withdrawalUsd; // 원금 차감
-          }
-          flow.withdrawalUsd = 0; // 출금액 0으로 초기화
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-
-    let currentValue = 0; // 현재 평가금액
-    let netCurrentValue = 0; // 순평가금액
-
-    // 이자 지급
-    terms.forEach((term) => {
-      currentValue += term.principal + term.interest; // 평가금액 계산
-      netCurrentValue +=
-        term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 순평가금액 계산
-
-      term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 계산
-
-      // 만기일이 지난 상품은 재예치
-      if (term.maturityDate < flow.date) {
-        term.startDate = flow.date;
-        term.maturityDate = addOneYear(flow.date);
-        term.principal = term.principal + term.interest; // 원금에 이자 합산해서 재예치
-        term.interest = 0; // 이자 초기화
-        term.interestRate =
-          getCurrentRate(flow.date) * (1 - KR_DIVIDEND_TAX_RATE); // 출금 이자 계산 로직이 복잡해져서 그냥 세후 이자율로 계산
-      }
-    });
-
-    let currentValueUsd = 0; // 현재 USD 평가금액
-    let netCurrentValueUsd = 0; // 순 USD 평가금액
-
-    termsUsd.forEach((term) => {
-      currentValueUsd += term.principal + term.interest;
-      netCurrentValueUsd +=
-        term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE);
-
-      term.interest += term.principal * (term.interestRate / 100 / 365);
-
-      if (term.maturityDate < flow.date) {
-        term.startDate = flow.date;
-        term.maturityDate = addOneYear(flow.date);
-        term.principal = term.principal + term.interest;
-        term.interest = 0;
-        term.interestRate =
-          getCurrentRate(flow.date) * (1 - KR_DIVIDEND_TAX_RATE);
-      }
-    });
+    // 이자 지급, 만기일 지난 상품 재예치, 평가자산 측정값 반환
+    const krwValues = processTermsValue(termsKrw, flow.date);
+    const usdValues = processTermsValue(termsUsd, flow.date);
 
     result.push({
       date: flow.date,
-      benchmarkValueKrw: currentValue,
-      benchmarkValueUsd: currentValueUsd,
-      benchmarkNetValueKrw: netCurrentValue,
-      benchmarkNetValueUsd: netCurrentValueUsd,
+      benchmarkValueKrw: krwValues.currentValue,
+      benchmarkValueUsd: usdValues.currentValue,
+      benchmarkNetValueKrw: krwValues.netCurrentValue,
+      benchmarkNetValueUsd: usdValues.netCurrentValue,
     });
   });
 
@@ -288,4 +169,64 @@ const getCurrentRate = (date: string) => {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
   return pastRates[0].interestRate;
+};
+
+const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
+  let remainingWithdrawal = amount;
+
+  // KRW 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
+  while (remainingWithdrawal > 0) {
+    // 예금 상품 역방향 정렬
+    termsArray.sort(
+      (a, b) =>
+        new Date(b.maturityDate).getTime() - new Date(a.maturityDate).getTime(),
+    );
+
+    const findTerm = termsArray[0];
+    if (!findTerm) break;
+
+    // 출금액이 예금 상품의 원금+이자보다 크면 해당 상품 삭제
+    if (findTerm.principal + findTerm.interest <= remainingWithdrawal) {
+      remainingWithdrawal -= findTerm.principal + findTerm.interest; // 출금액 차감
+      termsArray.shift(); // 예금 상품 삭제
+    } else {
+      // 출금액이 원금+이자보다 작을 경우
+      if (findTerm.principal < remainingWithdrawal) {
+        // 원금보다 크다면 원금 제거하고 이자만 남김
+        remainingWithdrawal -= findTerm.principal; // 원금만큼 출금액 차감
+        findTerm.principal = 0; // 원금 차감
+        findTerm.interest -= remainingWithdrawal; // 이자까지 차감
+      } else {
+        // 원금보다 작다면 원금만큼 차감
+        findTerm.principal -= remainingWithdrawal; // 원금 차감
+      }
+      remainingWithdrawal = 0; // 출금액 0으로 초기화
+      break;
+    }
+  }
+};
+
+const processTermsValue = (termsArray: TermsProps[], flowDate: string) => {
+  let currentValue = 0; // 현재 평가금액
+  let netCurrentValue = 0; // 순평가금액
+
+  // 이자 지급
+  termsArray.forEach((term) => {
+    currentValue += term.principal + term.interest; // 평가금액 계산
+    netCurrentValue +=
+      term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 순평가금액 계산
+
+    term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 지급
+
+    // 만기일이 지난 상품은 재예치
+    if (term.maturityDate < flowDate) {
+      term.startDate = flowDate;
+      term.maturityDate = addOneYear(flowDate);
+      term.principal = term.principal + term.interest; // 원금에 이자 합산해서 재예치
+      term.interest = 0; // 이자 초기화
+      term.interestRate = getCurrentRate(flowDate) * (1 - KR_DIVIDEND_TAX_RATE); // 출금 이자 계산 로직이 복잡해져서 그냥 세후 이자율로 계산
+    }
+  });
+
+  return { currentValue, netCurrentValue };
 };
