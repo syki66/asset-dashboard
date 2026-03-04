@@ -171,7 +171,7 @@ const getCurrentRate = (date: string) => {
   return pastRates[0].interestRate;
 };
 
-const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
+export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
   let remainingWithdrawal = amount;
 
   // KRW 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
