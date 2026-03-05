@@ -211,21 +211,23 @@ const processTermsValue = (termsArray: TermsProps[], flowDate: string) => {
   let currentValue = 0; // 현재 평가금액
   let netCurrentValue = 0; // 순평가금액
 
-  // 이자 지급
   termsArray.forEach((term) => {
-    term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 지급
+    // 1. 이자 먼저 지급
+    term.interest += term.principal * (term.interestRate / 100 / 365); // 하루치 이자
 
-    currentValue += term.principal + term.interest; // 평가금액 계산
+    // 2. 평가금, 세후 평가금 계산
+    currentValue += term.principal + term.interest;
     netCurrentValue +=
-      term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 순평가금액 계산
+      term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE);
 
-    // 만기일이 지난 상품은 재예치
+    // 3. 만기일이 지난 상품은 재예치
     if (term.maturityDate <= flowDate) {
       term.startDate = flowDate;
       term.maturityDate = addOneYear(flowDate);
-      term.principal = term.principal + term.interest; // 원금에 이자 합산해서 재예치
+      term.principal =
+        term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 원금에 세후 이자 합산해서 재예치
       term.interest = 0; // 이자 초기화
-      term.interestRate = getCurrentRate(flowDate) * (1 - KR_DIVIDEND_TAX_RATE); // 출금 이자 계산 로직이 복잡해져서 그냥 세후 이자율로 계산
+      term.interestRate = getCurrentRate(flowDate);
     }
   });
 
