@@ -206,20 +206,21 @@ export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
   }
 };
 
+// 이자 지급, 만기일 지난 상품 재예치, 평가금과 순평가금 반환
 const processTermsValue = (termsArray: TermsProps[], flowDate: string) => {
   let currentValue = 0; // 현재 평가금액
   let netCurrentValue = 0; // 순평가금액
 
   // 이자 지급
   termsArray.forEach((term) => {
+    term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 지급
+
     currentValue += term.principal + term.interest; // 평가금액 계산
     netCurrentValue +=
       term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 순평가금액 계산
 
-    term.interest += term.principal * (term.interestRate / 100 / 365); // 하루 이자 지급
-
     // 만기일이 지난 상품은 재예치
-    if (term.maturityDate < flowDate) {
+    if (term.maturityDate <= flowDate) {
       term.startDate = flowDate;
       term.maturityDate = addOneYear(flowDate);
       term.principal = term.principal + term.interest; // 원금에 이자 합산해서 재예치
