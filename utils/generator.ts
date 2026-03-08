@@ -174,7 +174,7 @@ const getCurrentRate = (date: string) => {
 export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
   let remainingWithdrawal = amount;
 
-  // KRW 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest 순으로 차감 (withdrawal이 0이 될때까지 반복)
+  // 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest(세후) 순으로 차감 (withdrawal이 0이 될때까지 반복)
   while (remainingWithdrawal > 0) {
     // 예금 상품 역방향 정렬
     termsArray.sort(
@@ -185,17 +185,20 @@ export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
     const findTerm = termsArray[0];
     if (!findTerm) break;
 
-    // 출금액이 예금 상품의 원금+이자보다 크면 해당 상품 삭제
-    if (findTerm.principal + findTerm.interest <= remainingWithdrawal) {
-      remainingWithdrawal -= findTerm.principal + findTerm.interest; // 출금액 차감
+    const available =
+      findTerm.principal + findTerm.interest * (1 - KR_DIVIDEND_TAX_RATE); // 출금 가능 금액 (원금 + 세후 이자)
+
+    // 출금액이 출금 가능 금액보다 크면 해당 상품 삭제
+    if (available <= remainingWithdrawal) {
+      remainingWithdrawal -= available; // 출금액 차감 (세후 기준)
       termsArray.shift(); // 예금 상품 삭제
     } else {
-      // 출금액이 원금+이자보다 작을 경우
+      // 출금액이 출금 가능 금액보다 작을 경우
       if (findTerm.principal < remainingWithdrawal) {
-        // 원금보다 크다면 원금 제거하고 이자만 남김
+        // 원금보다 크다면 원금 제거하고 세후 이자에서 차감
         remainingWithdrawal -= findTerm.principal; // 원금만큼 출금액 차감
         findTerm.principal = 0; // 원금 차감
-        findTerm.interest -= remainingWithdrawal; // 이자까지 차감
+        findTerm.interest -= remainingWithdrawal / (1 - KR_DIVIDEND_TAX_RATE); // 세전 이자 기준으로 차감 [세전 이자 = 출금액 / (1 - 15.4%)]
       } else {
         // 원금보다 작다면 원금만큼 차감
         findTerm.principal -= remainingWithdrawal; // 원금 차감
