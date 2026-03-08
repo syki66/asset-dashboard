@@ -6,11 +6,11 @@ import {
   AreaChart,
   CartesianGrid,
   ResponsiveContainer,
+  ComposedChart,
   Tooltip,
   XAxis,
   YAxis,
   Line,
-  LineChart,
 } from 'recharts';
 import {
   format,
@@ -86,6 +86,7 @@ interface AssetHistoryChartProps {
   icon?: React.ElementType;
   showLogScaleToggle?: boolean;
   showInflationAdjustToggle?: boolean;
+  fillBetween?: [string, string]; // [bottomKey, topKey]
 }
 
 export function AssetChart({
@@ -98,6 +99,7 @@ export function AssetChart({
   icon: Icon,
   showLogScaleToggle = true,
   showInflationAdjustToggle = true,
+  fillBetween,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -241,6 +243,19 @@ export function AssetChart({
           dataPoint[series.id] = seriesDataPoint.displayValue;
         }
       });
+
+      // 두 라인 사이의 영역 채우기 데이터 추가
+      if (
+        fillBetween &&
+        dataPoint[fillBetween[0]] !== undefined &&
+        dataPoint[fillBetween[1]] !== undefined
+      ) {
+        // [min, max] 형태로 배열 저장. (정렬하지 않아도 recharts가 아래부터 위로 채움)
+        dataPoint['fillArea'] = [
+          dataPoint[fillBetween[0]],
+          dataPoint[fillBetween[1]],
+        ];
+      }
 
       return dataPoint;
     });
@@ -388,7 +403,9 @@ export function AssetChart({
           </p>
           <hr className="border-border my-1" />
           <div className="space-y-1 mt-2">
-            {payload.map((pld, index) => {
+            {payload.map((pld: any, index: number) => {
+              if (pld.name === 'fillArea') return null;
+              
               const series = seriesWithColors.find((s) => s.id === pld.name);
               const seriesName = series ? series.name : pld.name;
               const seriesColor = series ? series.color : '#8884d8';
@@ -596,7 +613,7 @@ export function AssetChart({
                 ))}
               </AreaChart>
             ) : (
-              <LineChart data={chartData}>
+              <ComposedChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
@@ -621,6 +638,25 @@ export function AssetChart({
                 />
                 <Tooltip content={<CustomTooltip />} />
 
+                {/* 두 라인 사이의 영역 채우기 */}
+                {fillBetween &&
+                  activeSeries.includes(fillBetween[0]) &&
+                  activeSeries.includes(fillBetween[1]) && (
+                    <Area
+                      type="monotone"
+                      dataKey="fillArea"
+                      name="fillArea"
+                      fill={
+                        activeSeriesData.find((s) => s.id === fillBetween[1])
+                          ?.color || '#FF9800'
+                      }
+                      fillOpacity={0.15}
+                      stroke="none"
+                      activeDot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
+
                 {/* 각 시리즈별 라인 */}
                 {activeSeriesData.map((series) => (
                   <Line
@@ -639,7 +675,7 @@ export function AssetChart({
                     }}
                   />
                 ))}
-              </LineChart>
+              </ComposedChart>
             )}
           </ResponsiveContainer>
         </div>

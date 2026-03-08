@@ -17,7 +17,7 @@ export default function Page() {
   const currency = useCurrencyStore((state) => state.currency);
   const [showAfterTax, setShowAfterTax] = useState(false);
 
-  const { performance, benchmark, costs } = dashboardData;
+  const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
 
   const handleToggle = (checked: boolean) => {
     setShowAfterTax(checked);
@@ -28,31 +28,37 @@ export default function Page() {
       metric: '원금',
       investment: formatCurrency(performance.principal, currency),
       benchmark: formatCurrency(performance.principal, currency),
+      benchmarkWorst: formatCurrency(performance.principal, currency),
     },
     {
       metric: '평가금액',
       investment: formatCurrency(performance.currentValue, currency),
       benchmark: formatCurrency(benchmark.value, currency),
+      benchmarkWorst: formatCurrency(benchmarkWorst.value, currency),
     },
     {
       metric: '수익금',
       investment: formatCurrency(performance.profit, currency),
       benchmark: formatCurrency(benchmark.profit, currency),
+      benchmarkWorst: formatCurrency(benchmarkWorst.profit, currency),
     },
     {
       metric: '수익률',
       investment: `${performance.returnRate}%`,
       benchmark: `${benchmark.returnRate}%`,
+      benchmarkWorst: `${benchmarkWorst.returnRate}%`,
     },
     {
       metric: '연평균수익률',
       investment: `${performance.cagr}%`,
       benchmark: `${benchmark.cagr}%`,
+      benchmarkWorst: `${benchmarkWorst.cagr}%`,
     },
     {
       metric: '초과수익',
-      investment: formatCurrency(benchmark.excessReturn, currency),
-      benchmark: '-',
+      investment: '-',
+      benchmark: formatCurrency(benchmark.excessReturn, currency),
+      benchmarkWorst: formatCurrency(benchmarkWorst.excessReturn, currency),
     },
   ];
 
@@ -61,31 +67,37 @@ export default function Page() {
       metric: '원금',
       investment: formatCurrency(performance.principal, currency),
       benchmark: formatCurrency(performance.principal, currency),
+      benchmarkWorst: formatCurrency(performance.principal, currency),
     },
     {
       metric: '순평가금액',
       investment: formatCurrency(performance.netCurrentValue, currency),
       benchmark: formatCurrency(benchmark.netValue, currency),
+      benchmarkWorst: formatCurrency(benchmarkWorst.netValue, currency),
     },
     {
       metric: '순수익금',
       investment: formatCurrency(performance.netProfit, currency),
       benchmark: formatCurrency(benchmark.netProfit, currency),
+      benchmarkWorst: formatCurrency(benchmarkWorst.netProfit, currency),
     },
     {
       metric: '순수익률',
       investment: `${performance.netReturnRate}%`,
       benchmark: `${benchmark.netReturnRate}%`,
+      benchmarkWorst: `${benchmarkWorst.netReturnRate}%`,
     },
     {
       metric: '순연평균수익률',
       investment: `${performance.netCagr}%`,
       benchmark: `${benchmark.netCagr}%`,
+      benchmarkWorst: `${benchmarkWorst.netCagr}%`,
     },
     {
       metric: '순초과수익',
-      investment: formatCurrency(benchmark.netExcessReturn, currency),
-      benchmark: '-',
+      investment: '-',
+      benchmark: formatCurrency(benchmark.netExcessReturn, currency),
+      benchmarkWorst: formatCurrency(benchmarkWorst.netExcessReturn, currency),
     },
   ];
 
@@ -156,6 +168,7 @@ export default function Page() {
           title='자산 추이'
           themeColor={themeColor}
           chartType='line'
+          fillBetween={['benchmarkWorst', 'benchmark']}
           series={[
             {
               id: 'principal',
@@ -171,9 +184,15 @@ export default function Page() {
             },
             {
               id: 'benchmark',
-              name: '벤치마크',
+              name: '벤치마크 (최상)',
               color: '#FF9800',
               data: dashboardData.charts.benchmark,
+            },
+            {
+              id: 'benchmarkWorst',
+              name: '벤치마크 (최악)',
+              color: '#FF5722',
+              data: dashboardData.charts.benchmarkWorst,
             },
           ]}
         />
@@ -183,6 +202,7 @@ export default function Page() {
           title='수익금 비교'
           themeColor={themeColor}
           chartType='line'
+          fillBetween={['benchmarkWorstProfit', 'benchmarkProfit']}
           series={[
             {
               id: 'profit',
@@ -198,9 +218,15 @@ export default function Page() {
             },
             {
               id: 'benchmarkProfit',
-              name: '벤치마크 수익금',
+              name: '벤치마크 수익금 (최상)',
               color: '#03A9F4',
               data: dashboardData.charts.benchmarkProfit,
+            },
+            {
+              id: 'benchmarkWorstProfit',
+              name: '벤치마크 수익금 (최악)',
+              color: '#00BCD4',
+              data: dashboardData.charts.benchmarkWorstProfit,
             },
           ]}
         />

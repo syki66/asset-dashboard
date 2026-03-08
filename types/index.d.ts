@@ -26,6 +26,8 @@ type AccountDetails = {
   stockTradeHistory: StockTradeHistoryProps[];
   benchmarkValue: number;
   benchmarkNetValue: number;
+  benchmarkWorstValue: number;
+  benchmarkWorstNetValue: number;
 };
 
 export type DividendProps = {
@@ -125,6 +127,18 @@ export type DashboardProps = {
     excessReturn: number; // 벤치마크 초과수익률
     netExcessReturn: number; // 벤치마크 초과수익률 (세후)
   };
+  benchmarkWorst: {
+    value: number; // 최악의 벤치마크 평가금
+    netValue: number; // 최악의 벤치마크 평가금 (세후)
+    profit: number; // 최악의 벤치마크 수익금
+    netProfit: number; // 최악의 벤치마크 수익금 (세후)
+    returnRate: number; // 최악의 벤치마크 수익률
+    netReturnRate: number; // 최악의 벤치마크 수익률 (세후)
+    cagr: number; // 최악의 벤치마크 연평균 성장률
+    netCagr: number; // 최악의 벤치마크 연평균 성장률 (세후)
+    excessReturn: number; // 최악의 벤치마크 초과수익률
+    netExcessReturn: number; // 최악의 벤치마크 초과수익률 (세후)
+  };
   drawdown: {
     maxDrawdown: number; // 역대 최대 낙폭
     maxDrawdownStartDate: string; // 역대 최대 낙폭 시작일
@@ -144,6 +158,8 @@ export type DashboardProps = {
     yieldOnCost: ChartProps[]; // 원가 대비 배당수익률 차트
     benchmark: ChartProps[]; // 벤치마크 평가금 차트
     benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
+    benchmarkWorst: ChartProps[]; // 최악의 벤치마크 평가금 차트
+    benchmarkWorstProfit: ChartProps[]; // 최악의 벤치마크 수익금 차트
     stockTradeHistory: StockTradeHistoryChartProps[]; // 매수 및 매도 주식 통합 히스토리
   };
 };
@@ -160,6 +176,13 @@ export type MergeAccountDataInput = {
   name: string;
   accountData: AccountProps[];
   benchmarkData?: {
+    date: string;
+    benchmarkValueKrw: number;
+    benchmarkValueUsd: number;
+    benchmarkNetValueKrw: number;
+    benchmarkNetValueUsd: number;
+  }[];
+  benchmarkWorstData?: {
     date: string;
     benchmarkValueKrw: number;
     benchmarkValueUsd: number;

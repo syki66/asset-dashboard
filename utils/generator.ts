@@ -5,7 +5,10 @@ import { DEFAULT_FX_RATE, KR_DIVIDEND_TAX_RATE } from '@/constants/keywords';
 import { useInterestRateStore } from '@/store/account';
 
 // 벤치마크 데이터 생성
-export const createBenchmarkData = async (transactions: TransactionProps[]) => {
+export const createBenchmarkData = async (
+  transactions: TransactionProps[],
+  rateType: 'best' | 'worst' = 'best',
+) => {
   const {
     stockData: [fxTable],
   } = await getStockInfo(
@@ -58,6 +61,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
 
   let termsKrw: TermsProps[] = []; // 예금 상품 (KRW)
   let termsUsd: TermsProps[] = []; // 예금 상품 (USD)
+
   let result: {
     date: string;
     benchmarkNetValueKrw: number;
@@ -79,7 +83,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
         maturityDate: addOneYear(flow.date),
         principal: flow.depositKrw,
         interest: 0,
-        interestRate: getCurrentRate(flow.date),
+        interestRate: getCurrentRate(flow.date, rateType),
       });
     }
 
@@ -89,7 +93,7 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
         maturityDate: addOneYear(flow.date),
         principal: flow.depositUsd,
         interest: 0,
-        interestRate: getCurrentRate(flow.date),
+        interestRate: getCurrentRate(flow.date, rateType),
       });
     }
 
@@ -98,8 +102,8 @@ export const createBenchmarkData = async (transactions: TransactionProps[]) => {
     processWithdrawal(termsUsd, flow.withdrawalUsd);
 
     // 이자 지급, 만기일 지난 상품 재예치, 평가자산 측정값 반환
-    const krwValues = processTermsValue(termsKrw, flow.date);
-    const usdValues = processTermsValue(termsUsd, flow.date);
+    const krwValues = processTermsValue(termsKrw, flow.date, rateType);
+    const usdValues = processTermsValue(termsUsd, flow.date, rateType);
 
     result.push({
       date: flow.date,
@@ -148,8 +152,12 @@ const addOneYear = (date: string) => {
 };
 
 // 과거 금리 중 입력된 날짜와 같거나 가장 가까운 과거 금리 반환
-const getCurrentRate = (date: string) => {
-  const rates = useInterestRateStore.getState().interestRates; // 전역 상태에서 금리 테이블 불러오기
+const getCurrentRate = (date: string, rateType: 'best' | 'worst' = 'best') => {
+  const storeState = useInterestRateStore.getState();
+  const rates =
+    rateType === 'best'
+      ? storeState.interestRates
+      : storeState.worstInterestRates;
   const dateObj = new Date(date);
 
   // 과거(같거나 이전) 금리만 필터링
@@ -210,7 +218,11 @@ export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
 };
 
 // 이자 지급, 만기일 지난 상품 재예치, 평가금과 순평가금 반환
-const processTermsValue = (termsArray: TermsProps[], flowDate: string) => {
+const processTermsValue = (
+  termsArray: TermsProps[],
+  flowDate: string,
+  rateType: 'best' | 'worst' = 'best',
+) => {
   let currentValue = 0; // 현재 평가금액
   let netCurrentValue = 0; // 순평가금액
 
@@ -230,7 +242,7 @@ const processTermsValue = (termsArray: TermsProps[], flowDate: string) => {
       term.principal =
         term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 원금에 세후 이자 합산해서 재예치
       term.interest = 0; // 이자 초기화
-      term.interestRate = getCurrentRate(flowDate);
+      term.interestRate = getCurrentRate(flowDate, rateType);
     }
   });
 

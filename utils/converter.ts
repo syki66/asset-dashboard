@@ -55,6 +55,8 @@ export const convertToDashboardData = (
   const dividendYieldChartData: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
+  const benchmarkWorstChartData: ChartProps[] = [];
+  const benchmarkWorstProfitChartData: ChartProps[] = [];
   let stockTradeHistoryChartData: StockTradeHistoryChartProps[] = [];
 
   // MDD 계산용 변수
@@ -352,7 +354,7 @@ export const convertToDashboardData = (
         : 0;
 
     // 벤치마크 순초과수익
-    const benchmarkExcessReturn = profit - benchmarkProfit;
+    const benchmarkExcessReturn = -(profit - benchmarkProfit);
 
     // 벤치마크 순평가금
     const benchmarkNetValue =
@@ -381,6 +383,64 @@ export const convertToDashboardData = (
 
     // 벤치마크 순초과수익
     const benchmarkNetExcessReturn = netProfit - benchmarkNetProfit;
+
+    // 벤치마크 순평가금 (최악의 케이스)
+    const benchmarkWorstValue =
+      currency === 'usd'
+        ? account.usd.benchmarkWorstValue
+        : account.krw.benchmarkWorstValue;
+
+    // 벤치마크 순수익금 (최악의 케이스)
+    const benchmarkWorstProfit = benchmarkWorstValue - principal;
+
+    // 벤치마크 순수익률 (최악의 케이스)
+    const benchmarkWorstReturnRate = Number(
+      (((benchmarkWorstValue - principal) / principal) * 100).toFixed(2),
+    );
+
+    // 벤치마크 순 CAGR (최악의 케이스)
+    const benchmarkWorstCagr =
+      years > 0
+        ? Number(
+            (
+              (Math.pow(benchmarkWorstValue / principal, 1 / years) - 1) *
+              100
+            ).toFixed(2),
+          )
+        : 0;
+
+    // 벤치마크 순초과수익 (최악의 케이스)
+    const benchmarkWorstExcessReturn = profit - benchmarkWorstProfit;
+
+    // 벤치마크 (최악의 케이스) 순평가금
+    const benchmarkWorstNetValue =
+      currency === 'usd'
+        ? account.usd.benchmarkWorstNetValue
+        : account.krw.benchmarkWorstNetValue;
+
+    // 벤치마크 (최악의 케이스) 순수익금
+    const benchmarkWorstNetProfit = benchmarkWorstNetValue - principal;
+
+    // 벤치마크 (최악의 케이스) 순수익률
+    const benchmarkWorstNetReturnRate = Number(
+      (((benchmarkWorstNetValue - principal) / principal) * 100).toFixed(2),
+    );
+
+    // 벤치마크 (최악의 케이스) 순 CAGR
+    const benchmarkWorstNetCagr =
+      years > 0
+        ? Number(
+            (
+              (Math.pow(benchmarkWorstNetValue / principal, 1 / years) - 1) *
+              100
+            ).toFixed(2),
+          )
+        : 0;
+
+    // 벤치마크 (최악의 케이스) 순초과수익
+    const benchmarkWorstNetExcessReturn = -(
+      netProfit - benchmarkWorstNetProfit
+    );
 
     //////////////////////////////////////////////////////
     // 자산 차트용 데이터 가공
@@ -461,6 +521,18 @@ export const convertToDashboardData = (
     benchmarkProfitChartData.push({
       date: account.date,
       value: benchmarkNetValue - principal,
+    });
+
+    // 벤치마크 (최악의 케이스) 차트 데이터
+    benchmarkWorstChartData.push({
+      date: account.date,
+      value: benchmarkWorstNetValue,
+    });
+
+    // 벤치마크 (최악의 케이스) 수익률 차트 데이터
+    benchmarkWorstProfitChartData.push({
+      date: account.date,
+      value: benchmarkWorstNetValue - principal,
     });
 
     // 주식 매매 기록 차트 데이터 (매수, 매도 통합)
@@ -561,6 +633,18 @@ export const convertToDashboardData = (
         excessReturn: benchmarkExcessReturn,
         netExcessReturn: benchmarkNetExcessReturn,
       },
+      benchmarkWorst: {
+        value: benchmarkWorstValue,
+        netValue: benchmarkWorstNetValue,
+        profit: benchmarkWorstProfit,
+        netProfit: benchmarkWorstNetProfit,
+        returnRate: benchmarkWorstReturnRate,
+        netReturnRate: benchmarkWorstNetReturnRate,
+        cagr: benchmarkWorstCagr,
+        netCagr: benchmarkWorstNetCagr,
+        excessReturn: benchmarkWorstExcessReturn,
+        netExcessReturn: benchmarkWorstNetExcessReturn,
+      },
       drawdown: {
         maxDrawdown: -maxDrawdown,
         maxDrawdownStartDate,
@@ -580,6 +664,8 @@ export const convertToDashboardData = (
         dividendYield: dividendYieldChartData,
         benchmark: benchmarkChartData,
         benchmarkProfit: benchmarkProfitChartData,
+        benchmarkWorst: benchmarkWorstChartData,
+        benchmarkWorstProfit: benchmarkWorstProfitChartData,
         stockTradeHistory: stockTradeHistoryChartData,
       },
     };
@@ -805,6 +891,8 @@ export const createAccountData = async (
             stockTradeHistory: [],
             benchmarkValue: 0,
             benchmarkNetValue: 0,
+            benchmarkWorstValue: 0,
+            benchmarkWorstNetValue: 0,
           },
           usd: {
             principalAmount: 0,
@@ -815,6 +903,8 @@ export const createAccountData = async (
             stockTradeHistory: [],
             benchmarkValue: 0,
             benchmarkNetValue: 0,
+            benchmarkWorstValue: 0,
+            benchmarkWorstNetValue: 0,
           },
         },
       ] as AccountProps[],
@@ -990,6 +1080,28 @@ export const mergeAccountData = (
           benchmark.benchmarkNetValueKrw;
         merged['usd'].benchmarkNetValue =
           (merged['usd'].benchmarkNetValue ?? 0) +
+          benchmark.benchmarkNetValueUsd;
+      });
+    }
+
+    // Benchmark Worst data 병합
+    if (account.benchmarkWorstData) {
+      account.benchmarkWorstData.forEach((benchmark) => {
+        const date = benchmark.date;
+        const merged = mergedMap.get(date)!; // merged는 반드시 존재해야 함
+
+        // benchmarkWorstValue, benchmarkWorstNetValue 값이 없으면 0으로 초기화 하고 누적 합산
+        merged['krw'].benchmarkWorstValue =
+          (merged['krw'].benchmarkWorstValue ?? 0) +
+          benchmark.benchmarkValueKrw;
+        merged['usd'].benchmarkWorstValue =
+          (merged['usd'].benchmarkWorstValue ?? 0) +
+          benchmark.benchmarkValueUsd;
+        merged['krw'].benchmarkWorstNetValue =
+          (merged['krw'].benchmarkWorstNetValue ?? 0) +
+          benchmark.benchmarkNetValueKrw;
+        merged['usd'].benchmarkWorstNetValue =
+          (merged['usd'].benchmarkWorstNetValue ?? 0) +
           benchmark.benchmarkNetValueUsd;
       });
     }

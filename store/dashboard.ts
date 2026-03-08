@@ -51,6 +51,18 @@ export const initialDashboardData: DashboardProps = {
     excessReturn: 0,
     netExcessReturn: 0,
   },
+  benchmarkWorst: {
+    value: 0,
+    netValue: 0,
+    profit: 0,
+    netProfit: 0,
+    returnRate: 0,
+    netReturnRate: 0,
+    cagr: 0,
+    netCagr: 0,
+    excessReturn: 0,
+    netExcessReturn: 0,
+  },
   drawdown: {
     maxDrawdown: 0,
     maxDrawdownStartDate: '1970-01-01',
@@ -115,6 +127,18 @@ export const initialDashboardData: DashboardProps = {
       },
     ],
     benchmarkProfit: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkWorst: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkWorstProfit: [
       {
         date: '1970-01-01',
         value: 0,

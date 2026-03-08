@@ -1,13 +1,11 @@
-import { AccountProps } from '@/types';
+import { AccountProps, MergeAccountDataInput } from '@/types';
 import { create } from 'zustand';
-import { rateTable } from '@/constants/keywords';
+import { rateTable, worstRateTable } from '@/constants/keywords';
 
 // 계좌 데이터 상태 관리
 interface AccountState {
-  totalAccountData: { name: string; accountData: AccountProps[] }[];
-  setTotalAccountData: (
-    data: { name: string; accountData: AccountProps[] }[]
-  ) => void;
+  totalAccountData: MergeAccountDataInput[];
+  setTotalAccountData: (data: MergeAccountDataInput[]) => void;
 }
 
 export const useAccountStore = create<AccountState>((set) => ({
@@ -18,10 +16,14 @@ export const useAccountStore = create<AccountState>((set) => ({
 // 금리 테이블 상태 관리
 interface InterestRateState {
   interestRates: { date: string; interestRate: number }[];
+  worstInterestRates: { date: string; interestRate: number }[];
   setInterestRates: (rates: { date: string; interestRate: number }[]) => void;
+  setWorstInterestRates: (rates: { date: string; interestRate: number }[]) => void;
 }
 
 export const useInterestRateStore = create<InterestRateState>((set) => ({
   interestRates: rateTable,
+  worstInterestRates: worstRateTable,
   setInterestRates: (rates) => set({ interestRates: rates }),
+  setWorstInterestRates: (rates) => set({ worstInterestRates: rates }),
 }));
