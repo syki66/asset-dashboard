@@ -328,21 +328,24 @@ export const convertToDashboardData = (
     // 하루 MDD 계산을 위한 비교를 위해 이전 값으로 대입
     prevValue = stocksProfit;
 
-    // 벤치마크 순평가금
+    //////////////////////////////////////////////////////
+    // 벤치마크 데이터 가공
+    /////////////////////////////////////////////////////
+    // 벤치마크 평가금
     const benchmarkValue =
       currency === 'usd'
         ? account.usd.benchmarkValue
         : account.krw.benchmarkValue;
 
-    // 벤치마크 순수익금
+    // 벤치마크 수익금
     const benchmarkProfit = benchmarkValue - principal;
 
-    // 벤치마크 순수익률
+    // 벤치마크 수익률
     const benchmarkReturnRate = Number(
       (((benchmarkValue - principal) / principal) * 100).toFixed(2),
     );
 
-    // 벤치마크 순 CAGR
+    // 벤치마크 CAGR
     const benchmarkCagr =
       years > 0
         ? Number(
@@ -353,7 +356,7 @@ export const convertToDashboardData = (
           )
         : 0;
 
-    // 벤치마크 순초과수익
+    // 벤치마크 초과수익
     const benchmarkExcessReturn = -(profit - benchmarkProfit);
 
     // 벤치마크 순평가금
@@ -382,23 +385,23 @@ export const convertToDashboardData = (
         : 0;
 
     // 벤치마크 순초과수익
-    const benchmarkNetExcessReturn = netProfit - benchmarkNetProfit;
+    const benchmarkNetExcessReturn = -(netProfit - benchmarkNetProfit);
 
-    // 벤치마크 순평가금 (최악의 케이스)
+    // 벤치마크 평가금 (최악의 케이스)
     const benchmarkWorstValue =
       currency === 'usd'
         ? account.usd.benchmarkWorstValue
         : account.krw.benchmarkWorstValue;
 
-    // 벤치마크 순수익금 (최악의 케이스)
+    // 벤치마크 수익금 (최악의 케이스)
     const benchmarkWorstProfit = benchmarkWorstValue - principal;
 
-    // 벤치마크 순수익률 (최악의 케이스)
+    // 벤치마크 수익률 (최악의 케이스)
     const benchmarkWorstReturnRate = Number(
       (((benchmarkWorstValue - principal) / principal) * 100).toFixed(2),
     );
 
-    // 벤치마크 순 CAGR (최악의 케이스)
+    // 벤치마크 CAGR (최악의 케이스)
     const benchmarkWorstCagr =
       years > 0
         ? Number(
@@ -409,8 +412,8 @@ export const convertToDashboardData = (
           )
         : 0;
 
-    // 벤치마크 순초과수익 (최악의 케이스)
-    const benchmarkWorstExcessReturn = profit - benchmarkWorstProfit;
+    // 벤치마크 초과수익 (최악의 케이스)
+    const benchmarkWorstExcessReturn = -(profit - benchmarkWorstProfit);
 
     // 벤치마크 (최악의 케이스) 순평가금
     const benchmarkWorstNetValue =
