@@ -38,8 +38,8 @@ export function ComparisonTable({
 
   return (
     <Card>
-      <CardHeader className='flex flex-row items-center justify-between'>
-        <CardTitle className='flex items-center gap-2'>
+      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-3'>
+        <CardTitle className='flex items-center gap-2 text-lg font-medium'>
           {icon}
           {title}
         </CardTitle>

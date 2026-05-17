@@ -3,6 +3,7 @@
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
+import { TooltipContent } from '@/components/dashboard/tooltip-content';
 import { useDashboardStore } from '@/store/dashboard';
 import { useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
@@ -145,20 +146,35 @@ export default function Page() {
               value: formatCurrency(costs.usSecFee, currency),
             },
             {
-              label: '국내 증권거래세',
-              value: formatCurrency(costs.krTransferTax, currency),
-            },
-            {
-              label: '국내 매도 수수료',
-              value: formatCurrency(costs.krBrokerFee, currency),
-            },
-            {
-              label: '국내 유관기관제비용',
-              value: formatCurrency(costs.krRegulatoryFee, currency),
+              label: '국내주식 제비용',
+              value: formatCurrency(
+                costs.krTransferTax + costs.krBrokerFee + costs.krRegulatoryFee,
+                currency,
+              ),
+              info: (
+                <TooltipContent
+                  title='국내주식 제비용 상세'
+                  items={[
+                    {
+                      label: '국내 증권거래세',
+                      value: formatCurrency(costs.krTransferTax, currency),
+                    },
+                    {
+                      label: '국내 매도 수수료',
+                      value: formatCurrency(costs.krBrokerFee, currency),
+                    },
+                    {
+                      label: '국내 유관기관제비용',
+                      value: formatCurrency(costs.krRegulatoryFee, currency),
+                    },
+                  ]}
+                />
+              ),
             },
             {
               label: '합산',
               value: formatCurrency(dashboardData.costs.totalCost, currency),
+              hasDivider: true,
             },
           ]}
         />
