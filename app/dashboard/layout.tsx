@@ -1,19 +1,24 @@
 'use client';
 
+import { useEffect, useMemo } from 'react';
 import { Disclaimer } from '@/components/footer/disclaimer';
-import { useDashboardStore } from '@/store/dashboard';
+import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
+import { useCurrencyStore, useTaxStore } from '@/store/options';
+import { useAccountStore } from '@/store/account';
+import { useSelectedAccountsStore } from '@/store/selectedAccounts';
+import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
+import { DashboardProps } from '@/types';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDateKr, timeAgo } from '@/utils/format';
 import {
   RefreshCw,
   CalendarDays,
-  FileText,
   Home,
   TrendingUp,
   DollarSign,
   Shield,
   PieChart,
   ArrowUpDown,
-  LineChart,
   Settings,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -109,20 +114,6 @@ const categories = [
     },
   },
   {
-    id: 'chart' as const,
-    name: '차트 & 분석',
-    subtitle: '시각적 데이터 분석',
-    description:
-      '다양한 차트와 시각화 도구를 사용하여 데이터를 자유롭게 분석합니다.',
-    icon: LineChart,
-    href: '/dashboard/chart',
-    theme: {
-      text: 'theme-chart',
-      bg: 'bg-theme-chart',
-      hover: 'hover-bg-theme-chart',
-    },
-  },
-  {
     id: 'settings' as const,
     name: '설정',
     subtitle: '환경설정 및 계정 관리',
@@ -160,7 +151,35 @@ const getPageDetails = (pathname: string) => {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
+  const setDashboardData = useDashboardStore((state) => state.setDashboardData);
+  const { currency, setCurrency } = useCurrencyStore();
+  const { tax, setTax } = useTaxStore();
+  const totalAccountData = useAccountStore((state) => state.totalAccountData);
+  const { selectedAccounts } = useSelectedAccountsStore();
   const pathname = usePathname();
+
+  // totalAccountData와 선택된 체크박스에 따라 병합된 데이터를 메모이제이션
+  const mergedAccountData = useMemo(() => {
+    if (!totalAccountData) return [];
+
+    const filteredData =
+      selectedAccounts.length > 0
+        ? totalAccountData.filter((data) =>
+          selectedAccounts.includes(data.name),
+        )
+        : [];
+    return mergeAccountData(filteredData);
+  }, [totalAccountData, selectedAccounts]);
+
+  // 계좌 데이터와 통화가 변경될 때마다 전역 상태관리로 데이터 전달
+  useEffect(() => {
+    const data = convertToDashboardData(mergedAccountData, currency);
+    if (data.length > 0) {
+      setDashboardData(data.at(-1) as DashboardProps);
+    } else {
+      setDashboardData(initialDashboardData);
+    }
+  }, [mergedAccountData, currency, setDashboardData]);
 
   const activeCategory =
     categories.find((c) => pathname.startsWith(c.href))?.id || 'overview';
@@ -180,45 +199,100 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className={cn('min-h-screen flex', pageBgClass)}>
       <Sidebar menuItems={menuItems} />
 
-      <div className="w-72 shrink-0" />
+      <div className='w-72 shrink-0' />
       <div className={cn('flex-1 p-4 pl-0')}>
-        <div className="glass-card rounded-2xl w-full p-8 flex flex-col">
+        <div className='glass-card rounded-2xl w-full p-8 flex flex-col'>
           <header>
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div className='flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6'>
               <div>
                 <h1 className={cn('text-4xl font-bold mb-2', textThemeClass)}>
                   {title}
                 </h1>
-                <p className="text-muted-foreground text-lg">{description}</p>
+                <p className='text-muted-foreground text-lg'>{description}</p>
               </div>
 
-              <div className="flex flex-col items-start gap-2 rounded-2xl border bg-card backdrop-blur-md shadow-md p-4 text-sm shrink-0">
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-foreground">
-                    파일 업데이트:
-                  </span>
-                  <span className="text-muted-foreground cursor-help relative group">
-                    {timeAgo(dashboardData.lastUpdated)}
-                    <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                      {formatDateKr(dashboardData.lastUpdated)}
+              <div className='flex flex-col lg:flex-row items-end lg:items-stretch gap-4 shrink-0'>
+                {/* Global Options Card */}
+                <div className='flex flex-col justify-center gap-2 p-3 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-md shadow-md shrink-0 min-w-[160px]'>
+                  {/* Row 1: Tax Toggle */}
+                  <Tabs
+                    value={tax}
+                    onValueChange={(v) => setTax(v as 'pre' | 'post')}
+                    className='w-full'
+                  >
+                    <TabsList className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'>
+                      <TabsTrigger
+                        value='pre'
+                        className='text-[10px] h-5 rounded-md p-0'
+                      >
+                        세전
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value='post'
+                        className='text-[10px] h-5 rounded-md p-0'
+                      >
+                        세후
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  {/* Row 2: Currency Toggle & FX Rate */}
+                  <div className='flex items-center justify-between gap-3 mt-0.5 w-full h-6'>
+                    <Tabs
+                      value={currency}
+                      onValueChange={(v) => setCurrency(v as 'krw' | 'usd')}
+                      className='w-[68px] shrink-0'
+                    >
+                      <TabsList className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'>
+                        <TabsTrigger
+                          value='krw'
+                          className='text-[10px] h-5 rounded-md font-semibold p-0'
+                        >
+                          ₩
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value='usd'
+                          className='text-[10px] h-5 rounded-md font-semibold p-0'
+                        >
+                          $
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <div className='text-xs text-muted-foreground font-semibold flex items-center h-full pr-1'>
+                      <span>{dashboardData.fxRate.toLocaleString()}원</span>
                     </div>
-                  </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-foreground">
-                    계좌 조회:
-                  </span>
-                  <span className="text-muted-foreground">
-                    {formatDateKr(dashboardData.date)}
-                  </span>
+
+                {/* Status Card */}
+                <div className='flex flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-md shadow-md p-4 text-sm shrink-0 min-w-[200px]'>
+                  <div className='flex items-center gap-2'>
+                    <RefreshCw className='h-4 w-4 text-primary' />
+                    <span className='font-medium text-foreground'>
+                      파일 업데이트:
+                    </span>
+                    <span className='text-muted-foreground cursor-help relative group'>
+                      {timeAgo(dashboardData.lastUpdated)}
+                      <div className='absolute bottom-full right-0 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10'>
+                        {formatDateKr(dashboardData.lastUpdated)}
+                      </div>
+                    </span>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <CalendarDays className='h-4 w-4 text-primary' />
+                    <span className='font-medium text-foreground'>
+                      계좌 조회:
+                    </span>
+                    <span className='text-muted-foreground'>
+                      {formatDateKr(dashboardData.date)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </header>
 
-          <main className="flex-1 pt-8">
+          <main className='flex-1 pt-8'>
             {children}
             <Disclaimer />
           </main>

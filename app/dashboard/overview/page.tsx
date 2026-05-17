@@ -4,13 +4,25 @@ import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { DollarSign, Trophy, TrendingUp, PiggyBank } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
-import { useCurrencyStore } from '@/store/options';
+import { useCurrencyStore, useTaxStore } from '@/store/options';
 import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
 
 export default function Page() {
   const themeColor = 'var(--overview-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
+  const tax = useTaxStore((state) => state.tax);
+
+  const isPostTax = tax === 'post';
+  const currentValue = isPostTax
+    ? dashboardData.performance.netCurrentValue
+    : dashboardData.performance.currentValue;
+  const profit = isPostTax
+    ? dashboardData.performance.netProfit
+    : dashboardData.performance.profit;
+  const returnRate = isPostTax
+    ? dashboardData.performance.netReturnRate
+    : dashboardData.performance.returnRate;
 
   return (
     <>
@@ -22,10 +34,7 @@ export default function Page() {
           contentItems={[
             {
               label: '평가금액',
-              value: formatCurrency(
-                dashboardData.performance.currentValue,
-                currency,
-              ),
+              value: formatCurrency(currentValue, currency),
               valueClassName: 'animate-gradient-text text-lg',
               info: '주식 + KRX금현물 + 현금',
             },
@@ -46,18 +55,14 @@ export default function Page() {
           contentItems={[
             {
               label: '수익금',
-              value: formatCurrency(dashboardData.performance.profit, currency),
-              valueClassName: getReturnRateColorClass(
-                dashboardData.performance.profit,
-              ),
+              value: formatCurrency(profit, currency),
+              valueClassName: getReturnRateColorClass(profit),
               info: '평가금액 - 원금',
             },
             {
               label: '수익률',
-              value: `${dashboardData.performance.returnRate}%`,
-              valueClassName: getReturnRateColorClass(
-                dashboardData.performance.returnRate,
-              ),
+              value: `${returnRate}%`,
+              valueClassName: getReturnRateColorClass(returnRate),
               info: '수익금 ÷ 원금',
             },
           ]}

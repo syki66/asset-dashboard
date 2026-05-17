@@ -21,3 +21,14 @@ export const useCurrencyStore = create<CurrencyState>((set) => ({
   currency: 'krw',
   setCurrency: (currency) => set({ currency }),
 }));
+
+// 세전/세후 상태 관리
+interface TaxState {
+  tax: 'pre' | 'post';
+  setTax: (tax: 'pre' | 'post') => void;
+}
+
+export const useTaxStore = create<TaxState>((set) => ({
+  tax: 'pre',
+  setTax: (tax) => set({ tax }),
+}));
