@@ -21,26 +21,21 @@ export default function Page() {
           themeColor={themeColor}
           contentItems={[
             {
-              label: '현재 가치',
+              label: '평가금액',
               value: formatCurrency(
                 dashboardData.performance.currentValue,
-                currency
+                currency,
               ),
               valueClassName: 'animate-gradient-text text-lg',
-            },
-            {
-              label: '순평가자산',
-              value: formatCurrency(
-                dashboardData.performance.netCurrentValue,
-                currency
-              ),
+              info: '주식 + KRX금현물 + 현금',
             },
             {
               label: '원금',
               value: formatCurrency(
                 dashboardData.performance.principal,
-                currency
+                currency,
               ),
+              info: '입금 총액 - 출금 총액',
             },
           ]}
         />
@@ -50,25 +45,20 @@ export default function Page() {
           themeColor={themeColor}
           contentItems={[
             {
-              label: '평가 손익',
+              label: '수익금',
               value: formatCurrency(dashboardData.performance.profit, currency),
               valueClassName: getReturnRateColorClass(
-                dashboardData.performance.profit
+                dashboardData.performance.profit,
               ),
+              info: '평가금액 - 원금',
             },
             {
               label: '수익률',
               value: `${dashboardData.performance.returnRate}%`,
               valueClassName: getReturnRateColorClass(
-                dashboardData.performance.returnRate
+                dashboardData.performance.returnRate,
               ),
-            },
-            {
-              label: '순수익금',
-              value: formatCurrency(
-                dashboardData.performance.netProfit,
-                currency
-              ),
+              info: '수익금 ÷ 원금',
             },
           ]}
         />
@@ -80,7 +70,10 @@ export default function Page() {
           contentItems={[
             {
               label: '배당금',
-              value: formatCurrency(dashboardData.dividends.annualDividends, currency),
+              value: formatCurrency(
+                dashboardData.dividends.annualDividends,
+                currency,
+              ),
               valueClassName: 'text-yellow-600',
             },
             {
@@ -101,10 +94,6 @@ export default function Page() {
             {
               label: '달러',
               value: formatCurrency(dashboardData.cash.usdCash, 'usd'),
-            },
-            {
-              label: '환율 (USD/KRW)',
-              value: dashboardData.fxRate.toLocaleString(),
             },
           ]}
         />
