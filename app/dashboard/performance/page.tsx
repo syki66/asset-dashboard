@@ -5,24 +5,18 @@ import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
 import { TooltipContent } from '@/components/dashboard/tooltip-content';
 import { useDashboardStore } from '@/store/dashboard';
-import { useCurrencyStore } from '@/store/options';
+import { useCurrencyStore, useTaxStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
-import { Award, ChartLine, Landmark } from 'lucide-react';
-import { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { ChartLine, Landmark } from 'lucide-react';
 
 export default function Page() {
   const themeColor = 'var(--performance-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
-  const [showAfterTax, setShowAfterTax] = useState(false);
+  const tax = useTaxStore((state) => state.tax);
+  const showAfterTax = tax === 'post';
 
   const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
-
-  const handleToggle = (checked: boolean) => {
-    setShowAfterTax(checked);
-  };
 
   const beforeTaxData = [
     {
@@ -111,17 +105,6 @@ export default function Page() {
             icon={<ChartLine className='h-5 w-5 theme-performance' />}
             themeColor={themeColor}
             comparisonData={showAfterTax ? afterTaxData : beforeTaxData}
-            addon={
-              <div className='flex items-center space-x-2'>
-                <Switch
-                  id='tax-switch'
-                  checked={showAfterTax}
-                  onCheckedChange={handleToggle}
-                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                />
-                <Label htmlFor='tax-switch'>세후</Label>
-              </div>
-            }
           />
         </div>
         <DashboardOverviewCard
