@@ -1,11 +1,17 @@
 'use client';
 
 import type React from 'react';
-
-import { useState } from 'react';
+import { useMemo } from 'react';
 import {
-  ChevronDown,
-  ChevronUp,
+  Wallet,
+  Calendar,
+  Coins,
+  BarChart3,
+  CheckCircle2,
+  TrendingUp,
+  Sparkles,
+  Clock,
+  FolderOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,15 +21,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { useAccountStore } from '@/store/account';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
+import { formatCurrency, formatDateKr, timeAgo } from '@/utils/format';
+import { cn } from '@/lib/utils';
 
 export default function Page() {
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const { selectedAccounts, setSelectedAccounts } = useSelectedAccountsStore();
-  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleAccountToggle = (accountName: string) => {
     setSelectedAccounts(
@@ -41,76 +46,256 @@ export default function Page() {
     }
   };
 
+  // Convert account list into formatted stats cards
+  const accountCards = useMemo(() => {
+    if (!totalAccountData) return [];
+
+    return totalAccountData.map((account) => {
+      const { name, accountData } = account;
+      const latestRecord =
+        accountData && accountData.length > 0 ? accountData.at(-1) : null;
+
+      const krwPrincipal = latestRecord?.krw?.principalAmount || 0;
+      const usdPrincipal = latestRecord?.usd?.principalAmount || 0;
+      const krwCash = latestRecord?.krw?.cash || 0;
+      const usdCash = latestRecord?.usd?.cash || 0;
+      const krwStocks = latestRecord?.krw?.stocks || [];
+      const usdStocks = latestRecord?.usd?.stocks || [];
+
+      // Total holdings count
+      const totalStocksCount = krwStocks.length + usdStocks.length;
+
+      // Top holdings sample
+      const stockSnippets = [
+        ...krwStocks.map((s) => s.shortName || s.symbol),
+        ...usdStocks.map((s) => s.symbol || s.shortName),
+      ].slice(0, 3);
+
+      // Range period
+      const startDate = accountData[0]?.date
+        ? formatDateKr(accountData[0].date)
+        : '-';
+      const endDate = latestRecord?.date
+        ? formatDateKr(latestRecord.date)
+        : '-';
+
+      const lastUpdated = latestRecord?.lastUpdated || latestRecord?.date || '';
+
+      return {
+        name,
+        krwPrincipal,
+        usdPrincipal,
+        krwCash,
+        usdCash,
+        totalStocksCount,
+        stockSnippets,
+        startDate,
+        endDate,
+        lastUpdated,
+      };
+    });
+  }, [totalAccountData]);
+
   return (
     <div className='relative mb-8'>
-      <Card className='relative z-10'>
-        <CardHeader className='flex flex-row items-center justify-between pb-2'>
-          <div>
-            <CardTitle>대시보드 설정</CardTitle>
-            <CardDescription>
-              데이터 표시 방식과 계좌 설정을 관리합니다
-            </CardDescription>
+      <Card className='relative z-10 border border-white/10 bg-card/30 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden'>
+        <CardHeader className='pb-4 border-b border-white/5'>
+          <div className='flex items-center justify-between gap-4'>
+            <div>
+              <CardTitle className='text-2xl font-bold text-foreground flex items-center gap-2'>
+                <Sparkles className='h-5 w-5 text-primary' /> 대시보드 설정
+              </CardTitle>
+              <CardDescription className='text-muted-foreground mt-1'>
+                대시보드에 표시할 계좌를 선택해주세요. 선택된 계좌들은 합산해서
+                표시됩니다.
+              </CardDescription>
+            </div>
+
+            <div className='flex items-center gap-4'>
+              <div className='text-xs font-semibold text-muted-foreground'>
+                선택됨:{' '}
+                <span className='text-blue-400 font-bold'>
+                  {selectedAccounts.length}
+                </span>{' '}
+                / {totalAccountData?.length || 0}
+              </div>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleSelectAllAccounts}
+                className='text-xs font-semibold h-8 rounded-lg border-white/10 hover:bg-white/10 hover:text-foreground transition-all shadow-sm'
+              >
+                {selectedAccounts.length === totalAccountData?.length
+                  ? '전체 선택 해제'
+                  : '전체 선택'}
+              </Button>
+            </div>
           </div>
-          <Button
-            variant='ghost'
-            size='sm'
-            className='w-9 p-0'
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? (
-              <ChevronUp className='h-4 w-4' />
-            ) : (
-              <ChevronDown className='h-4 w-4' />
-            )}
-            <span className='sr-only'>{isExpanded ? '접기' : '펼치기'}</span>
-          </Button>
         </CardHeader>
 
-        {isExpanded && (
-          <CardContent>
-            <div className='space-y-4'>
-              <div className='flex items-center justify-between'>
-                <h3 className='text-lg font-medium'>계좌 선택</h3>
-                <div className='flex items-center space-x-2'>
-                  <Checkbox
-                    id='select-all'
-                    checked={
-                      selectedAccounts.length === totalAccountData?.length
-                    }
-                    onCheckedChange={handleSelectAllAccounts}
-                  />
-                  <Label htmlFor='select-all' className='text-sm'>
-                    전체 선택
-                  </Label>
-                </div>
+        <CardContent className='pt-6'>
+          {accountCards.length === 0 ? (
+            <div className='flex flex-col items-center justify-center p-12 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 backdrop-blur-sm'>
+              <div className='p-4 rounded-full bg-white/5 text-muted-foreground mb-4 border border-white/10'>
+                <FolderOpen className='h-8 w-8' />
               </div>
-              <div className='space-y-2'>
-                {totalAccountData?.map((account) => (
-                  <div
-                    key={account.name}
-                    className='flex items-center justify-between border p-3 rounded-md'
-                  >
-                    <div className='flex items-center space-x-2'>
-                      <Checkbox
-                        id={`account-${account.name}`}
-                        checked={selectedAccounts.includes(account.name)}
-                        onCheckedChange={() =>
-                          handleAccountToggle(account.name)
-                        }
-                      />
-                      <Label htmlFor={`account-${account.name}`}>
-                        {account.name}
-                      </Label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className='text-sm text-muted-foreground'>
-                선택한 계좌의 데이터만 대시보드에 표시됩니다.
+              <h3 className='text-lg font-bold text-foreground mb-1'>
+                연동된 계좌 정보가 없습니다
+              </h3>
+              <p className='text-sm text-muted-foreground max-w-sm'>
+                대시보드를 활성화하기 위해 먼저 메인 화면에서 거래 내역 또는
+                계좌 데이터를 업로드해 주세요.
               </p>
             </div>
-          </CardContent>
-        )}
+          ) : (
+            <div className='space-y-6'>
+              {/* selection UI moved to header */}
+
+              {/* Account Grid */}
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                {accountCards.map((card) => {
+                  const isSelected = selectedAccounts.includes(card.name);
+                  return (
+                    <div
+                      key={card.name}
+                      onClick={() => handleAccountToggle(card.name)}
+                      className={cn(
+                        'group relative cursor-pointer overflow-hidden rounded-2xl border bg-card/30 backdrop-blur-md p-6 shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between min-h-[220px]',
+                        isSelected
+                          ? 'border-blue-500/50 bg-blue-500/5 shadow-blue-500/10'
+                          : 'border-white/10 hover:border-white/20 hover:bg-card/50',
+                      )}
+                    >
+                      {/* Checkbox highlight indicator */}
+                      {isSelected && (
+                        <div className='absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white shadow-md shadow-blue-500/30 transition-transform duration-300'>
+                          <CheckCircle2 className='h-4 w-4 stroke-[3]' />
+                        </div>
+                      )}
+
+                      <div>
+                        {/* Card Header Info */}
+                        <div className='flex items-center gap-3 mb-4'>
+                          <div
+                            className={cn(
+                              'p-2.5 rounded-xl border transition-colors',
+                              isSelected
+                                ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                : 'bg-white/5 border-white/10 text-muted-foreground',
+                            )}
+                          >
+                            <Wallet className='h-4 w-4' />
+                          </div>
+
+                          <div className='flex items-center gap-2 flex-1'>
+                            <h3 className='font-bold text-base text-foreground group-hover:text-primary transition-colors break-all'>
+                              {card.name.replace(/\.csv$/i, '')}
+                            </h3>
+                          </div>
+                        </div>
+
+                        {/* Stats block */}
+                        <div className='space-y-3.5 my-4 p-3.5 border border-white/20 rounded-lg bg-white/[0.05] backdrop-blur-sm text-sm'>
+                          {/* Principal row */}
+                          {(card.krwPrincipal > 0 || card.usdPrincipal > 0) && (
+                            <div className='flex items-center justify-between'>
+                              <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
+                                <TrendingUp className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
+                                원금
+                              </span>
+                              <div className='text-right font-medium text-foreground text-xs'>
+                                {card.krwPrincipal > 0 && (
+                                  <div>
+                                    {formatCurrency(card.krwPrincipal, 'krw')}
+                                  </div>
+                                )}
+                                {card.usdPrincipal > 0 && (
+                                  <div className='text-[11px] text-muted-foreground mt-0.5'>
+                                    {formatCurrency(card.usdPrincipal, 'usd')}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Cash balance row */}
+                          {(card.krwCash > 0 || card.usdCash > 0) && (
+                            <div className='flex items-center justify-between'>
+                              <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
+                                <Coins className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
+                                예수금
+                              </span>
+                              <div className='text-right font-medium text-foreground text-xs'>
+                                {card.krwCash > 0 && (
+                                  <div>
+                                    {formatCurrency(card.krwCash, 'krw')}
+                                  </div>
+                                )}
+                                {card.usdCash > 0 && (
+                                  <div className='text-[11px] text-muted-foreground mt-0.5'>
+                                    {formatCurrency(card.usdCash, 'usd')}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Stocks holdings count row */}
+                          <div className='flex items-center justify-between'>
+                            <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
+                              <BarChart3 className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
+                              보유 종목
+                            </span>
+                            <span className='font-semibold text-foreground text-xs flex items-center gap-1.5'>
+                              {card.totalStocksCount > 0 ? (
+                                card.totalStocksCount > 3 ? (
+                                  <span>{card.totalStocksCount}개</span>
+                                ) : (
+                                  <div className='flex items-center gap-1'>
+                                    {card.stockSnippets.map((s, idx) => (
+                                      <span
+                                        key={s + idx}
+                                        className='text-[10px] text-muted-foreground font-normal bg-white/5 border border-white/10 px-1.5 py-0.5 rounded'
+                                      >
+                                        {s}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )
+                              ) : (
+                                <span className='text-xs text-muted-foreground font-normal'>
+                                  보유 주식 없음
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer timestamps */}
+                      <div className='mt-auto p-3.5 border border-white/20 rounded-lg bg-white/[0.05] backdrop-blur-sm space-y-1.5 text-[10px] text-muted-foreground'>
+                        <div className='flex items-center gap-1.5'>
+                          <Calendar className='h-3 w-3 text-muted-foreground/50' />
+                          <span>
+                            {card.startDate} ~ {card.endDate}
+                          </span>
+                        </div>
+                        {card.lastUpdated && (
+                          <div className='flex items-center gap-1.5'>
+                            <Clock className='h-3 w-3 text-muted-foreground/50' />
+                            <span>
+                              최근 업로드: {timeAgo(card.lastUpdated)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
