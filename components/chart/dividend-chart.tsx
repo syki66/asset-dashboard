@@ -75,15 +75,15 @@ export function DividendChart({
         aggPeriod = 'monthly';
         break;
       case '3y':
-        startDate = subYears(now, 3);
+        startDate = startOfYear(subYears(now, 2));
         aggPeriod = 'quarterly';
         break;
       case '5y':
-        startDate = subYears(now, 5);
-        aggPeriod = 'quarterly';
+        startDate = startOfYear(subYears(now, 4));
+        aggPeriod = 'annual';
         break;
       case '10y':
-        startDate = subYears(now, 10);
+        startDate = startOfYear(subYears(now, 9));
         aggPeriod = 'annual';
         break;
       case 'max':
@@ -94,31 +94,34 @@ export function DividendChart({
     }
 
     const filteredData = data.filter(
-      (item) => parseISO(item.date) >= startDate
+      (item) => parseISO(item.date) >= startDate,
     );
 
-    const aggregated = filteredData.reduce((acc, item) => {
-      const date = parseISO(item.date);
-      let key: string;
+    const aggregated = filteredData.reduce(
+      (acc, item) => {
+        const date = parseISO(item.date);
+        let key: string;
 
-      if (aggPeriod === 'monthly') {
-        key = format(date, 'yyyy-MM');
-      } else if (aggPeriod === 'quarterly') {
-        const quarterStart = startOfQuarter(date);
-        key = format(quarterStart, 'yyyy-QQQ');
-      } else {
-        key = format(date, 'yyyy');
-      }
+        if (aggPeriod === 'monthly') {
+          key = format(date, 'yyyy-MM');
+        } else if (aggPeriod === 'quarterly') {
+          const quarterStart = startOfQuarter(date);
+          key = format(quarterStart, 'yyyy-QQQ');
+        } else {
+          key = format(date, 'yyyy');
+        }
 
-      if (!acc[key]) {
-        acc[key] = {
-          value: 0,
-          date: formatISO(date, { representation: 'date' }),
-        };
-      }
-      acc[key].value += item.value;
-      return acc;
-    }, {} as Record<string, { value: number; date: string }>);
+        if (!acc[key]) {
+          acc[key] = {
+            value: 0,
+            date: formatISO(date, { representation: 'date' }),
+          };
+        }
+        acc[key].value += item.value;
+        return acc;
+      },
+      {} as Record<string, { value: number; date: string }>,
+    );
 
     const sortedChartData = Object.entries(aggregated)
       .map(([period, values]) => ({
@@ -127,6 +130,33 @@ export function DividendChart({
         value: values.value,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
+
+    if (aggPeriod === 'annual') {
+      const startYear = startDate.getFullYear();
+      const endYear = now.getFullYear();
+      const availableYears = sortedChartData.map((item) => Number(item.period));
+      const firstDataYear = availableYears.length
+        ? Math.min(...availableYears)
+        : startYear;
+      const displayStartYear = Math.max(startYear, firstDataYear);
+
+      return {
+        chartData: Array.from(
+          { length: endYear - displayStartYear + 1 },
+          (_, index) => {
+            const year = (displayStartYear + index).toString();
+            return {
+              period: year,
+              date: formatISO(new Date(Number(year), 0, 1), {
+                representation: 'date',
+              }),
+              value: aggregated[year]?.value ?? 0,
+            };
+          },
+        ),
+        aggregationPeriod: aggPeriod,
+      };
+    }
 
     return { chartData: sortedChartData, aggregationPeriod: aggPeriod };
   }, [data, timeRange]);
@@ -150,27 +180,25 @@ export function DividendChart({
         aggregationPeriod === 'monthly'
           ? format(parseISO(`${label}-01`), 'yyyy년 M월', { locale: ko })
           : aggregationPeriod === 'quarterly'
-          ? `${label.split('-')[0]}년 ${label.split('-')[1]}`
-          : `${label}년`;
+            ? `${label.split('-')[0]}년 ${label.split('-')[1]}`
+            : `${label}년`;
 
       return (
-        <div
-          className="glassmorphism-tooltip"
-        >
-          <p className="text-center font-bold text-base mb-2">
+        <div className='glassmorphism-tooltip'>
+          <p className='text-center font-bold text-base mb-2'>
             {formattedLabel}
           </p>
-          <hr className="border-border my-1" />
-          <div className="space-y-1 mt-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center">
+          <hr className='border-border my-1' />
+          <div className='space-y-1 mt-2'>
+            <div className='flex items-center justify-between text-sm'>
+              <div className='flex items-center'>
                 <div
-                  className="w-2.5 h-2.5 rounded-full mr-2"
+                  className='w-2.5 h-2.5 rounded-full mr-2'
                   style={{ backgroundColor: themeColor }}
                 />
                 <span>배당금</span>
               </div>
-              <span className="font-semibold ml-4">
+              <span className='font-semibold ml-4'>
                 {new Intl.NumberFormat('ko-KR', {
                   style: 'currency',
                   currency: currency.toUpperCase(),
@@ -178,7 +206,6 @@ export function DividendChart({
                 }).format(data.value)}
               </span>
             </div>
-
           </div>
         </div>
       );
@@ -187,43 +214,41 @@ export function DividendChart({
   };
 
   return (
-    <Card className="w-full glass-card">
+    <Card className='w-full glass-card'>
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Landmark style={{ color: themeColor }} className="h-5 w-5" />
+        <div className='flex items-start justify-between'>
+          <div className='flex flex-col gap-1'>
+            <CardTitle className='text-lg flex items-center gap-2'>
+              <Landmark style={{ color: themeColor }} className='h-5 w-5' />
               {title}
             </CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
           <Tabs
-            defaultValue="ytd"
+            defaultValue='ytd'
             value={timeRange}
             onValueChange={(value) => setTimeRange(value as TimeRange)}
-            style={
-              { '--active-tab-color': themeColor } as React.CSSProperties
-            }
+            style={{ '--active-tab-color': themeColor } as React.CSSProperties}
           >
-            <TabsList className="grid grid-cols-6">
-              <TabsTrigger value="ytd">YTD</TabsTrigger>
-              <TabsTrigger value="1y">1년</TabsTrigger>
-              <TabsTrigger value="3y">3년</TabsTrigger>
-              <TabsTrigger value="5y">5년</TabsTrigger>
-              <TabsTrigger value="10y">10년</TabsTrigger>
-              <TabsTrigger value="max">MAX</TabsTrigger>
+            <TabsList className='grid grid-cols-6'>
+              <TabsTrigger value='ytd'>YTD</TabsTrigger>
+              <TabsTrigger value='1y'>1년</TabsTrigger>
+              <TabsTrigger value='3y'>3년</TabsTrigger>
+              <TabsTrigger value='5y'>5년</TabsTrigger>
+              <TabsTrigger value='10y'>10년</TabsTrigger>
+              <TabsTrigger value='max'>MAX</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className='h-80'>
+          <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray='3 3' />
                 <XAxis
-                  dataKey="period"
+                  dataKey='period'
                   tickFormatter={formatPeriodLabel}
                   fontSize={12}
                   axisLine={false}
@@ -246,7 +271,7 @@ export function DividendChart({
                   cursor={{ fill: 'var(--dividends-hover-bg)' }}
                 />
                 <Bar
-                  dataKey="value"
+                  dataKey='value'
                   radius={[4, 4, 0, 0]}
                   style={
                     {
@@ -256,8 +281,8 @@ export function DividendChart({
                 />
               </BarChart>
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">
+              <div className='flex items-center justify-center h-full'>
+                <p className='text-muted-foreground'>
                   선택한 기간에 데이터가 없습니다.
                 </p>
               </div>
