@@ -5,15 +5,21 @@ import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
 import { TooltipContent } from '@/components/dashboard/tooltip-content';
 import { useDashboardStore } from '@/store/dashboard';
-import { useCurrencyStore, useTaxStore } from '@/store/options';
+import {
+  useChartLayoutStore,
+  useCurrencyStore,
+  useTaxStore,
+} from '@/store/options';
 import { formatCurrency } from '@/utils/format';
 import { ChartLine, Landmark } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Page() {
   const themeColor = 'var(--performance-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
+  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
   const showAfterTax = tax === 'post';
 
   const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
@@ -162,73 +168,80 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-4'>
-        <AssetChart
-          title='자산 추이'
-          themeColor={themeColor}
-          chartType='line'
-          fillBetween={['benchmarkWorst', 'benchmark']}
-          series={[
-            {
-              id: 'principal',
-              name: '원금',
-              color: '#888888',
-              data: dashboardData.charts.principal,
-            },
-            {
-              id: 'currentValue',
-              name: '평가금',
-              color: '#F44336',
-              data: dashboardData.charts.currentValue,
-            },
-            {
-              id: 'benchmark',
-              name: '벤치마크 (최상)',
-              color: '#FF9800',
-              data: dashboardData.charts.benchmark,
-            },
-            {
-              id: 'benchmarkWorst',
-              name: '벤치마크 (최악)',
-              color: '#FF5722',
-              data: dashboardData.charts.benchmarkWorst,
-            },
-          ]}
-        />
-      </div>
-      <div className='mt-4'>
-        <AssetChart
-          title='수익금 비교'
-          themeColor={themeColor}
-          chartType='line'
-          fillBetween={['benchmarkWorstProfit', 'benchmarkProfit']}
-          series={[
-            {
-              id: 'profit',
-              name: '수익금',
-              color: '#4CAF50',
-              data: dashboardData.charts.profit,
-            },
-            {
-              id: 'netProfit',
-              name: '세후 수익금',
-              color: '#673AB7',
-              data: dashboardData.charts.netProfit,
-            },
-            {
-              id: 'benchmarkProfit',
-              name: '벤치마크 수익금 (최상)',
-              color: '#03A9F4',
-              data: dashboardData.charts.benchmarkProfit,
-            },
-            {
-              id: 'benchmarkWorstProfit',
-              name: '벤치마크 수익금 (최악)',
-              color: '#00BCD4',
-              data: dashboardData.charts.benchmarkWorstProfit,
-            },
-          ]}
-        />
+      <div
+        className={cn(
+          'mt-4 grid gap-4',
+          chartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+        )}
+      >
+        <div>
+          <AssetChart
+            title='자산 추이'
+            themeColor={themeColor}
+            chartType='line'
+            fillBetween={['benchmarkWorst', 'benchmark']}
+            series={[
+              {
+                id: 'principal',
+                name: '원금',
+                color: '#888888',
+                data: dashboardData.charts.principal,
+              },
+              {
+                id: 'currentValue',
+                name: '평가금',
+                color: '#F44336',
+                data: dashboardData.charts.currentValue,
+              },
+              {
+                id: 'benchmark',
+                name: '벤치마크 (최상)',
+                color: '#FF9800',
+                data: dashboardData.charts.benchmark,
+              },
+              {
+                id: 'benchmarkWorst',
+                name: '벤치마크 (최악)',
+                color: '#FF5722',
+                data: dashboardData.charts.benchmarkWorst,
+              },
+            ]}
+          />
+        </div>
+        <div>
+          <AssetChart
+            title='수익금 비교'
+            themeColor={themeColor}
+            chartType='line'
+            fillBetween={['benchmarkWorstProfit', 'benchmarkProfit']}
+            series={[
+              {
+                id: 'profit',
+                name: '수익금',
+                color: '#4CAF50',
+                data: dashboardData.charts.profit,
+              },
+              {
+                id: 'netProfit',
+                name: '세후 수익금',
+                color: '#673AB7',
+                data: dashboardData.charts.netProfit,
+              },
+              {
+                id: 'benchmarkProfit',
+                name: '벤치마크 수익금 (최상)',
+                color: '#03A9F4',
+                data: dashboardData.charts.benchmarkProfit,
+              },
+              {
+                id: 'benchmarkWorstProfit',
+                name: '벤치마크 수익금 (최악)',
+                color: '#00BCD4',
+                data: dashboardData.charts.benchmarkWorstProfit,
+              },
+            ]}
+          />
+        </div>
       </div>
     </>
   );

@@ -3,7 +3,11 @@
 import { AssetChart, DividendChart } from '@/components/chart';
 import DashboardCard from '@/components/dashboard/dashboard-card';
 import { useDashboardStore } from '@/store/dashboard';
-import { useCurrencyStore, useTaxStore } from '@/store/options';
+import {
+  useChartLayoutStore,
+  useCurrencyStore,
+  useTaxStore,
+} from '@/store/options';
 import { formatCurrency } from '@/utils/format';
 import {
   CircleDollarSign,
@@ -12,12 +16,14 @@ import {
   TrendingUp,
   TrendingUpDown,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Page() {
   const themeColor = 'var(--dividends-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
+  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
   const showAfterTax = tax === 'post';
   const { dividends } = dashboardData;
 
@@ -97,7 +103,12 @@ export default function Page() {
           }
         />
       </div>
-      <div className='mt-8'>
+      <div
+        className={cn(
+          'mt-8 grid gap-4',
+          chartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+        )}
+      >
         <AssetChart
           themeColor={themeColor}
           series={[
@@ -116,8 +127,6 @@ export default function Page() {
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
         />
-      </div>
-      <div className='mt-8'>
         <AssetChart
           themeColor={themeColor}
           series={[
