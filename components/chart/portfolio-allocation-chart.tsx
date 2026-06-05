@@ -249,22 +249,26 @@ export function PortfolioAllocationChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const percentage = ((data.value / totalValue) * 100).toFixed(2);
+      
+      const index = pieChartData.findIndex((item) => item.name === data.name);
+      const isOthers = data.name === '기타';
+      const color = isOthers ? '#94a3b8' : COLORS[index % COLORS.length];
 
       return (
         <div className='glassmorphism-tooltip'>
-          <p className='font-bold text-base mb-1'>{data.name}</p>
+          <p className='font-bold text-base mb-1' style={{ color }}>{data.name}</p>
           <p className='text-xs text-muted-foreground mb-2'>{data.fullName}</p>
           <hr className='border-border my-1' />
           <div className='mt-2 space-y-1'>
             <div className='flex justify-between gap-4 text-sm'>
               <span>평가금액</span>
-              <span className='font-semibold'>
+              <span className='font-semibold' style={{ color }}>
                 {Math.round(data.value).toLocaleString()}
               </span>
             </div>
             <div className='flex justify-between gap-4 text-sm'>
               <span>비중</span>
-              <span className='font-semibold text-primary'>{percentage}%</span>
+              <span className='font-semibold' style={{ color }}>{percentage}%</span>
             </div>
           </div>
         </div>
@@ -274,7 +278,10 @@ export function PortfolioAllocationChart({
   };
 
   return (
-    <Card className='glass-card'>
+    <Card 
+      className='glass-card'
+      style={{ '--theme-hover': `color-mix(in srgb, ${themeColor} 15%, transparent)` } as React.CSSProperties}
+    >
       <CardHeader>
         <CardTitle className='text-lg flex items-center gap-2'>
           <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
@@ -355,7 +362,7 @@ export function PortfolioAllocationChart({
                   return (
                     <div
                       key={item.name}
-                      className='flex items-center justify-between text-sm group hover:bg-muted/50 p-2 rounded-lg transition-colors'
+                      className='flex items-center justify-between text-sm group hover:bg-[var(--theme-hover)] p-2 rounded-lg transition-colors cursor-pointer'
                     >
                       <div className='flex items-center gap-3'>
                         <div
