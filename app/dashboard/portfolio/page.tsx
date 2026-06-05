@@ -19,6 +19,9 @@ export default function Page() {
         />
       </div>
       <div className='mt-8'>
+        <h2 className='text-xl font-bold'>주식 현황</h2>
+      </div>
+      <div className='mt-4'>
         <HoldingsView
           stocks={dashboardData.stocks}
           themeColor='var(--portfolio-theme)'

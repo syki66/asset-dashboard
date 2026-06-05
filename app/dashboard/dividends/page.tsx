@@ -92,6 +92,9 @@ export default function Page() {
         />
       </div>
       <div className='mt-8'>
+        <h2 className='text-xl font-bold'>배당금 내역</h2>
+      </div>
+      <div className='mt-4'>
         <DividendChart
           themeColor={themeColor}
           data={
@@ -113,8 +116,21 @@ export default function Page() {
           variant='outline'
           size='sm'
           onClick={() => setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')}
-          className='flex items-center gap-2 hover:opacity-80 transition-opacity'
-          style={{ color: themeColor, borderColor: themeColor, backgroundColor: 'transparent' }}
+          className='flex items-center gap-2 hover:opacity-80 transition-all'
+          style={
+            chartLayout === 'expanded'
+              ? {
+                  color: themeColor,
+                  borderColor: themeColor,
+                  backgroundColor: 'var(--card)',
+                  backdropFilter: 'blur(1.25rem)',
+                }
+              : {
+                  color: '#fff',
+                  borderColor: themeColor,
+                  backgroundColor: themeColor,
+                }
+          }
         >
           {chartLayout === 'expanded' ? (
             <>

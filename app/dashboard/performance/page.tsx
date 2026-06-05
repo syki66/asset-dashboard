@@ -176,8 +176,21 @@ export default function Page() {
           variant='outline'
           size='sm'
           onClick={() => setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')}
-          className='flex items-center gap-2 hover:opacity-80 transition-opacity'
-          style={{ color: themeColor, borderColor: themeColor, backgroundColor: 'transparent' }}
+          className='flex items-center gap-2 hover:opacity-80 transition-all'
+          style={
+            chartLayout === 'expanded'
+              ? {
+                  color: themeColor,
+                  borderColor: themeColor,
+                  backgroundColor: 'var(--card)',
+                  backdropFilter: 'blur(1.25rem)',
+                }
+              : {
+                  color: '#fff',
+                  borderColor: themeColor,
+                  backgroundColor: themeColor,
+                }
+          }
         >
           {chartLayout === 'expanded' ? (
             <>
