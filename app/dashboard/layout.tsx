@@ -320,7 +320,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {/* Status Card */}
                 <div className='flex flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-md shadow-md p-4 text-sm shrink-0 min-w-[200px]'>
                   <div className='flex items-center gap-2'>
-                    <RefreshCw className='h-4 w-4 text-primary' />
+                    <RefreshCw
+                      className={cn(
+                        'h-4 w-4',
+                        activeTheme?.text ?? 'text-primary',
+                      )}
+                    />
                     <span className='font-medium text-foreground'>
                       파일 업데이트:
                     </span>
@@ -332,7 +337,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </span>
                   </div>
                   <div className='flex items-center gap-2'>
-                    <CalendarDays className='h-4 w-4 text-primary' />
+                    <CalendarDays
+                      className={cn(
+                        'h-4 w-4',
+                        activeTheme?.text ?? 'text-primary',
+                      )}
+                    />
                     <span className='font-medium text-foreground'>
                       계좌 조회:
                     </span>
