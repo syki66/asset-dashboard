@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Disclaimer } from '@/components/footer/disclaimer';
 import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import {
@@ -201,6 +201,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const activeTheme = categories.find((c) => c.id === activeCategory)?.theme;
   const pageBgClass = `page-bg-theme-${activeCategory}`;
   const textThemeClass = activeTheme?.text ?? 'theme-overview';
+  const activeTabStyle = {
+    '--active-tab-color': `var(--${activeCategory}-theme)`,
+  } as CSSProperties;
+  const activeBadgeStyle = {
+    backgroundColor: `var(--${activeCategory}-theme)`,
+  } as CSSProperties;
 
   return (
     <div className={cn('min-h-screen flex', pageBgClass)}>
@@ -227,7 +233,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       onValueChange={(v) => setTax(v as 'pre' | 'post')}
                       className='w-[92px]'
                     >
-                      <TabsList className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'>
+                      <TabsList
+                        style={activeTabStyle}
+                        className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                      >
                         <TabsTrigger
                           value='pre'
                           className='text-[11px] h-5 rounded-md p-0'
@@ -250,7 +259,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       }
                       className='w-[80px]'
                     >
-                      <TabsList className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'>
+                      <TabsList
+                        style={activeTabStyle}
+                        className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                      >
                         <TabsTrigger
                           value='expanded'
                           className='text-[10px] h-5 rounded-md p-0'
@@ -275,7 +287,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       onValueChange={(v) => setCurrency(v as 'krw' | 'usd')}
                       className='w-[92px] shrink-0'
                     >
-                      <TabsList className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'>
+                      <TabsList
+                        style={activeTabStyle}
+                        className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                      >
                         <TabsTrigger
                           value='krw'
                           className='text-[11px] h-5 rounded-md font-semibold p-0'
@@ -291,8 +306,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       </TabsList>
                     </Tabs>
 
-                    <div className='flex-1 flex justify-center text-xs text-muted-foreground font-semibold'>
-                      <span>{dashboardData.fxRate.toLocaleString()}원</span>
+                    <div className='flex-1 flex justify-center'>
+                      <span
+                        style={activeBadgeStyle}
+                        className='rounded-full px-2 py-1 text-xs font-semibold text-white'
+                      >
+                        {dashboardData.fxRate.toLocaleString()}원
+                      </span>
                     </div>
                   </div>
                 </div>
