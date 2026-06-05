@@ -69,21 +69,23 @@ export default function Page() {
         />
 
         <DashboardOverviewCard
-          title='배당금 (최근 1년)'
+          title={isPostTax ? '세후 배당금 (최근 1년)' : '배당금 (최근 1년)'}
           icon={DollarSign}
           themeColor={themeColor}
           contentItems={[
             {
-              label: '배당금',
+              label: isPostTax ? '세후 배당금' : '배당금',
               value: formatCurrency(
-                dashboardData.dividends.annualDividends,
+                isPostTax
+                  ? dashboardData.dividends.netAnnualDividends
+                  : dashboardData.dividends.annualDividends,
                 currency,
               ),
               valueClassName: 'text-yellow-600',
             },
             {
-              label: '배당률',
-              value: `${dashboardData.dividends.dividendYield}%`,
+              label: isPostTax ? '세후 배당률' : '배당률',
+              value: `${isPostTax ? dashboardData.dividends.netDividendYield : dashboardData.dividends.dividendYield}%`,
             },
           ]}
         />
