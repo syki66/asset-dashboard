@@ -25,6 +25,7 @@ interface PortfolioAllocationChartProps {
   themeColor?: string;
   title?: string;
   description?: string;
+  isCompact?: boolean;
 }
 
 const COLORS = [
@@ -49,6 +50,7 @@ export function PortfolioAllocationChart({
   themeColor = 'var(--portfolio-theme)',
   title = '포트폴리오 비중',
   description = '보유 종목 및 현금 자산 배분 현황입니다.',
+  isCompact = false,
 }: PortfolioAllocationChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -281,7 +283,7 @@ export function PortfolioAllocationChart({
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div className='flex flex-col md:flex-row gap-8 h-[500px]'>
+        <div className={`flex flex-col md:flex-row gap-8 ${isCompact ? 'h-[350px]' : 'h-[500px]'}`}>
           <div className='flex-1 min-h-[300px]'>
             <ResponsiveContainer width='100%' height='100%'>
               <PieChart>
@@ -314,6 +316,7 @@ export function PortfolioAllocationChart({
                   verticalAlign='bottom'
                   height={36}
                   payload={legendPayload}
+                  wrapperStyle={{ paddingTop: isCompact ? '40px' : '0' }}
                   formatter={(value, entry: any) => {
                     const payload = entry.payload; // This is the 'payload' property I set in 'topItems'
                     const percentage = (
@@ -331,62 +334,64 @@ export function PortfolioAllocationChart({
             </ResponsiveContainer>
           </div>
 
-          <div className='flex-1 overflow-y-auto pr-2 custom-scrollbar'>
-            <div className='space-y-4'>
-              {chartData.map((item, index) => {
-                const percentage = ((item.value / totalValue) * 100).toFixed(2);
+          {!isCompact && (
+            <div className='flex-1 overflow-y-auto pr-2 custom-scrollbar'>
+              <div className='space-y-4'>
+                {chartData.map((item, index) => {
+                  const percentage = ((item.value / totalValue) * 100).toFixed(2);
 
-                // Determine color
-                const threshold = totalValue * 0.005;
-                const isLarge = item.value >= threshold;
-                let color = '#94a3b8'; // Default gray for 'Others'
+                  // Determine color
+                  const threshold = totalValue * 0.005;
+                  const isLarge = item.value >= threshold;
+                  let color = '#94a3b8'; // Default gray for 'Others'
 
-                if (isLarge) {
-                  // Find index in pieChartData (excluding 'Others')
-                  // Since pieChartData starts with largeItems sorted same as chartData,
-                  // the index in chartData is the same as in pieChartData for large items.
-                  color = COLORS[index % COLORS.length];
-                }
+                  if (isLarge) {
+                    // Find index in pieChartData (excluding 'Others')
+                    // Since pieChartData starts with largeItems sorted same as chartData,
+                    // the index in chartData is the same as in pieChartData for large items.
+                    color = COLORS[index % COLORS.length];
+                  }
 
-                return (
-                  <div
-                    key={item.name}
-                    className='flex items-center justify-between text-sm group hover:bg-muted/50 p-2 rounded-lg transition-colors'
-                  >
-                    <div className='flex items-center gap-3'>
-                      <div
-                        className='w-2 h-8 rounded-full shrink-0'
-                        style={{ backgroundColor: color }}
-                      />
-                      <span className='font-mono text-muted-foreground w-6 text-right'>
-                        {index + 1}
-                      </span>
-                      <div>
-                        <p className='font-semibold'>{item.name}</p>
-                        <p
-                          className='text-xs text-muted-foreground truncate max-w-[120px]'
-                          title={item.fullName}
-                        >
-                          {item.fullName}
+                  return (
+                    <div
+                      key={item.name}
+                      className='flex items-center justify-between text-sm group hover:bg-muted/50 p-2 rounded-lg transition-colors'
+                    >
+                      <div className='flex items-center gap-3'>
+                        <div
+                          className='w-2 h-8 rounded-full shrink-0'
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className='font-mono text-muted-foreground w-6 text-right'>
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className='font-semibold'>{item.name}</p>
+                          <p
+                            className='text-xs text-muted-foreground truncate max-w-[120px]'
+                            title={item.fullName}
+                          >
+                            {item.fullName}
+                          </p>
+                        </div>
+                      </div>
+                      <div className='text-right'>
+                        <p className='font-bold tabular-nums'>
+                          {Math.round(item.value).toLocaleString()}
+                          <span className='text-xs font-normal text-muted-foreground ml-1'>
+                            KRW
+                          </span>
+                        </p>
+                        <p className='text-xs text-muted-foreground tabular-nums'>
+                          {percentage}%
                         </p>
                       </div>
                     </div>
-                    <div className='text-right'>
-                      <p className='font-bold tabular-nums'>
-                        {Math.round(item.value).toLocaleString()}
-                        <span className='text-xs font-normal text-muted-foreground ml-1'>
-                          KRW
-                        </span>
-                      </p>
-                      <p className='text-xs text-muted-foreground tabular-nums'>
-                        {percentage}%
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>

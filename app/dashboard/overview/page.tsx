@@ -1,17 +1,20 @@
 'use client';
 
-import { AssetChart } from '@/components/chart';
+import { AssetChart, PortfolioAllocationChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
-import { DollarSign, Trophy, TrendingUp, PiggyBank } from 'lucide-react';
+import { DollarSign, Trophy, TrendingUp, PiggyBank, Maximize2, Minimize2 } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
-import { useCurrencyStore, useTaxStore } from '@/store/options';
+import { useChartLayoutStore, useCurrencyStore, useTaxStore } from '@/store/options';
 import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
+import { Button } from '@/components/ui/button';
 
 export default function Page() {
   const themeColor = 'var(--overview-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
+  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
+  const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
 
   const isPostTax = tax === 'post';
   const currentValue = isPostTax
@@ -105,7 +108,33 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-4'>
+      <div className='mt-8 flex items-center justify-between'>
+        <h2 className='text-xl font-bold'>포트폴리오 요약</h2>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={() => setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')}
+          className='flex items-center gap-2 hover:opacity-80 transition-opacity'
+          style={{ color: themeColor, borderColor: themeColor, backgroundColor: 'transparent' }}
+        >
+          {chartLayout === 'expanded' ? (
+            <>
+              <Minimize2 className='w-4 h-4' />
+              모아보기
+            </>
+          ) : (
+            <>
+              <Maximize2 className='w-4 h-4' />
+              펼쳐보기
+            </>
+          )}
+        </Button>
+      </div>
+      <div
+        className={`mt-4 grid gap-4 ${
+          chartLayout === 'expanded' ? 'grid-cols-1' : 'lg:grid-cols-2'
+        }`}
+      >
         <AssetChart
           themeColor={themeColor}
           chartType='line'
@@ -129,8 +158,14 @@ export default function Page() {
               data: dashboardData.charts.benchmark,
             },
           ]}
-          title='자산 포트폴리오 차트'
-          description='자산 클래스별 포트폴리오 변화 추이'
+          title='자산 추이'
+          description='자산 클래스별 변화 추이'
+        />
+        <PortfolioAllocationChart
+          stocks={dashboardData.stocks}
+          cash={dashboardData.cash.total}
+          themeColor={themeColor}
+          isCompact={chartLayout === 'compact'}
         />
       </div>
     </>

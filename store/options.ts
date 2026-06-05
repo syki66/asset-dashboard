@@ -40,6 +40,6 @@ interface ChartLayoutState {
 }
 
 export const useChartLayoutStore = create<ChartLayoutState>((set) => ({
-  chartLayout: 'expanded',
+  chartLayout: 'compact',
   setChartLayout: (chartLayout) => set({ chartLayout }),
 }));

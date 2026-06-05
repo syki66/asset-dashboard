@@ -11,8 +11,9 @@ import {
   useTaxStore,
 } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
-import { ChartLine, Landmark } from 'lucide-react';
+import { ChartLine, Landmark, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export default function Page() {
   const themeColor = 'var(--performance-theme)';
@@ -20,6 +21,7 @@ export default function Page() {
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
   const chartLayout = useChartLayoutStore((state) => state.chartLayout);
+  const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
   const showAfterTax = tax === 'post';
 
   const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
@@ -167,6 +169,28 @@ export default function Page() {
             },
           ]}
         />
+      </div>
+      <div className='mt-8 flex items-center justify-between'>
+        <h2 className='text-xl font-bold'>상세 차트</h2>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={() => setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')}
+          className='flex items-center gap-2 hover:opacity-80 transition-opacity'
+          style={{ color: themeColor, borderColor: themeColor, backgroundColor: 'transparent' }}
+        >
+          {chartLayout === 'expanded' ? (
+            <>
+              <Minimize2 className='w-4 h-4' />
+              모아보기
+            </>
+          ) : (
+            <>
+              <Maximize2 className='w-4 h-4' />
+              펼쳐보기
+            </>
+          )}
+        </Button>
       </div>
       <div
         className={cn(

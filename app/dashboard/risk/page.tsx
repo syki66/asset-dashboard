@@ -58,7 +58,10 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='grid gap-4 mt-8'>
+      <div className='mt-8'>
+        <h2 className='text-xl font-bold'>상세 차트</h2>
+      </div>
+      <div className='grid gap-4 mt-4'>
         <AssetChart
           themeColor={themeColor}
           chartType='area'
