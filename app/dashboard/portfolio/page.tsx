@@ -14,7 +14,7 @@ export default function Page() {
       <div>
         <PortfolioAllocationChart
           stocks={dashboardData.stocks}
-          // cash={dashboardData.cash.total}
+          cash={dashboardData.cash.total}
           themeColor='var(--portfolio-theme)'
         />
       </div>

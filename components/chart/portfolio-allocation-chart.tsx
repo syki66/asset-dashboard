@@ -51,9 +51,11 @@ export function PortfolioAllocationChart({
   description = '보유 종목 및 현금 자산 배분 현황입니다.',
 }: PortfolioAllocationChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchAndProcessData = async () => {
+      setIsLoading(true);
       const stockMap = new Map<string, { value: number; fullName: string }>();
 
       for (const stock of stocks) {
@@ -72,7 +74,7 @@ export function PortfolioAllocationChart({
             if (response.ok) {
               const holdings = await response.json();
               // holdings: { ticker, name, weight }[]
-              
+
               holdings.forEach((holding: any) => {
                 const holdingValue = stockValue * (holding.weight / 100);
                 const existing = stockMap.get(holding.ticker);
@@ -91,7 +93,10 @@ export function PortfolioAllocationChart({
               continue; // Skip adding the ETF itself
             }
           } catch (error) {
-            console.error(`Failed to fetch holdings for ${stock.symbol}`, error);
+            console.error(
+              `Failed to fetch holdings for ${stock.symbol}`,
+              error,
+            );
           }
         }
 
@@ -115,7 +120,7 @@ export function PortfolioAllocationChart({
           name: ticker,
           value: data.value,
           fullName: data.fullName,
-        })
+        }),
       );
 
       const cashItem = {
@@ -132,7 +137,13 @@ export function PortfolioAllocationChart({
       setChartData(combinedData.sort((a, b) => b.value - a.value));
     };
 
-    fetchAndProcessData();
+    fetchAndProcessData()
+      .catch((error) => {
+        console.error('Portfolio allocation fetch failed', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [stocks, cash]);
 
   const totalValue = useMemo(() => {
@@ -141,19 +152,19 @@ export function PortfolioAllocationChart({
 
   const pieChartData = useMemo(() => {
     if (totalValue === 0) return [];
-    
+
     const threshold = totalValue * 0.004;
-    const largeItems = chartData.filter(item => item.value >= threshold);
-    const smallItems = chartData.filter(item => item.value < threshold);
-    
+    const largeItems = chartData.filter((item) => item.value >= threshold);
+    const smallItems = chartData.filter((item) => item.value < threshold);
+
     if (smallItems.length > 0) {
       const othersValue = smallItems.reduce((acc, curr) => acc + curr.value, 0);
       return [
         ...largeItems,
-        { name: '기타', value: othersValue, fullName: '기타 종목 (0.4% 미만)' }
+        { name: '기타', value: othersValue, fullName: '기타 종목 (0.4% 미만)' },
       ];
     }
-    
+
     return largeItems;
   }, [chartData, totalValue]);
 
@@ -170,13 +181,16 @@ export function PortfolioAllocationChart({
 
     if (pieChartData.length > 7) {
       const remainingItems = pieChartData.slice(7);
-      const othersValue = remainingItems.reduce((acc, curr) => acc + curr.value, 0);
+      const othersValue = remainingItems.reduce(
+        (acc, curr) => acc + curr.value,
+        0,
+      );
       const othersEntry = {
         name: '기타',
         value: othersValue,
-        fullName: '기타 및 하위 종목'
+        fullName: '기타 및 하위 종목',
       };
-      
+
       topItems.push({
         value: '기타',
         type: 'square',
@@ -189,18 +203,41 @@ export function PortfolioAllocationChart({
     return topItems;
   }, [pieChartData]);
 
-  if (chartData.length === 0) {
+  if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className='glass-card'>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <PieChartIcon style={{ color: themeColor }} className="h-5 w-5" />
+          <CardTitle className='text-lg flex items-center gap-2'>
+            <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
             {title}
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent className="h-80 flex items-center justify-center">
-          <p className="text-muted-foreground">보유 주식이 없습니다.</p>
+        <CardContent className='h-80 flex flex-col items-center justify-center gap-3'>
+          <div
+            className='h-10 w-10 rounded-full border-4 border-t-transparent animate-spin'
+            style={{ borderColor: themeColor, borderTopColor: 'transparent' }}
+          />
+          <p className='text-sm' style={{ color: themeColor }}>
+            데이터를 불러오는 중입니다...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <Card className='glass-card'>
+        <CardHeader>
+          <CardTitle className='text-lg flex items-center gap-2'>
+            <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
+            {title}
+          </CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+        <CardContent className='h-80 flex items-center justify-center'>
+          <p className='text-muted-foreground'>보유 주식이 없습니다.</p>
         </CardContent>
       </Card>
     );
@@ -212,20 +249,20 @@ export function PortfolioAllocationChart({
       const percentage = ((data.value / totalValue) * 100).toFixed(2);
 
       return (
-        <div className="glassmorphism-tooltip">
-          <p className="font-bold text-base mb-1">{data.name}</p>
-          <p className="text-xs text-muted-foreground mb-2">{data.fullName}</p>
-          <hr className="border-border my-1" />
-          <div className="mt-2 space-y-1">
-            <div className="flex justify-between gap-4 text-sm">
+        <div className='glassmorphism-tooltip'>
+          <p className='font-bold text-base mb-1'>{data.name}</p>
+          <p className='text-xs text-muted-foreground mb-2'>{data.fullName}</p>
+          <hr className='border-border my-1' />
+          <div className='mt-2 space-y-1'>
+            <div className='flex justify-between gap-4 text-sm'>
               <span>평가금액</span>
-              <span className="font-semibold">
+              <span className='font-semibold'>
                 {Math.round(data.value).toLocaleString()}
               </span>
             </div>
-            <div className="flex justify-between gap-4 text-sm">
+            <div className='flex justify-between gap-4 text-sm'>
               <span>비중</span>
-              <span className="font-semibold text-primary">{percentage}%</span>
+              <span className='font-semibold text-primary'>{percentage}%</span>
             </div>
           </div>
         </div>
@@ -235,27 +272,27 @@ export function PortfolioAllocationChart({
   };
 
   return (
-    <Card className="glass-card">
+    <Card className='glass-card'>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <PieChartIcon style={{ color: themeColor }} className="h-5 w-5" />
+        <CardTitle className='text-lg flex items-center gap-2'>
+          <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
           {title}
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-8 h-[500px]">
-          <div className="flex-1 min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className='flex flex-col md:flex-row gap-8 h-[500px]'>
+          <div className='flex-1 min-h-[300px]'>
+            <ResponsiveContainer width='100%' height='100%'>
               <PieChart>
                 <Pie
                   data={pieChartData}
-                  cx="50%"
-                  cy="50%"
+                  cx='50%'
+                  cy='50%'
                   innerRadius={0}
                   outerRadius={150}
                   paddingAngle={0}
-                  dataKey="value"
+                  dataKey='value'
                   animationBegin={0}
                   animationDuration={1500}
                 >
@@ -264,24 +301,27 @@ export function PortfolioAllocationChart({
                     return (
                       <Cell
                         key={`cell-${index}`}
-                        fill={isOthers ? '#94a3b8' : COLORS[index % COLORS.length]}
-                        stroke="rgba(255,255,255,0.1)"
+                        fill={
+                          isOthers ? '#94a3b8' : COLORS[index % COLORS.length]
+                        }
+                        stroke='rgba(255,255,255,0.1)'
                       />
                     );
                   })}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
-                  verticalAlign="bottom"
+                  verticalAlign='bottom'
                   height={36}
                   payload={legendPayload}
                   formatter={(value, entry: any) => {
                     const payload = entry.payload; // This is the 'payload' property I set in 'topItems'
-                    const percentage = ((payload.value / totalValue) * 100).toFixed(
-                      1,
-                    );
+                    const percentage = (
+                      (payload.value / totalValue) *
+                      100
+                    ).toFixed(1);
                     return (
-                      <span className="text-xs font-medium mr-2">
+                      <span className='text-xs font-medium mr-2'>
                         {value} ({percentage}%)
                       </span>
                     );
@@ -290,45 +330,55 @@ export function PortfolioAllocationChart({
               </PieChart>
             </ResponsiveContainer>
           </div>
-          
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="space-y-4">
+
+          <div className='flex-1 overflow-y-auto pr-2 custom-scrollbar'>
+            <div className='space-y-4'>
               {chartData.map((item, index) => {
                 const percentage = ((item.value / totalValue) * 100).toFixed(2);
-                
+
                 // Determine color
                 const threshold = totalValue * 0.005;
                 const isLarge = item.value >= threshold;
                 let color = '#94a3b8'; // Default gray for 'Others'
-                
+
                 if (isLarge) {
-                   // Find index in pieChartData (excluding 'Others')
-                   // Since pieChartData starts with largeItems sorted same as chartData,
-                   // the index in chartData is the same as in pieChartData for large items.
-                   color = COLORS[index % COLORS.length];
+                  // Find index in pieChartData (excluding 'Others')
+                  // Since pieChartData starts with largeItems sorted same as chartData,
+                  // the index in chartData is the same as in pieChartData for large items.
+                  color = COLORS[index % COLORS.length];
                 }
 
                 return (
-                  <div key={item.name} className="flex items-center justify-between text-sm group hover:bg-muted/50 p-2 rounded-lg transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-2 h-8 rounded-full shrink-0" 
+                  <div
+                    key={item.name}
+                    className='flex items-center justify-between text-sm group hover:bg-muted/50 p-2 rounded-lg transition-colors'
+                  >
+                    <div className='flex items-center gap-3'>
+                      <div
+                        className='w-2 h-8 rounded-full shrink-0'
                         style={{ backgroundColor: color }}
                       />
-                      <span className="font-mono text-muted-foreground w-6 text-right">{index + 1}</span>
+                      <span className='font-mono text-muted-foreground w-6 text-right'>
+                        {index + 1}
+                      </span>
                       <div>
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-xs text-muted-foreground truncate max-w-[120px]" title={item.fullName}>
+                        <p className='font-semibold'>{item.name}</p>
+                        <p
+                          className='text-xs text-muted-foreground truncate max-w-[120px]'
+                          title={item.fullName}
+                        >
                           {item.fullName}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold tabular-nums">
+                    <div className='text-right'>
+                      <p className='font-bold tabular-nums'>
                         {Math.round(item.value).toLocaleString()}
-                        <span className="text-xs font-normal text-muted-foreground ml-1">KRW</span>
+                        <span className='text-xs font-normal text-muted-foreground ml-1'>
+                          KRW
+                        </span>
                       </p>
-                      <p className="text-xs text-muted-foreground tabular-nums">
+                      <p className='text-xs text-muted-foreground tabular-nums'>
                         {percentage}%
                       </p>
                     </div>
