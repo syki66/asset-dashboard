@@ -150,18 +150,18 @@ export const createShsecTransactions = (json: any[]) => {
 
     // 해외주식 매수, 매도 데이터 대입
     const isUsStockBuy = ['해외증권_해외주식매수'].some(
-      (keyword) => item['구분'] === keyword
+      (keyword) => item['구분'] === keyword,
     );
     const isUsStockSell = ['해외증권_해외주식매도'].some(
-      (keyword) => item['구분'] === keyword
+      (keyword) => item['구분'] === keyword,
     );
 
     // 국내주식 매수, 매도 데이터 대입
     const isKrStockBuy = ['장내_매수', '공모주입고'].some(
-      (keyword) => item['구분'] === keyword
+      (keyword) => item['구분'] === keyword,
     );
     const isKrStockSell = ['장내_매도', '코스닥_매도'].some(
-      (keyword) => item['구분'] === keyword
+      (keyword) => item['구분'] === keyword,
     );
 
     // 배당금 데이터 대입
@@ -212,6 +212,8 @@ export const createShsecTransactions = (json: any[]) => {
       case isDividend:
         _itemData.type = 'dividend';
         _itemData.currency = item['구분'] === '해외배당금' ? 'usd' : 'krw';
+        _itemData.dividendSource =
+          item['구분'] === '해외배당금' ? 'foreign' : 'domestic';
         _itemData.quantity = 1;
         _itemData.price =
           item['구분'] === '배당금' || item['구분'] === '해외배당금'
@@ -228,6 +230,7 @@ export const createShsecTransactions = (json: any[]) => {
     if (item['구분'] === '외화RP매도입금') {
       _itemData.type = 'dividend';
       _itemData.currency = 'usd';
+      _itemData.dividendSource = 'domestic';
       _itemData.quantity = 1;
       _itemData.price = Number(item['거래대금']) - _usdRpTotalPreTax;
     }

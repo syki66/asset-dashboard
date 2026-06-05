@@ -33,6 +33,8 @@ import {
   KR_BROKER_FEE_RATE,
   KR_REGULATORY_FEE_RATE,
   KR_TRANSFER_TAX_RATE,
+  US_DIVIDEND_TAX_RATE,
+  KR_DIVIDEND_TAX_RATE,
   EXCHANGE_SPREAD_RATE,
   EXCHANGE_FEE_RATE,
 } from '@/constants/keywords';
@@ -51,13 +53,21 @@ export const convertToDashboardData = (
   const netProfitChartData: ChartProps[] = [];
   const drawdownChartData: ChartProps[] = [];
   let dividendHistoryChartData: ChartProps[] = [];
+  let dividendHistoryChartDataNet: ChartProps[] = [];
   const yieldOnCostChartData: ChartProps[] = [];
+  const yieldOnCostChartDataNet: ChartProps[] = [];
   const dividendYieldChartData: ChartProps[] = [];
+  const dividendYieldChartDataNet: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
   const benchmarkWorstChartData: ChartProps[] = [];
   const benchmarkWorstProfitChartData: ChartProps[] = [];
   let stockTradeHistoryChartData: StockTradeHistoryChartProps[] = [];
+
+  const getDividendTaxRate = (
+    dividendSource: 'domestic' | 'foreign' | undefined,
+  ) =>
+    dividendSource === 'foreign' ? US_DIVIDEND_TAX_RATE : KR_DIVIDEND_TAX_RATE;
 
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
@@ -252,6 +262,19 @@ export const convertToDashboardData = (
         0,
       );
 
+    const netDividendsKrw = account.krw.dividends
+      .filter((dividend) => {
+        const dividendDate = new Date(dividend.date);
+        return dividendDate >= oneYearAgo;
+      })
+      .reduce((acc, dividend) => {
+        const taxRate = getDividendTaxRate(dividend.dividendSource);
+        const netPrice = dividend.price * (1 - taxRate);
+        return currency === 'usd'
+          ? acc + netPrice / dividend.fxRate
+          : acc + netPrice;
+      }, 0);
+
     const dividendsUsd = account.usd.dividends
       .filter((dividend) => {
         const dividendDate = new Date(dividend.date);
@@ -265,7 +288,21 @@ export const convertToDashboardData = (
         0,
       );
 
+    const netDividendsUsd = account.usd.dividends
+      .filter((dividend) => {
+        const dividendDate = new Date(dividend.date);
+        return dividendDate >= oneYearAgo;
+      })
+      .reduce((acc, dividend) => {
+        const taxRate = getDividendTaxRate(dividend.dividendSource);
+        const netPrice = dividend.price * (1 - taxRate);
+        return currency === 'usd'
+          ? acc + netPrice
+          : acc + netPrice * dividend.fxRate;
+      }, 0);
+
     const annualDividends = dividendsUsd + dividendsKrw; // 위에서 이미 환전처리 되어있음
+    const netAnnualDividends = netDividendsUsd + netDividendsKrw; // 위에서 이미 환전처리 되어있음
 
     // 배당금 (전체기간)
     const totalDividendsKrw = account.krw.dividends.reduce(
@@ -275,6 +312,16 @@ export const convertToDashboardData = (
           : acc + dividend.price,
       0,
     );
+    const netTotalDividendsKrw = account.krw.dividends.reduce(
+      (acc, dividend) => {
+        const taxRate = getDividendTaxRate(dividend.dividendSource);
+        const netPrice = dividend.price * (1 - taxRate);
+        return currency === 'usd'
+          ? acc + netPrice / dividend.fxRate
+          : acc + netPrice;
+      },
+      0,
+    );
     const totalDividendsUsd = account.usd.dividends.reduce(
       (acc, dividend) =>
         currency === 'usd'
@@ -282,16 +329,33 @@ export const convertToDashboardData = (
           : acc + dividend.price * dividend.fxRate,
       0,
     );
+    const netTotalDividendsUsd = account.usd.dividends.reduce(
+      (acc, dividend) => {
+        const taxRate = getDividendTaxRate(dividend.dividendSource);
+        const netPrice = dividend.price * (1 - taxRate);
+        return currency === 'usd'
+          ? acc + netPrice
+          : acc + netPrice * dividend.fxRate;
+      },
+      0,
+    );
     const totalDividends = totalDividendsUsd + totalDividendsKrw;
+    const netTotalDividends = netTotalDividendsUsd + netTotalDividendsKrw;
 
     // 원금대비배당률
     const yieldOnCost = Number(
       ((annualDividends / principal) * 100).toFixed(2),
     );
+    const netYieldOnCost = Number(
+      ((netAnnualDividends / principal) * 100).toFixed(2),
+    );
 
     // 평가금대비배당률
     const dividendYield = Number(
       ((annualDividends / currentValue) * 100).toFixed(2),
+    );
+    const netDividendYield = Number(
+      ((netAnnualDividends / currentValue) * 100).toFixed(2),
     );
 
     // MDD 금액 기준으로 계산 (자산 총 수익금을 기반으로 하면 현금량 추적이 불가능 하여 오차가 많이 생겨, 단순히 주식 수익금 기반으로 현재 환율로 계산함. 따라서 실제 손해와 변동폭이 꽤 많이 차이날 수 있음)
@@ -480,38 +544,72 @@ export const convertToDashboardData = (
 
     // 배당금 기록 차트 데이터
     const krwDividends = account.usd.dividends.map((dividend) => {
+      const taxRate = getDividendTaxRate(dividend.dividendSource);
+      const netPrice = dividend.price * (1 - taxRate);
       return {
         date: dividend.date,
         value:
           currency === 'usd'
             ? dividend.price
             : dividend.price * dividend.fxRate,
+        netValue: currency === 'usd' ? netPrice : netPrice * dividend.fxRate,
       };
     });
 
     const usdDividends = account.krw.dividends.map((dividend) => {
+      const taxRate = getDividendTaxRate(dividend.dividendSource);
+      const netPrice = dividend.price * (1 - taxRate);
       return {
         date: dividend.date,
         value:
           currency === 'usd'
             ? dividend.price / dividend.fxRate
             : dividend.price,
+        netValue: currency === 'usd' ? netPrice / dividend.fxRate : netPrice,
       };
     });
 
-    dividendHistoryChartData = [...krwDividends, ...usdDividends];
-    dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
+    dividendHistoryChartData = [
+      ...krwDividends.map((dividend) => ({
+        date: dividend.date,
+        value: dividend.value,
+      })),
+      ...usdDividends.map((dividend) => ({
+        date: dividend.date,
+        value: dividend.value,
+      })),
+    ];
+    dividendHistoryChartDataNet = [
+      ...krwDividends.map((dividend) => ({
+        date: dividend.date,
+        value: dividend.netValue,
+      })),
+      ...usdDividends.map((dividend) => ({
+        date: dividend.date,
+        value: dividend.netValue,
+      })),
+    ];
+    dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date));
+    dividendHistoryChartDataNet.sort((a, b) => a.date.localeCompare(b.date));
 
     // Yield on Cost 차트 데이터
     yieldOnCostChartData.push({
       date: account.date,
       value: yieldOnCost,
     });
+    yieldOnCostChartDataNet.push({
+      date: account.date,
+      value: netYieldOnCost,
+    });
 
     // 배당금 수익률 차트 데이터
     dividendYieldChartData.push({
       date: account.date,
       value: dividendYield,
+    });
+    dividendYieldChartDataNet.push({
+      date: account.date,
+      value: netDividendYield,
     });
 
     // 벤치마크 차트 데이터
@@ -604,9 +702,13 @@ export const convertToDashboardData = (
       },
       dividends: {
         annualDividends,
+        netAnnualDividends,
         totalDividends,
+        netTotalDividends,
         dividendYield,
+        netDividendYield,
         yieldOnCost,
+        netYieldOnCost,
       },
       cash: {
         total: cashValue,
@@ -663,8 +765,11 @@ export const convertToDashboardData = (
         netProfit: netProfitChartData,
         drawdown: drawdownChartData,
         dividendHistory: dividendHistoryChartData,
+        dividendHistoryNet: dividendHistoryChartDataNet,
         yieldOnCost: yieldOnCostChartData,
+        yieldOnCostNet: yieldOnCostChartDataNet,
         dividendYield: dividendYieldChartData,
+        dividendYieldNet: dividendYieldChartDataNet,
         benchmark: benchmarkChartData,
         benchmarkProfit: benchmarkProfitChartData,
         benchmarkWorst: benchmarkWorstChartData,

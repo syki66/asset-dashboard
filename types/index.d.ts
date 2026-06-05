@@ -7,6 +7,7 @@ export type TransactionProps = {
   price: number;
   krwCash: number;
   usdCash: number;
+  dividendSource?: 'domestic' | 'foreign';
 };
 
 export type AccountProps = {
@@ -34,6 +35,7 @@ export type DividendProps = {
   date: string;
   price: number;
   fxRate: number;
+  dividendSource?: 'domestic' | 'foreign';
 };
 
 export type StockProps = {
@@ -95,9 +97,13 @@ export type DashboardProps = {
   };
   dividends: {
     annualDividends: number; // 배당금 (최근 1년)
+    netAnnualDividends: number; // 순배당금 (최근 1년)
     totalDividends: number; // 배당금 (누적)
+    netTotalDividends: number; // 순배당금 (누적)
     dividendYield: number; // 평가금 대비 배당수익률 (최근 1년)
+    netDividendYield: number; // 순배당률 (최근 1년)
     yieldOnCost: number; // 원가 대비 배당수익률 (최근 1년)
+    netYieldOnCost: number; // 순원가 대비 배당수익률 (최근 1년)
   };
   cash: {
     total: number; // 현금 (원화 + 달러)
@@ -154,8 +160,11 @@ export type DashboardProps = {
     netProfit: ChartProps[]; // 세후 수익금 차트
     drawdown: ChartProps[]; // 낙폭 차트
     dividendHistory: ChartProps[]; // 배당금 차트
+    dividendHistoryNet: ChartProps[]; // 세후 배당금 차트
     dividendYield: ChartProps[]; // 평가금 대비 배당수익률 차트
+    dividendYieldNet: ChartProps[]; // 세후 평가금 대비 배당수익률 차트
     yieldOnCost: ChartProps[]; // 원가 대비 배당수익률 차트
+    yieldOnCostNet: ChartProps[]; // 세후 원가 대비 배당수익률 차트
     benchmark: ChartProps[]; // 벤치마크 평가금 차트
     benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
     benchmarkWorst: ChartProps[]; // 최악의 벤치마크 평가금 차트

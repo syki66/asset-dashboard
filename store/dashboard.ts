@@ -19,9 +19,13 @@ export const initialDashboardData: DashboardProps = {
   },
   dividends: {
     annualDividends: 0,
+    netAnnualDividends: 0,
     totalDividends: 0,
+    netTotalDividends: 0,
     dividendYield: 0,
+    netDividendYield: 0,
     yieldOnCost: 0,
+    netYieldOnCost: 0,
   },
   cash: {
     total: 0,
@@ -108,13 +112,31 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
+    dividendHistoryNet: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     dividendYield: [
       {
         date: '1970-01-01',
         value: 0,
       },
     ],
+    dividendYieldNet: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     yieldOnCost: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    yieldOnCostNet: [
       {
         date: '1970-01-01',
         value: 0,
