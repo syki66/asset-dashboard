@@ -323,4 +323,13 @@
     color: transparent;
     animation: gradient-animation 3s ease-in-out infinite;
   }
+
+  /* Tab Trigger Hover - theme colored */
+  .tab-trigger-hover:hover:not([data-state='active']) {
+    background-color: color-mix(
+      in srgb,
+      var(--active-tab-color, var(--primary)) 15%,
+      transparent
+    );
+  }
 }

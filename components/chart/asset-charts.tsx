@@ -405,7 +405,7 @@ export function AssetChart({
           <div className="space-y-1 mt-2">
             {payload.map((pld: any, index: number) => {
               if (pld.name === 'fillArea') return null;
-              
+
               const series = seriesWithColors.find((s) => s.id === pld.name);
               const seriesName = series ? series.name : pld.name;
               const seriesColor = series ? series.color : '#8884d8';
@@ -422,15 +422,15 @@ export function AssetChart({
                     />
                     <span>{seriesName}</span>
                   </div>
-              <span className="font-semibold ml-4">
-                {series?.unit === 'percent'
-                  ? `${(pld.value as number).toFixed(2)}%`
-                  : new Intl.NumberFormat('ko-KR', {
-                      style: 'currency',
-                      currency: 'KRW',
-                      maximumFractionDigits: 0,
-                    }).format(pld.value as number)}
-              </span>
+                  <span className="font-semibold ml-4">
+                    {series?.unit === 'percent'
+                      ? `${(pld.value as number).toFixed(2)}%`
+                      : new Intl.NumberFormat('ko-KR', {
+                        style: 'currency',
+                        currency: 'KRW',
+                        maximumFractionDigits: 0,
+                      }).format(pld.value as number)}
+                  </span>
                 </div>
               );
             })}
@@ -497,18 +497,18 @@ export function AssetChart({
             )}
             {(showInflationAdjustToggle === undefined ||
               showInflationAdjustToggle) && (
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="inflation-adjust"
-                  checked={adjustForInflation}
-                  onCheckedChange={setAdjustForInflation}
-                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                />
-                <Label htmlFor="inflation-adjust" className="text-sm font-medium">
-                  인플레이션 보정
-                </Label>
-              </div>
-            )}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="inflation-adjust"
+                    checked={adjustForInflation}
+                    onCheckedChange={setAdjustForInflation}
+                    style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                  />
+                  <Label htmlFor="inflation-adjust" className="text-sm font-medium">
+                    인플레이션 보정
+                  </Label>
+                </div>
+              )}
           </div>
         </div>
       </CardHeader>
@@ -524,35 +524,35 @@ export function AssetChart({
                 { '--active-tab-color': themeColor } as React.CSSProperties
               }
             >
-              <TabsList className="grid w-full grid-cols-10">
-                <TabsTrigger value="1w" className="rounded-full text-xs">
+              <TabsList className="grid w-full grid-cols-10 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs">
+                <TabsTrigger value="1w" className="rounded-md text-xs font-semibold">
                   1주
                 </TabsTrigger>
-                <TabsTrigger value="1m" className="rounded-full text-xs">
+                <TabsTrigger value="1m" className="rounded-md text-xs font-semibold">
                   1개월
                 </TabsTrigger>
-                <TabsTrigger value="3m" className="rounded-full text-xs">
+                <TabsTrigger value="3m" className="rounded-md text-xs font-semibold">
                   3개월
                 </TabsTrigger>
-                <TabsTrigger value="6m" className="rounded-full text-xs">
+                <TabsTrigger value="6m" className="rounded-md text-xs font-semibold">
                   6개월
                 </TabsTrigger>
-                <TabsTrigger value="ytd" className="rounded-full text-xs">
+                <TabsTrigger value="ytd" className="rounded-md text-xs font-semibold">
                   YTD
                 </TabsTrigger>
-                <TabsTrigger value="1y" className="rounded-full text-xs">
+                <TabsTrigger value="1y" className="rounded-md text-xs font-semibold">
                   1년
                 </TabsTrigger>
-                <TabsTrigger value="3y" className="rounded-full text-xs">
+                <TabsTrigger value="3y" className="rounded-md text-xs font-semibold">
                   3년
                 </TabsTrigger>
-                <TabsTrigger value="5y" className="rounded-full text-xs">
+                <TabsTrigger value="5y" className="rounded-md text-xs font-semibold">
                   5년
                 </TabsTrigger>
-                <TabsTrigger value="10y" className="rounded-full text-xs">
+                <TabsTrigger value="10y" className="rounded-md text-xs font-semibold">
                   10년
                 </TabsTrigger>
-                <TabsTrigger value="all" className="rounded-full text-xs">
+                <TabsTrigger value="all" className="rounded-md text-xs font-semibold">
                   전체
                 </TabsTrigger>
               </TabsList>

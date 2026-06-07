@@ -230,13 +230,13 @@ export function DividendChart({
             onValueChange={(value) => setTimeRange(value as TimeRange)}
             style={{ '--active-tab-color': themeColor } as React.CSSProperties}
           >
-            <TabsList className='grid grid-cols-6'>
-              <TabsTrigger value='ytd'>YTD</TabsTrigger>
-              <TabsTrigger value='1y'>1년</TabsTrigger>
-              <TabsTrigger value='3y'>3년</TabsTrigger>
-              <TabsTrigger value='5y'>5년</TabsTrigger>
-              <TabsTrigger value='10y'>10년</TabsTrigger>
-              <TabsTrigger value='max'>MAX</TabsTrigger>
+            <TabsList className='grid grid-cols-6 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
+              <TabsTrigger value='ytd' className='rounded-md font-semibold'>YTD</TabsTrigger>
+              <TabsTrigger value='1y' className='rounded-md font-semibold'>1년</TabsTrigger>
+              <TabsTrigger value='3y' className='rounded-md font-semibold'>3년</TabsTrigger>
+              <TabsTrigger value='5y' className='rounded-md font-semibold'>5년</TabsTrigger>
+              <TabsTrigger value='10y' className='rounded-md font-semibold'>10년</TabsTrigger>
+              <TabsTrigger value='max' className='rounded-md font-semibold'>MAX</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
