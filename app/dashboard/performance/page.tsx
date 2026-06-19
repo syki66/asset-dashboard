@@ -25,8 +25,22 @@ export default function Page() {
   const showAfterTax = tax === 'post';
 
   const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
-  const mwrInfo =
-    '0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해 0으로 표시된 값일 수 있습니다.';
+  const mwrInfo = (
+    <div className='space-y-1 text-xs'>
+      <p>
+        입출금 시점과 금액을 반영한 연환산 수익률로, 예금 상품의 금리와
+        비교할 수 있습니다.
+      </p>
+      <p className='text-muted-foreground'>
+        (0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해
+        0으로 표시된 값일 수 있습니다.)
+      </p>
+    </div>
+  );
+  const cagrInfo =
+    '원금이 매년 같은 비율로 복리 성장해 현재 평가금액이 된다고 가정한 연평균 수익률입니다.';
+  const averageAnnualReturnInfo =
+    '누적수익률을 전체 투자 기간(년)으로 나눈 값입니다. 복리 효과는 반영하지 않습니다.';
 
   const beforeTaxData = [
     {
@@ -42,22 +56,30 @@ export default function Page() {
       benchmarkWorst: formatCurrency(benchmarkWorst.value, currency),
     },
     {
-      metric: '수익금',
+      metric: '누적수익금',
       investment: formatCurrency(performance.profit, currency),
       benchmark: formatCurrency(benchmark.profit, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.profit, currency),
     },
     {
-      metric: '수익률',
+      metric: '누적수익률',
       investment: `${performance.returnRate}%`,
       benchmark: `${benchmark.returnRate}%`,
       benchmarkWorst: `${benchmarkWorst.returnRate}%`,
     },
     {
-      metric: '연평균수익률(CAGR)',
+      metric: '복리연평균수익률(CAGR)',
       investment: `${performance.cagr}%`,
       benchmark: `${benchmark.cagr}%`,
       benchmarkWorst: `${benchmarkWorst.cagr}%`,
+      info: cagrInfo,
+    },
+    {
+      metric: '단순연평균수익률',
+      investment: `${performance.averageAnnualReturn}%`,
+      benchmark: `${benchmark.averageAnnualReturn}%`,
+      benchmarkWorst: `${benchmarkWorst.averageAnnualReturn}%`,
+      info: averageAnnualReturnInfo,
     },
     {
       metric: '금액가중수익률(MWR)',
@@ -88,25 +110,33 @@ export default function Page() {
       benchmarkWorst: formatCurrency(benchmarkWorst.netValue, currency),
     },
     {
-      metric: '순수익금',
+      metric: '순누적수익금',
       investment: formatCurrency(performance.netProfit, currency),
       benchmark: formatCurrency(benchmark.netProfit, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netProfit, currency),
     },
     {
-      metric: '순수익률',
+      metric: '순누적수익률',
       investment: `${performance.netReturnRate}%`,
       benchmark: `${benchmark.netReturnRate}%`,
       benchmarkWorst: `${benchmarkWorst.netReturnRate}%`,
     },
     {
-      metric: '순연평균수익률(CAGR)',
+      metric: '순복리연평균수익률(CAGR)',
       investment: `${performance.netCagr}%`,
       benchmark: `${benchmark.netCagr}%`,
       benchmarkWorst: `${benchmarkWorst.netCagr}%`,
+      info: cagrInfo,
     },
     {
-      metric: '순금액가중수익률(NEMWR)',
+      metric: '순단순연평균수익률',
+      investment: `${performance.netAverageAnnualReturn}%`,
+      benchmark: `${benchmark.netAverageAnnualReturn}%`,
+      benchmarkWorst: `${benchmarkWorst.netAverageAnnualReturn}%`,
+      info: averageAnnualReturnInfo,
+    },
+    {
+      metric: '순금액가중수익률(MWR)',
       investment: `${performance.netMwr}%`,
       benchmark: `${benchmark.netMwr}%`,
       benchmarkWorst: `${benchmarkWorst.netMwr}%`,

@@ -205,6 +205,11 @@ export const convertToDashboardData = (
     const endDate = new Date(accountData[accountData.length - 1].date);
     const years =
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    const calculateAverageAnnualReturn = (value: number) =>
+      years > 0
+        ? Number(((((value - principal) / principal) * 100) / years).toFixed(2))
+        : 0;
+
     const cagr =
       years > 0
         ? Number(
@@ -213,6 +218,7 @@ export const convertToDashboardData = (
             ),
           )
         : 0;
+    const averageAnnualReturn = calculateAverageAnnualReturn(currentValue);
 
     const netCagr =
       years > 0
@@ -223,6 +229,8 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
+    const netAverageAnnualReturn =
+      calculateAverageAnnualReturn(netCurrentValue);
 
     // MWR 계산
     const netDeposit = principal - prevPrincipal;
@@ -446,6 +454,8 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
+    const benchmarkAverageAnnualReturn =
+      calculateAverageAnnualReturn(benchmarkValue);
 
     // 벤치마크 초과수익
     const benchmarkExcessReturn = -(profit - benchmarkProfit);
@@ -474,6 +484,8 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
+    const benchmarkNetAverageAnnualReturn =
+      calculateAverageAnnualReturn(benchmarkNetValue);
 
     // 벤치마크 순초과수익
     const benchmarkNetExcessReturn = -(netProfit - benchmarkNetProfit);
@@ -502,6 +514,8 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
+    const benchmarkWorstAverageAnnualReturn =
+      calculateAverageAnnualReturn(benchmarkWorstValue);
 
     // 벤치마크 초과수익 (최악의 케이스)
     const benchmarkWorstExcessReturn = -(profit - benchmarkWorstProfit);
@@ -530,6 +544,8 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
+    const benchmarkWorstNetAverageAnnualReturn =
+      calculateAverageAnnualReturn(benchmarkWorstNetValue);
 
     // 벤치마크 (최악의 케이스) 순초과수익
     const benchmarkWorstNetExcessReturn = -(
@@ -741,6 +757,8 @@ export const convertToDashboardData = (
         netReturnRate,
         cagr,
         netCagr,
+        averageAnnualReturn,
+        netAverageAnnualReturn,
         mwr,
         netMwr,
       },
@@ -779,6 +797,8 @@ export const convertToDashboardData = (
         netReturnRate: benchmarkNetReturnRate,
         cagr: benchmarkCagr,
         netCagr: benchmarkNetCagr,
+        averageAnnualReturn: benchmarkAverageAnnualReturn,
+        netAverageAnnualReturn: benchmarkNetAverageAnnualReturn,
         mwr: benchmarkMwr,
         netMwr: benchmarkNetMwr,
         excessReturn: benchmarkExcessReturn,
@@ -793,6 +813,8 @@ export const convertToDashboardData = (
         netReturnRate: benchmarkWorstNetReturnRate,
         cagr: benchmarkWorstCagr,
         netCagr: benchmarkWorstNetCagr,
+        averageAnnualReturn: benchmarkWorstAverageAnnualReturn,
+        netAverageAnnualReturn: benchmarkWorstNetAverageAnnualReturn,
         mwr: benchmarkWorstMwr,
         netMwr: benchmarkWorstNetMwr,
         excessReturn: benchmarkWorstExcessReturn,
