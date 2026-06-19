@@ -3,7 +3,6 @@
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
-import { TooltipContent } from '@/components/dashboard/tooltip-content';
 import { useDashboardStore } from '@/store/dashboard';
 import {
   useChartLayoutStore,
@@ -14,6 +13,16 @@ import { formatCurrency } from '@/utils/format';
 import { ChartLine, Landmark, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import {
+  EXCHANGE_FEE_RATE,
+  EXCHANGE_SPREAD_RATE,
+  KR_BROKER_FEE_RATE,
+  KR_REGULATORY_FEE_RATE,
+  KR_TRANSFER_TAX_RATE,
+  US_BROKER_FEE_RATE,
+  US_CAPITAL_GAINS_TAX_RATE,
+  US_SEC_FEE_RATE,
+} from '@/constants/keywords';
 
 export default function Page() {
   const themeColor = 'var(--performance-theme)';
@@ -41,6 +50,22 @@ export default function Page() {
     '원금이 매년 같은 비율로 복리 성장해 현재 평가금액이 된다고 가정한 연평균 수익률입니다.';
   const averageAnnualReturnInfo =
     '누적수익률을 전체 투자 기간(년)으로 나눈 값입니다. 복리 효과는 반영하지 않습니다.';
+  const principalInfo = '입금 총액에서 출금 총액을 뺀 금액입니다.';
+  const excessReturnInfo =
+    '벤치마크 수익금에서 내 포트폴리오 수익금을 뺀 값입니다. 양수면 벤치마크가 더 높고, 음수면 내 포트폴리오가 더 높습니다.';
+  const formatRate = (rate: number) =>
+    `${Number((rate * 100).toFixed(6))}%`;
+  const fxFeeRate = EXCHANGE_FEE_RATE * EXCHANGE_SPREAD_RATE;
+  const fxDiscountRate = 1 - EXCHANGE_FEE_RATE;
+  const costInfo = {
+    usTax: `해외주식 양도차익에 적용하는 세금입니다. 양도차익이 양수일 때 ${formatRate(US_CAPITAL_GAINS_TAX_RATE)}를 적용합니다.`,
+    usFxFee: `달러 자산을 원화로 환산할 때 반영하는 추정 환전 비용입니다. 환스프레드 ${formatRate(EXCHANGE_SPREAD_RATE)}에 환전우대 ${formatRate(fxDiscountRate)}를 적용해 ${formatRate(fxFeeRate)}를 반영합니다.`,
+    usBrokerFee: `해외주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(US_BROKER_FEE_RATE)}를 적용합니다.`,
+    usSecFee: `미국 주식 매도 시 부과되는 SEC 수수료입니다. 평가금액에 ${formatRate(US_SEC_FEE_RATE)}를 적용합니다.`,
+    krTransferTax: `국내주식 매도 시 부과되는 증권거래세입니다. 평가금액에 ${formatRate(KR_TRANSFER_TAX_RATE)}를 적용합니다.`,
+    krBrokerFee: `국내주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(KR_BROKER_FEE_RATE)}를 적용합니다.`,
+    krRegulatoryFee: `국내주식 매도 시 발생하는 유관기관제비용입니다. 평가금액에 ${formatRate(KR_REGULATORY_FEE_RATE)}를 적용합니다.`,
+  };
 
   const beforeTaxData = [
     {
@@ -48,6 +73,7 @@ export default function Page() {
       investment: formatCurrency(performance.principal, currency),
       benchmark: formatCurrency(performance.principal, currency),
       benchmarkWorst: formatCurrency(performance.principal, currency),
+      info: principalInfo,
     },
     {
       metric: '평가금액',
@@ -68,6 +94,13 @@ export default function Page() {
       benchmarkWorst: `${benchmarkWorst.returnRate}%`,
     },
     {
+      metric: '금액가중수익률(MWR)',
+      investment: `${performance.mwr}%`,
+      benchmark: `${benchmark.mwr}%`,
+      benchmarkWorst: `${benchmarkWorst.mwr}%`,
+      info: mwrInfo,
+    },
+    {
       metric: '복리연평균수익률(CAGR)',
       investment: `${performance.cagr}%`,
       benchmark: `${benchmark.cagr}%`,
@@ -82,17 +115,11 @@ export default function Page() {
       info: averageAnnualReturnInfo,
     },
     {
-      metric: '금액가중수익률(MWR)',
-      investment: `${performance.mwr}%`,
-      benchmark: `${benchmark.mwr}%`,
-      benchmarkWorst: `${benchmarkWorst.mwr}%`,
-      info: mwrInfo,
-    },
-    {
       metric: '초과수익',
       investment: '-',
       benchmark: formatCurrency(benchmark.excessReturn, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.excessReturn, currency),
+      info: excessReturnInfo,
     },
   ];
 
@@ -102,6 +129,7 @@ export default function Page() {
       investment: formatCurrency(performance.principal, currency),
       benchmark: formatCurrency(performance.principal, currency),
       benchmarkWorst: formatCurrency(performance.principal, currency),
+      info: principalInfo,
     },
     {
       metric: '순평가금액',
@@ -122,6 +150,13 @@ export default function Page() {
       benchmarkWorst: `${benchmarkWorst.netReturnRate}%`,
     },
     {
+      metric: '순금액가중수익률(MWR)',
+      investment: `${performance.netMwr}%`,
+      benchmark: `${benchmark.netMwr}%`,
+      benchmarkWorst: `${benchmarkWorst.netMwr}%`,
+      info: mwrInfo,
+    },
+    {
       metric: '순복리연평균수익률(CAGR)',
       investment: `${performance.netCagr}%`,
       benchmark: `${benchmark.netCagr}%`,
@@ -136,17 +171,11 @@ export default function Page() {
       info: averageAnnualReturnInfo,
     },
     {
-      metric: '순금액가중수익률(MWR)',
-      investment: `${performance.netMwr}%`,
-      benchmark: `${benchmark.netMwr}%`,
-      benchmarkWorst: `${benchmarkWorst.netMwr}%`,
-      info: mwrInfo,
-    },
-    {
       metric: '순초과수익',
       investment: '-',
       benchmark: formatCurrency(benchmark.netExcessReturn, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netExcessReturn, currency),
+      info: excessReturnInfo,
     },
   ];
 
@@ -169,44 +198,37 @@ export default function Page() {
             {
               label: '해외주식 양도소득세',
               value: formatCurrency(costs.usTax, currency),
+              info: costInfo.usTax,
             },
             {
               label: '환전 수수료',
               value: formatCurrency(costs.usFxFee, currency),
+              info: costInfo.usFxFee,
             },
             {
               label: '해외주식 매도 수수료',
               value: formatCurrency(costs.usBrokerFee, currency),
+              info: costInfo.usBrokerFee,
             },
             {
               label: '미국 SEC 수수료',
               value: formatCurrency(costs.usSecFee, currency),
+              info: costInfo.usSecFee,
             },
             {
-              label: '국내주식 제비용',
-              value: formatCurrency(
-                costs.krTransferTax + costs.krBrokerFee + costs.krRegulatoryFee,
-                currency,
-              ),
-              info: (
-                <TooltipContent
-                  title='국내주식 제비용 상세'
-                  items={[
-                    {
-                      label: '국내 증권거래세',
-                      value: formatCurrency(costs.krTransferTax, currency),
-                    },
-                    {
-                      label: '국내 매도 수수료',
-                      value: formatCurrency(costs.krBrokerFee, currency),
-                    },
-                    {
-                      label: '국내 유관기관제비용',
-                      value: formatCurrency(costs.krRegulatoryFee, currency),
-                    },
-                  ]}
-                />
-              ),
+              label: '국내 증권거래세',
+              value: formatCurrency(costs.krTransferTax, currency),
+              info: costInfo.krTransferTax,
+            },
+            {
+              label: '국내주식 매도 수수료',
+              value: formatCurrency(costs.krBrokerFee, currency),
+              info: costInfo.krBrokerFee,
+            },
+            {
+              label: '국내 유관기관제비용',
+              value: formatCurrency(costs.krRegulatoryFee, currency),
+              info: costInfo.krRegulatoryFee,
             },
             {
               label: '합산',
