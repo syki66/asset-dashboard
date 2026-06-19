@@ -10,12 +10,14 @@ interface CalendarPickerProps {
   selectedDate?: Date;
   onDateSelect?: (date: Date) => void;
   className?: string;
+  category?: string;
 }
 
 export function CalendarPicker({
   selectedDate,
   onDateSelect,
   className,
+  category,
 }: CalendarPickerProps) {
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
   const [viewDate, setViewDate] = useState(
@@ -107,12 +109,13 @@ export function CalendarPicker({
           onClick={() => handleDateClick(day)}
           className={cn(
             'h-10 w-10 rounded-md text-sm font-medium transition-colors cursor-pointer',
-            'hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-300',
+            !category && 'hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-300',
+            category && !isSelectedDay && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
             'focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
             isCurrentDay &&
               !isSelectedDay &&
               'bg-accent/20 text-accent-foreground font-semibold',
-            isSelectedDay && 'bg-primary text-primary-foreground font-semibold',
+            isSelectedDay && (!category ? 'bg-primary text-primary-foreground font-semibold' : `bg-theme-${category} text-white font-semibold`),
             !isCurrentDay && !isSelectedDay && 'text-foreground'
           )}
           aria-label={`${viewDate.getFullYear()}년 ${
@@ -128,7 +131,13 @@ export function CalendarPicker({
   };
 
   return (
-    <Card className={cn('p-4 w-fit', className)}>
+    <Card 
+      className={cn('p-4 w-fit', className)}
+      style={category ? {
+        '--calendar-theme': `var(--${category}-theme)`,
+        '--calendar-hover': `var(--${category}-hover-bg)`
+      } as React.CSSProperties : undefined}
+    >
       <div className="space-y-4">
         {/* Header with navigation and today button */}
         <div className="flex items-center justify-between">
@@ -137,7 +146,10 @@ export function CalendarPicker({
               variant="outline"
               size="icon"
               onClick={() => navigateMonth('prev')}
-              className="h-8 w-8 cursor-pointer"
+              className={cn(
+                "h-8 w-8 cursor-pointer",
+                category && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]"
+              )}
               aria-label="이전 달"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -151,7 +163,10 @@ export function CalendarPicker({
               variant="outline"
               size="icon"
               onClick={() => navigateMonth('next')}
-              className="h-8 w-8 cursor-pointer"
+              className={cn(
+                "h-8 w-8 cursor-pointer",
+                category && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]"
+              )}
               aria-label="다음 달"
             >
               <ChevronRight className="h-4 w-4" />
@@ -160,7 +175,12 @@ export function CalendarPicker({
 
           <Button
             onClick={handleTodayClick}
-            className="ml-4 font-medium cursor-pointer"
+            className={cn(
+              "ml-4 font-medium cursor-pointer transition-opacity border-transparent",
+              category && "bg-[var(--calendar-theme)] hover:bg-[var(--calendar-theme)] text-white hover:opacity-90",
+              category && `bg-theme-${category}`
+            )}
+            style={category ? { backgroundColor: `var(--${category}-theme)` } : undefined}
             size="sm"
           >
             <Calendar className="h-4 w-4 mr-2" />

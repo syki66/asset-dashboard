@@ -214,6 +214,32 @@
     color: var(--settings-theme);
   }
 
+  /* Category Theme Hover Text Colors */
+  .hover-text-theme-overview:hover {
+    color: var(--overview-theme);
+  }
+  .hover-text-theme-performance:hover {
+    color: var(--performance-theme);
+  }
+  .hover-text-theme-dividends:hover {
+    color: var(--dividends-theme);
+  }
+  .hover-text-theme-risk:hover {
+    color: var(--risk-theme);
+  }
+  .hover-text-theme-portfolio:hover {
+    color: var(--portfolio-theme);
+  }
+  .hover-text-theme-transaction:hover {
+    color: var(--transaction-theme);
+  }
+  .hover-text-theme-chart:hover {
+    color: var(--chart-theme);
+  }
+  .hover-text-theme-settings:hover {
+    color: var(--settings-theme);
+  }
+
   /* Category Theme Backgrounds */
   .bg-theme-overview {
     background: linear-gradient(

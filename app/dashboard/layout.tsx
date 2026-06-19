@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Disclaimer } from '@/components/footer/disclaimer';
 import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import {
@@ -26,10 +26,18 @@ import {
   Settings,
   LayoutGrid,
   Maximize2,
+  ChevronDown,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarPicker } from '@/components/ui/calendar-picker';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -165,6 +173,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { selectedAccounts } = useSelectedAccountsStore();
   const pathname = usePathname();
 
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
   // totalAccountData와 선택된 체크박스에 따라 병합된 데이터를 메모이제이션
   const mergedAccountData = useMemo(() => {
     if (!totalAccountData) return [];
@@ -172,21 +182,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const filteredData =
       selectedAccounts.length > 0
         ? totalAccountData.filter((data) =>
-            selectedAccounts.includes(data.name),
-          )
+          selectedAccounts.includes(data.name),
+        )
         : [];
     return mergeAccountData(filteredData);
   }, [totalAccountData, selectedAccounts]);
 
+  const allDashboardData = useMemo(() => {
+    return convertToDashboardData(mergedAccountData, currency);
+  }, [mergedAccountData, currency]);
+
   // 계좌 데이터와 통화가 변경될 때마다 전역 상태관리로 데이터 전달
   useEffect(() => {
-    const data = convertToDashboardData(mergedAccountData, currency);
-    if (data.length > 0) {
-      setDashboardData(data.at(-1) as DashboardProps);
+    if (allDashboardData.length > 0) {
+      const found = selectedDate
+        ? allDashboardData.find((d) => d.date === selectedDate)
+        : null;
+      const data = found || allDashboardData.at(-1);
+      setDashboardData(data as DashboardProps);
+
+      // 선택한 날짜가 데이터에 없거나 초기 상태인 경우, 실제 데이터의 날짜로 상태 업데이트
+      if ((!found || !selectedDate) && data) {
+        setSelectedDate(data.date);
+      }
     } else {
       setDashboardData(initialDashboardData);
     }
-  }, [mergedAccountData, currency, setDashboardData]);
+  }, [allDashboardData, selectedDate, setDashboardData]);
 
   const activeCategory =
     categories.find((c) => pathname.startsWith(c.href))?.id || 'overview';
@@ -206,6 +228,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   } as CSSProperties;
   const activeBadgeStyle = {
     backgroundColor: `var(--${activeCategory}-theme)`,
+  } as CSSProperties;
+  const dateButtonStyle = {
+    '--date-button-hover': `var(--${activeCategory}-theme)`,
   } as CSSProperties;
 
   return (
@@ -344,11 +369,44 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       )}
                     />
                     <span className='font-medium text-foreground'>
-                      계좌 조회:
+                      계좌:
                     </span>
-                    <span className='text-muted-foreground'>
-                      {formatDateKr(dashboardData.date)}
-                    </span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          style={dateButtonStyle}
+                          className={cn(
+                            'h-6 rounded-md border border-white/20 bg-white/15 px-2 py-0 text-xs font-medium text-foreground shadow-sm transition-all hover:bg-[var(--date-button-hover)] hover:text-white hover:shadow-md focus-visible:ring-2',
+                          )}
+                        >
+                          <span>{formatDateKr(dashboardData.date)}</span>
+                          <ChevronDown className='h-3.5 w-3.5 opacity-70' />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='end'>
+                        <CalendarPicker
+                          category={activeCategory}
+                          selectedDate={(() => {
+                            const [y, m, d] = dashboardData.date
+                              .split('-')
+                              .map(Number);
+                            return new Date(y, m - 1, d);
+                          })()}
+                          onDateSelect={(date) => {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              '0',
+                            );
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const dateString = `${year}-${month}-${day}`;
+                            setSelectedDate(dateString);
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
