@@ -38,7 +38,7 @@ export default function Page() {
             {
               label: '평가금액',
               value: formatCurrency(currentValue, currency),
-              valueClassName: 'animate-gradient-text text-lg',
+              valueClassName: 'asset-value-wave',
               info: '주식 + KRX금현물 + 현금',
             },
             {
