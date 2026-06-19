@@ -10,12 +10,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { InfoTooltip } from './info-tooltip';
 
 export type ComparisonData = {
   metric: string;
   investment: string;
   benchmark: string;
   benchmarkWorst?: string;
+  info?: React.ReactNode;
 };
 
 export type ComparisonTableProps = {
@@ -72,7 +74,12 @@ export function ComparisonTable({
                 key={data.metric}
                 className='transition-colors hover:bg-[var(--row-hover-bg)]'
               >
-                <TableCell>{data.metric}</TableCell>
+                <TableCell>
+                  <div className='flex items-center gap-1'>
+                    <span>{data.metric}</span>
+                    {data.info && <InfoTooltip info={data.info} />}
+                  </div>
+                </TableCell>
                 <TableCell style={{ color: themeColor }} className='text-right'>
                   {data.investment}
                 </TableCell>

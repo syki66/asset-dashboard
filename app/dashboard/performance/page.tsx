@@ -25,6 +25,8 @@ export default function Page() {
   const showAfterTax = tax === 'post';
 
   const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
+  const mwrInfo =
+    '0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해 0으로 표시된 값일 수 있습니다.';
 
   const beforeTaxData = [
     {
@@ -62,6 +64,7 @@ export default function Page() {
       investment: `${performance.mwr}%`,
       benchmark: `${benchmark.mwr}%`,
       benchmarkWorst: `${benchmarkWorst.mwr}%`,
+      info: mwrInfo,
     },
     {
       metric: '초과수익',
@@ -103,10 +106,11 @@ export default function Page() {
       benchmarkWorst: `${benchmarkWorst.netCagr}%`,
     },
     {
-      metric: '순금액가중수익률(MWR)',
+      metric: '순금액가중수익률(NEMWR)',
       investment: `${performance.netMwr}%`,
       benchmark: `${benchmark.netMwr}%`,
       benchmarkWorst: `${benchmarkWorst.netMwr}%`,
+      info: mwrInfo,
     },
     {
       metric: '순초과수익',
