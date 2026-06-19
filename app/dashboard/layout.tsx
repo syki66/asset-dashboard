@@ -192,6 +192,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return convertToDashboardData(mergedAccountData, currency);
   }, [mergedAccountData, currency]);
 
+  const dashboardDateRange = useMemo(() => {
+    const parseDate = (dateString: string) => {
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    };
+
+    const firstDate = allDashboardData.at(0)?.date;
+    const lastDate = allDashboardData.at(-1)?.date;
+
+    return {
+      minDate: firstDate ? parseDate(firstDate) : undefined,
+      maxDate: lastDate ? parseDate(lastDate) : undefined,
+    };
+  }, [allDashboardData]);
+
   // 계좌 데이터와 통화가 변경될 때마다 전역 상태관리로 데이터 전달
   useEffect(() => {
     if (allDashboardData.length > 0) {
@@ -388,6 +403,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <PopoverContent className='w-auto p-0' align='end'>
                         <CalendarPicker
                           category={activeCategory}
+                          minDate={dashboardDateRange.minDate}
+                          maxDate={dashboardDateRange.maxDate}
                           selectedDate={(() => {
                             const [y, m, d] = dashboardData.date
                               .split('-')
