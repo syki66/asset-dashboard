@@ -23,6 +23,7 @@ import {
   mergeStockTradeHistory,
 } from './mergeHelpers';
 import { calculateXIRR, CashFlow } from './xirr';
+import { annualizeTwr, calculateTwrFactor } from './twr';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
@@ -84,6 +85,20 @@ export const convertToDashboardData = (
   // MWR 계산용 현금흐름 배열 및 이전 원금
   const cashFlows: CashFlow[] = [];
   let prevPrincipal = 0;
+
+  // TWR 계산용 이전 평가금 및 누적 수익 배율
+  let prevCurrentValueForTwr = 0;
+  let prevNetCurrentValueForTwr = 0;
+  let prevBenchmarkValueForTwr = 0;
+  let prevBenchmarkNetValueForTwr = 0;
+  let prevBenchmarkWorstValueForTwr = 0;
+  let prevBenchmarkWorstNetValueForTwr = 0;
+  let twrFactor = 1;
+  let netTwrFactor = 1;
+  let benchmarkTwrFactor = 1;
+  let benchmarkNetTwrFactor = 1;
+  let benchmarkWorstTwrFactor = 1;
+  let benchmarkWorstNetTwrFactor = 1;
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -567,6 +582,55 @@ export const convertToDashboardData = (
       benchmarkWorstNetMwr = calculateXIRR(currentBenchmarkWorstNetCFs);
     }
 
+    // TWR 계산
+    twrFactor *= calculateTwrFactor(
+      currentValue,
+      prevCurrentValueForTwr,
+      netDeposit,
+    );
+    netTwrFactor *= calculateTwrFactor(
+      netCurrentValue,
+      prevNetCurrentValueForTwr,
+      netDeposit,
+    );
+    benchmarkTwrFactor *= calculateTwrFactor(
+      benchmarkValue,
+      prevBenchmarkValueForTwr,
+      netDeposit,
+    );
+    benchmarkNetTwrFactor *= calculateTwrFactor(
+      benchmarkNetValue,
+      prevBenchmarkNetValueForTwr,
+      netDeposit,
+    );
+    benchmarkWorstTwrFactor *= calculateTwrFactor(
+      benchmarkWorstValue,
+      prevBenchmarkWorstValueForTwr,
+      netDeposit,
+    );
+    benchmarkWorstNetTwrFactor *= calculateTwrFactor(
+      benchmarkWorstNetValue,
+      prevBenchmarkWorstNetValueForTwr,
+      netDeposit,
+    );
+
+    const twr = annualizeTwr(twrFactor, years);
+    const netTwr = annualizeTwr(netTwrFactor, years);
+    const benchmarkTwr = annualizeTwr(benchmarkTwrFactor, years);
+    const benchmarkNetTwr = annualizeTwr(benchmarkNetTwrFactor, years);
+    const benchmarkWorstTwr = annualizeTwr(benchmarkWorstTwrFactor, years);
+    const benchmarkWorstNetTwr = annualizeTwr(
+      benchmarkWorstNetTwrFactor,
+      years,
+    );
+
+    prevCurrentValueForTwr = currentValue;
+    prevNetCurrentValueForTwr = netCurrentValue;
+    prevBenchmarkValueForTwr = benchmarkValue;
+    prevBenchmarkNetValueForTwr = benchmarkNetValue;
+    prevBenchmarkWorstValueForTwr = benchmarkWorstValue;
+    prevBenchmarkWorstNetValueForTwr = benchmarkWorstNetValue;
+
     //////////////////////////////////////////////////////
     // 자산 차트용 데이터 가공
     /////////////////////////////////////////////////////
@@ -761,6 +825,8 @@ export const convertToDashboardData = (
         netAverageAnnualReturn,
         mwr,
         netMwr,
+        twr,
+        netTwr,
       },
       dividends: {
         annualDividends,
@@ -801,6 +867,8 @@ export const convertToDashboardData = (
         netAverageAnnualReturn: benchmarkNetAverageAnnualReturn,
         mwr: benchmarkMwr,
         netMwr: benchmarkNetMwr,
+        twr: benchmarkTwr,
+        netTwr: benchmarkNetTwr,
         excessReturn: benchmarkExcessReturn,
         netExcessReturn: benchmarkNetExcessReturn,
       },
@@ -817,6 +885,8 @@ export const convertToDashboardData = (
         netAverageAnnualReturn: benchmarkWorstNetAverageAnnualReturn,
         mwr: benchmarkWorstMwr,
         netMwr: benchmarkWorstNetMwr,
+        twr: benchmarkWorstTwr,
+        netTwr: benchmarkWorstNetTwr,
         excessReturn: benchmarkWorstExcessReturn,
         netExcessReturn: benchmarkWorstNetExcessReturn,
       },

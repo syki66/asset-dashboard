@@ -46,6 +46,8 @@ export default function Page() {
       </p>
     </div>
   );
+  const twrInfo =
+    '입출금 영향을 제거해 운용 성과를 보는 연환산 수익률입니다. 현재 데이터는 일별 스냅샷 기준이라 입출금의 하루 중 발생 시점은 반영하지 않는 근사치입니다.';
   const cagrInfo =
     '원금이 매년 같은 비율로 복리 성장해 현재 평가금액이 된다고 가정한 연평균 수익률입니다.';
   const averageAnnualReturnInfo =
@@ -99,6 +101,13 @@ export default function Page() {
       benchmark: `${benchmark.mwr}%`,
       benchmarkWorst: `${benchmarkWorst.mwr}%`,
       info: mwrInfo,
+    },
+    {
+      metric: '시간가중수익률(TWR)',
+      investment: `${performance.twr}%`,
+      benchmark: `${benchmark.twr}%`,
+      benchmarkWorst: `${benchmarkWorst.twr}%`,
+      info: twrInfo,
     },
     {
       metric: '복리연평균수익률(CAGR)',
@@ -155,6 +164,13 @@ export default function Page() {
       benchmark: `${benchmark.netMwr}%`,
       benchmarkWorst: `${benchmarkWorst.netMwr}%`,
       info: mwrInfo,
+    },
+    {
+      metric: '순시간가중수익률(TWR)',
+      investment: `${performance.netTwr}%`,
+      benchmark: `${benchmark.netTwr}%`,
+      benchmarkWorst: `${benchmarkWorst.netTwr}%`,
+      info: twrInfo,
     },
     {
       metric: '순복리연평균수익률(CAGR)',
