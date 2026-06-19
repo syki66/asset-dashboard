@@ -52,10 +52,16 @@ export default function Page() {
       benchmarkWorst: `${benchmarkWorst.returnRate}%`,
     },
     {
-      metric: '연평균수익률',
+      metric: '연평균수익률(CAGR)',
       investment: `${performance.cagr}%`,
       benchmark: `${benchmark.cagr}%`,
       benchmarkWorst: `${benchmarkWorst.cagr}%`,
+    },
+    {
+      metric: '금액가중수익률(MWR)',
+      investment: `${performance.mwr}%`,
+      benchmark: `${benchmark.mwr}%`,
+      benchmarkWorst: `${benchmarkWorst.mwr}%`,
     },
     {
       metric: '초과수익',
@@ -91,10 +97,16 @@ export default function Page() {
       benchmarkWorst: `${benchmarkWorst.netReturnRate}%`,
     },
     {
-      metric: '순연평균수익률',
+      metric: '순연평균수익률(CAGR)',
       investment: `${performance.netCagr}%`,
       benchmark: `${benchmark.netCagr}%`,
       benchmarkWorst: `${benchmarkWorst.netCagr}%`,
+    },
+    {
+      metric: '순금액가중수익률(MWR)',
+      investment: `${performance.netMwr}%`,
+      benchmark: `${benchmark.netMwr}%`,
+      benchmarkWorst: `${benchmarkWorst.netMwr}%`,
     },
     {
       metric: '순초과수익',

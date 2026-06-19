@@ -94,6 +94,8 @@ export type DashboardProps = {
     netReturnRate: number; // 순수익률
     cagr: number; // 연평균 성장률
     netCagr: number; // 순 연평균 성장률
+    mwr: number; // 금액가중수익률
+    netMwr: number; // 순 금액가중수익률
   };
   dividends: {
     annualDividends: number; // 배당금 (최근 1년)
@@ -130,6 +132,8 @@ export type DashboardProps = {
     netReturnRate: number; // 벤치마크 수익률 (세후)
     cagr: number; // 벤치마크 연평균 성장률
     netCagr: number; // 벤치마크 연평균 성장률 (세후)
+    mwr: number; // 벤치마크 금액가중수익률
+    netMwr: number; // 벤치마크 금액가중수익률 (세후)
     excessReturn: number; // 벤치마크 초과수익률
     netExcessReturn: number; // 벤치마크 초과수익률 (세후)
   };
@@ -142,6 +146,8 @@ export type DashboardProps = {
     netReturnRate: number; // 최악의 벤치마크 수익률 (세후)
     cagr: number; // 최악의 벤치마크 연평균 성장률
     netCagr: number; // 최악의 벤치마크 연평균 성장률 (세후)
+    mwr: number; // 최악의 벤치마크 금액가중수익률
+    netMwr: number; // 최악의 벤치마크 금액가중수익률 (세후)
     excessReturn: number; // 최악의 벤치마크 초과수익률
     netExcessReturn: number; // 최악의 벤치마크 초과수익률 (세후)
   };

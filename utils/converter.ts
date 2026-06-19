@@ -22,6 +22,7 @@ import {
   mergeStocks,
   mergeStockTradeHistory,
 } from './mergeHelpers';
+import { calculateXIRR, CashFlow } from './xirr';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
@@ -79,6 +80,10 @@ export const convertToDashboardData = (
   let maxDailyDrawdown = 0; // 하루 MDD (금액)
   let maxDailyDrawdownDate = ''; // 하루 mdd 낙폭 날짜
   let prevValue = 0; // 전날 평가 자산
+
+  // MWR 계산용 현금흐름 배열 및 이전 원금
+  const cashFlows: CashFlow[] = [];
+  let prevPrincipal = 0;
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -218,6 +223,28 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
+
+    // MWR 계산
+    const netDeposit = principal - prevPrincipal;
+    if (netDeposit !== 0) {
+      cashFlows.push({ date: account.date, amount: -netDeposit });
+    }
+    prevPrincipal = principal;
+
+    let mwr = 0;
+    let netMwr = 0;
+    let benchmarkMwr = 0;
+    let benchmarkNetMwr = 0;
+    let benchmarkWorstMwr = 0;
+    let benchmarkWorstNetMwr = 0;
+
+    if (cashFlows.length > 0) {
+      const currentCFs = [...cashFlows, { date: account.date, amount: currentValue }];
+      mwr = calculateXIRR(currentCFs);
+
+      const currentNetCFs = [...cashFlows, { date: account.date, amount: netCurrentValue }];
+      netMwr = calculateXIRR(currentNetCFs);
+    }
 
     // 환전 처리된 총 보유 주식 목록
     const stocksConverted =
@@ -509,6 +536,21 @@ export const convertToDashboardData = (
       netProfit - benchmarkWorstNetProfit
     );
 
+    // 벤치마크 MWR 계산
+    if (cashFlows.length > 0) {
+      const currentBenchmarkCFs = [...cashFlows, { date: account.date, amount: benchmarkValue }];
+      benchmarkMwr = calculateXIRR(currentBenchmarkCFs);
+
+      const currentBenchmarkNetCFs = [...cashFlows, { date: account.date, amount: benchmarkNetValue }];
+      benchmarkNetMwr = calculateXIRR(currentBenchmarkNetCFs);
+
+      const currentBenchmarkWorstCFs = [...cashFlows, { date: account.date, amount: benchmarkWorstValue }];
+      benchmarkWorstMwr = calculateXIRR(currentBenchmarkWorstCFs);
+
+      const currentBenchmarkWorstNetCFs = [...cashFlows, { date: account.date, amount: benchmarkWorstNetValue }];
+      benchmarkWorstNetMwr = calculateXIRR(currentBenchmarkWorstNetCFs);
+    }
+
     //////////////////////////////////////////////////////
     // 자산 차트용 데이터 가공
     /////////////////////////////////////////////////////
@@ -699,6 +741,8 @@ export const convertToDashboardData = (
         netReturnRate,
         cagr,
         netCagr,
+        mwr,
+        netMwr,
       },
       dividends: {
         annualDividends,
@@ -735,6 +779,8 @@ export const convertToDashboardData = (
         netReturnRate: benchmarkNetReturnRate,
         cagr: benchmarkCagr,
         netCagr: benchmarkNetCagr,
+        mwr: benchmarkMwr,
+        netMwr: benchmarkNetMwr,
         excessReturn: benchmarkExcessReturn,
         netExcessReturn: benchmarkNetExcessReturn,
       },
@@ -747,6 +793,8 @@ export const convertToDashboardData = (
         netReturnRate: benchmarkWorstNetReturnRate,
         cagr: benchmarkWorstCagr,
         netCagr: benchmarkWorstNetCagr,
+        mwr: benchmarkWorstMwr,
+        netMwr: benchmarkWorstNetMwr,
         excessReturn: benchmarkWorstExcessReturn,
         netExcessReturn: benchmarkWorstNetExcessReturn,
       },
@@ -759,21 +807,21 @@ export const convertToDashboardData = (
         maxDailyDrawdownDate,
       },
       charts: {
-        principal: principalChartData,
-        currentValue: currentValueChartData,
-        profit: profitChartData,
-        netProfit: netProfitChartData,
-        drawdown: drawdownChartData,
+        principal: [...principalChartData],
+        currentValue: [...currentValueChartData],
+        profit: [...profitChartData],
+        netProfit: [...netProfitChartData],
+        drawdown: [...drawdownChartData],
         dividendHistory: dividendHistoryChartData,
         dividendHistoryNet: dividendHistoryChartDataNet,
-        yieldOnCost: yieldOnCostChartData,
-        yieldOnCostNet: yieldOnCostChartDataNet,
-        dividendYield: dividendYieldChartData,
-        dividendYieldNet: dividendYieldChartDataNet,
-        benchmark: benchmarkChartData,
-        benchmarkProfit: benchmarkProfitChartData,
-        benchmarkWorst: benchmarkWorstChartData,
-        benchmarkWorstProfit: benchmarkWorstProfitChartData,
+        yieldOnCost: [...yieldOnCostChartData],
+        yieldOnCostNet: [...yieldOnCostChartDataNet],
+        dividendYield: [...dividendYieldChartData],
+        dividendYieldNet: [...dividendYieldChartDataNet],
+        benchmark: [...benchmarkChartData],
+        benchmarkProfit: [...benchmarkProfitChartData],
+        benchmarkWorst: [...benchmarkWorstChartData],
+        benchmarkWorstProfit: [...benchmarkWorstProfitChartData],
         stockTradeHistory: stockTradeHistoryChartData,
       },
     };
