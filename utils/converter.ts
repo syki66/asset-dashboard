@@ -53,6 +53,16 @@ export const convertToDashboardData = (
   const currentValueChartData: ChartProps[] = [];
   const profitChartData: ChartProps[] = [];
   const netProfitChartData: ChartProps[] = [];
+  const returnRateChartData: ChartProps[] = [];
+  const netReturnRateChartData: ChartProps[] = [];
+  const mwrChartData: ChartProps[] = [];
+  const netMwrChartData: ChartProps[] = [];
+  const twrChartData: ChartProps[] = [];
+  const netTwrChartData: ChartProps[] = [];
+  const cagrChartData: ChartProps[] = [];
+  const netCagrChartData: ChartProps[] = [];
+  const averageAnnualReturnChartData: ChartProps[] = [];
+  const netAverageAnnualReturnChartData: ChartProps[] = [];
   const drawdownChartData: ChartProps[] = [];
   let dividendHistoryChartData: ChartProps[] = [];
   let dividendHistoryChartDataNet: ChartProps[] = [];
@@ -262,10 +272,16 @@ export const convertToDashboardData = (
     let benchmarkWorstNetMwr = 0;
 
     if (cashFlows.length > 0) {
-      const currentCFs = [...cashFlows, { date: account.date, amount: currentValue }];
+      const currentCFs = [
+        ...cashFlows,
+        { date: account.date, amount: currentValue },
+      ];
       mwr = calculateXIRR(currentCFs);
 
-      const currentNetCFs = [...cashFlows, { date: account.date, amount: netCurrentValue }];
+      const currentNetCFs = [
+        ...cashFlows,
+        { date: account.date, amount: netCurrentValue },
+      ];
       netMwr = calculateXIRR(currentNetCFs);
     }
 
@@ -559,8 +575,9 @@ export const convertToDashboardData = (
             ).toFixed(2),
           )
         : 0;
-    const benchmarkWorstNetAverageAnnualReturn =
-      calculateAverageAnnualReturn(benchmarkWorstNetValue);
+    const benchmarkWorstNetAverageAnnualReturn = calculateAverageAnnualReturn(
+      benchmarkWorstNetValue,
+    );
 
     // 벤치마크 (최악의 케이스) 순초과수익
     const benchmarkWorstNetExcessReturn = -(
@@ -569,16 +586,28 @@ export const convertToDashboardData = (
 
     // 벤치마크 MWR 계산
     if (cashFlows.length > 0) {
-      const currentBenchmarkCFs = [...cashFlows, { date: account.date, amount: benchmarkValue }];
+      const currentBenchmarkCFs = [
+        ...cashFlows,
+        { date: account.date, amount: benchmarkValue },
+      ];
       benchmarkMwr = calculateXIRR(currentBenchmarkCFs);
 
-      const currentBenchmarkNetCFs = [...cashFlows, { date: account.date, amount: benchmarkNetValue }];
+      const currentBenchmarkNetCFs = [
+        ...cashFlows,
+        { date: account.date, amount: benchmarkNetValue },
+      ];
       benchmarkNetMwr = calculateXIRR(currentBenchmarkNetCFs);
 
-      const currentBenchmarkWorstCFs = [...cashFlows, { date: account.date, amount: benchmarkWorstValue }];
+      const currentBenchmarkWorstCFs = [
+        ...cashFlows,
+        { date: account.date, amount: benchmarkWorstValue },
+      ];
       benchmarkWorstMwr = calculateXIRR(currentBenchmarkWorstCFs);
 
-      const currentBenchmarkWorstNetCFs = [...cashFlows, { date: account.date, amount: benchmarkWorstNetValue }];
+      const currentBenchmarkWorstNetCFs = [
+        ...cashFlows,
+        { date: account.date, amount: benchmarkWorstNetValue },
+      ];
       benchmarkWorstNetMwr = calculateXIRR(currentBenchmarkWorstNetCFs);
     }
 
@@ -656,6 +685,48 @@ export const convertToDashboardData = (
     netProfitChartData.push({
       date: account.date,
       value: profit - totalTaxFee,
+    });
+
+    // 수익률 분석 차트
+    returnRateChartData.push({
+      date: account.date,
+      value: returnRate,
+    });
+    netReturnRateChartData.push({
+      date: account.date,
+      value: netReturnRate,
+    });
+    mwrChartData.push({
+      date: account.date,
+      value: mwr,
+    });
+    netMwrChartData.push({
+      date: account.date,
+      value: netMwr,
+    });
+    twrChartData.push({
+      date: account.date,
+      value: twr,
+    });
+    netTwrChartData.push({
+      date: account.date,
+      value: netTwr,
+    });
+    cagrChartData.push({
+      date: account.date,
+      value: cagr,
+    });
+    netCagrChartData.push({
+      date: account.date,
+      value: netCagr,
+    });
+    averageAnnualReturnChartData.push({
+      date: account.date,
+      value: averageAnnualReturn,
+    });
+    netAverageAnnualReturnChartData.push({
+      date: account.date,
+      value: netAverageAnnualReturn,
     });
 
     // MDD 차트
@@ -903,6 +974,16 @@ export const convertToDashboardData = (
         currentValue: [...currentValueChartData],
         profit: [...profitChartData],
         netProfit: [...netProfitChartData],
+        returnRate: [...returnRateChartData],
+        netReturnRate: [...netReturnRateChartData],
+        mwr: [...mwrChartData],
+        netMwr: [...netMwrChartData],
+        twr: [...twrChartData],
+        netTwr: [...netTwrChartData],
+        cagr: [...cagrChartData],
+        netCagr: [...netCagrChartData],
+        averageAnnualReturn: [...averageAnnualReturnChartData],
+        netAverageAnnualReturn: [...netAverageAnnualReturnChartData],
         drawdown: [...drawdownChartData],
         dividendHistory: dividendHistoryChartData,
         dividendHistoryNet: dividendHistoryChartDataNet,

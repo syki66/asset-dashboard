@@ -176,6 +176,16 @@ export type DashboardProps = {
     currentValue: ChartProps[]; // 평가자산 차트
     profit: ChartProps[]; // 수익금 차트
     netProfit: ChartProps[]; // 세후 수익금 차트
+    returnRate: ChartProps[]; // 누적수익률 차트
+    netReturnRate: ChartProps[]; // 세후 누적수익률 차트
+    mwr: ChartProps[]; // 금액가중수익률 차트
+    netMwr: ChartProps[]; // 세후 금액가중수익률 차트
+    twr: ChartProps[]; // 시간가중수익률 차트
+    netTwr: ChartProps[]; // 세후 시간가중수익률 차트
+    cagr: ChartProps[]; // 복리연평균수익률 차트
+    netCagr: ChartProps[]; // 세후 복리연평균수익률 차트
+    averageAnnualReturn: ChartProps[]; // 단순연평균수익률 차트
+    netAverageAnnualReturn: ChartProps[]; // 세후 단순연평균수익률 차트
     drawdown: ChartProps[]; // 낙폭 차트
     dividendHistory: ChartProps[]; // 배당금 차트
     dividendHistoryNet: ChartProps[]; // 세후 배당금 차트

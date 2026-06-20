@@ -118,6 +118,66 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
+    returnRate: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    netReturnRate: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    mwr: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    netMwr: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    twr: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    netTwr: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    cagr: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    netCagr: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    averageAnnualReturn: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    netAverageAnnualReturn: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     drawdown: [
       {
         date: '1970-01-01',

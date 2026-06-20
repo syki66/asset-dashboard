@@ -262,6 +262,9 @@ export function AssetChart({
   };
 
   const chartData = prepareChartData();
+  const usesPercentUnit = seriesWithColors.some(
+    (series) => series.unit === 'percent',
+  );
 
   // 차트 도메인 계산
   const calculateYDomain = () => {
@@ -284,16 +287,27 @@ export function AssetChart({
     if (minValue === Number.POSITIVE_INFINITY) minValue = 0;
     if (maxValue === Number.NEGATIVE_INFINITY) maxValue = 100;
 
+    const safeMin = Number.isFinite(minValue) ? minValue : 0;
+    const safeMax = Number.isFinite(maxValue) ? maxValue : 100;
+
     // 로그 스케일을 위한 도메인 조정 (0이나 음수 방지)
     if (useLogScale) {
-      const minLogValue = minValue <= 0 ? 0.1 : minValue; // Ensure min is positive for log scale
+      const minLogValue = safeMin <= 0 ? 0.1 : safeMin; // Ensure min is positive for log scale
       // Ensure max value is greater than minLogValue for log scale
       const adjustedMaxValue =
-        maxValue <= minLogValue ? minLogValue + 1 : maxValue * 1.1;
+        safeMax <= minLogValue ? minLogValue + 1 : safeMax * 1.1;
       return [minLogValue, adjustedMaxValue];
-    } else {
-      return [0, maxValue * 1.1];
     }
+
+    if (usesPercentUnit) {
+      const padding = Math.max((safeMax - safeMin) * 0.1, 1);
+      return [
+        safeMin < 0 ? safeMin - padding : Math.min(0, safeMin - padding),
+        safeMax > 0 ? safeMax + padding : Math.max(0, safeMax + padding),
+      ];
+    }
+
+    return [safeMin < 0 ? safeMin * 1.1 : 0, safeMax * 1.1];
   };
 
   const yDomain = calculateYDomain();
@@ -581,11 +595,13 @@ export function AssetChart({
                   scale={useLogScale ? 'log' : 'linear'}
                   domain={yDomain}
                   tickFormatter={(value) =>
-                    new Intl.NumberFormat('ko-KR', {
-                      notation: 'compact',
-                      compactDisplay: 'short',
-                      maximumFractionDigits: 1,
-                    }).format(value)
+                    usesPercentUnit
+                      ? `${Number(value).toFixed(1)}%`
+                      : new Intl.NumberFormat('ko-KR', {
+                          notation: 'compact',
+                          compactDisplay: 'short',
+                          maximumFractionDigits: 1,
+                        }).format(value)
                   }
                   reversed={reverseYAxis}
                 />
@@ -627,11 +643,13 @@ export function AssetChart({
                   scale={useLogScale ? 'log' : 'linear'}
                   domain={yDomain}
                   tickFormatter={(value) =>
-                    new Intl.NumberFormat('ko-KR', {
-                      notation: 'compact',
-                      compactDisplay: 'short',
-                      maximumFractionDigits: 1,
-                    }).format(value)
+                    usesPercentUnit
+                      ? `${Number(value).toFixed(1)}%`
+                      : new Intl.NumberFormat('ko-KR', {
+                          notation: 'compact',
+                          compactDisplay: 'short',
+                          maximumFractionDigits: 1,
+                        }).format(value)
                   }
                   reversed={reverseYAxis}
                   axisLine={false}

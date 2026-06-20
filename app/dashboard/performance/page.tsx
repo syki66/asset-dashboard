@@ -363,6 +363,68 @@ export default function Page() {
             ]}
           />
         </div>
+        <div
+          className={cn(
+            'mt-8',
+            chartLayout === 'compact' ? 'lg:col-span-2' : undefined,
+          )}
+        >
+          <h2 className='mb-4 text-xl font-bold'>수익률 차트</h2>
+          <AssetChart
+            title={`수익률 분석 ${showAfterTax ? '(세후)' : ''}`}
+            themeColor={themeColor}
+            chartType='line'
+            showLogScaleToggle={false}
+            showInflationAdjustToggle={false}
+            series={[
+              {
+                id: 'returnRate',
+                name: showAfterTax ? '순누적수익률' : '누적수익률',
+                color: '#2563EB',
+                data: showAfterTax
+                  ? dashboardData.charts.netReturnRate
+                  : dashboardData.charts.returnRate,
+                unit: 'percent',
+              },
+              {
+                id: 'mwr',
+                name: showAfterTax ? '순MWR' : 'MWR',
+                color: '#16A34A',
+                data: showAfterTax
+                  ? dashboardData.charts.netMwr
+                  : dashboardData.charts.mwr,
+                unit: 'percent',
+              },
+              {
+                id: 'twr',
+                name: showAfterTax ? '순TWR' : 'TWR',
+                color: '#EA580C',
+                data: showAfterTax
+                  ? dashboardData.charts.netTwr
+                  : dashboardData.charts.twr,
+                unit: 'percent',
+              },
+              {
+                id: 'cagr',
+                name: showAfterTax ? '순CAGR' : 'CAGR',
+                color: '#9333EA',
+                data: showAfterTax
+                  ? dashboardData.charts.netCagr
+                  : dashboardData.charts.cagr,
+                unit: 'percent',
+              },
+              {
+                id: 'averageAnnualReturn',
+                name: showAfterTax ? '순단순연평균' : '단순연평균',
+                color: '#0891B2',
+                data: showAfterTax
+                  ? dashboardData.charts.netAverageAnnualReturn
+                  : dashboardData.charts.averageAnnualReturn,
+                unit: 'percent',
+              },
+            ]}
+          />
+        </div>
       </div>
     </>
   );
