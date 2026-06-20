@@ -174,6 +174,7 @@ export type DashboardProps = {
   charts: {
     principal: ChartProps[]; // 원금 차트
     currentValue: ChartProps[]; // 평가자산 차트
+    netCurrentValue: ChartProps[]; // 세후 평가자산 차트
     profit: ChartProps[]; // 수익금 차트
     netProfit: ChartProps[]; // 세후 수익금 차트
     returnRate: ChartProps[]; // 누적수익률 차트
@@ -198,9 +199,13 @@ export type DashboardProps = {
     yieldOnCost: ChartProps[]; // 원가 대비 배당수익률 차트
     yieldOnCostNet: ChartProps[]; // 세후 원가 대비 배당수익률 차트
     benchmark: ChartProps[]; // 벤치마크 평가금 차트
+    benchmarkNet: ChartProps[]; // 세후 벤치마크 평가금 차트
     benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
+    benchmarkNetProfit: ChartProps[]; // 세후 벤치마크 수익금 차트
     benchmarkWorst: ChartProps[]; // 최악의 벤치마크 평가금 차트
+    benchmarkWorstNet: ChartProps[]; // 세후 최악의 벤치마크 평가금 차트
     benchmarkWorstProfit: ChartProps[]; // 최악의 벤치마크 수익금 차트
+    benchmarkWorstNetProfit: ChartProps[]; // 세후 최악의 벤치마크 수익금 차트
     stockTradeHistory: StockTradeHistoryChartProps[]; // 매수 및 매도 주식 통합 히스토리
   };
 };

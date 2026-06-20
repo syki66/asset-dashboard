@@ -106,6 +106,12 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
+    netCurrentValue: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     profit: [
       {
         date: '1970-01-01',
@@ -250,7 +256,19 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
+    benchmarkNet: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     benchmarkProfit: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkNetProfit: [
       {
         date: '1970-01-01',
         value: 0,
@@ -262,7 +280,19 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
+    benchmarkWorstNet: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     benchmarkWorstProfit: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkWorstNetProfit: [
       {
         date: '1970-01-01',
         value: 0,

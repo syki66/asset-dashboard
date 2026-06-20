@@ -302,7 +302,21 @@ export default function Page() {
             themeColor={themeColor}
             chartType='line'
             calendarCategory='performance'
-            fillBetween={['benchmarkWorst', 'benchmark']}
+            fillBetween={
+              showAfterTax
+                ? ['benchmarkWorstNet', 'benchmarkNet']
+                : ['benchmarkWorst', 'benchmark']
+            }
+            seriesToggleGroups={[
+              {
+                id: 'benchmarkRange',
+                name: showAfterTax ? '벤치마크 세후 평가금' : '벤치마크 평가금',
+                color: '#FF9800',
+                seriesIds: showAfterTax
+                  ? ['benchmarkNet', 'benchmarkWorstNet']
+                  : ['benchmark', 'benchmarkWorst'],
+              },
+            ]}
             series={[
               {
                 id: 'principal',
@@ -312,21 +326,31 @@ export default function Page() {
               },
               {
                 id: 'currentValue',
-                name: '평가금',
+                name: showAfterTax ? '세후 평가금' : '평가금',
                 color: '#F44336',
-                data: dashboardData.charts.currentValue,
+                data: showAfterTax
+                  ? dashboardData.charts.netCurrentValue
+                  : dashboardData.charts.currentValue,
               },
               {
-                id: 'benchmark',
-                name: '벤치마크 (최상)',
+                id: showAfterTax ? 'benchmarkNet' : 'benchmark',
+                name: showAfterTax
+                  ? '벤치마크 세후 평가금 (최상)'
+                  : '벤치마크 평가금 (최상)',
                 color: '#FF9800',
-                data: dashboardData.charts.benchmark,
+                data: showAfterTax
+                  ? dashboardData.charts.benchmarkNet
+                  : dashboardData.charts.benchmark,
               },
               {
-                id: 'benchmarkWorst',
-                name: '벤치마크 (최악)',
+                id: showAfterTax ? 'benchmarkWorstNet' : 'benchmarkWorst',
+                name: showAfterTax
+                  ? '벤치마크 세후 평가금 (최악)'
+                  : '벤치마크 평가금 (최악)',
                 color: '#FF5722',
-                data: dashboardData.charts.benchmarkWorst,
+                data: showAfterTax
+                  ? dashboardData.charts.benchmarkWorstNet
+                  : dashboardData.charts.benchmarkWorst,
               },
             ]}
           />
@@ -337,31 +361,51 @@ export default function Page() {
             themeColor={themeColor}
             chartType='line'
             calendarCategory='performance'
-            fillBetween={['benchmarkWorstProfit', 'benchmarkProfit']}
+            fillBetween={
+              showAfterTax
+                ? ['benchmarkWorstNetProfit', 'benchmarkNetProfit']
+                : ['benchmarkWorstProfit', 'benchmarkProfit']
+            }
+            seriesToggleGroups={[
+              {
+                id: 'benchmarkProfitRange',
+                name: showAfterTax ? '벤치마크 세후 수익금' : '벤치마크 수익금',
+                color: '#03A9F4',
+                seriesIds: showAfterTax
+                  ? ['benchmarkNetProfit', 'benchmarkWorstNetProfit']
+                  : ['benchmarkProfit', 'benchmarkWorstProfit'],
+              },
+            ]}
             series={[
               {
                 id: 'profit',
-                name: '수익금',
+                name: showAfterTax ? '세후 수익금' : '수익금',
                 color: '#4CAF50',
-                data: dashboardData.charts.profit,
+                data: showAfterTax
+                  ? dashboardData.charts.netProfit
+                  : dashboardData.charts.profit,
               },
               {
-                id: 'netProfit',
-                name: '세후 수익금',
-                color: '#673AB7',
-                data: dashboardData.charts.netProfit,
-              },
-              {
-                id: 'benchmarkProfit',
-                name: '벤치마크 수익금 (최상)',
+                id: showAfterTax ? 'benchmarkNetProfit' : 'benchmarkProfit',
+                name: showAfterTax
+                  ? '벤치마크 세후 수익금 (최상)'
+                  : '벤치마크 수익금 (최상)',
                 color: '#03A9F4',
-                data: dashboardData.charts.benchmarkProfit,
+                data: showAfterTax
+                  ? dashboardData.charts.benchmarkNetProfit
+                  : dashboardData.charts.benchmarkProfit,
               },
               {
-                id: 'benchmarkWorstProfit',
-                name: '벤치마크 수익금 (최악)',
+                id: showAfterTax
+                  ? 'benchmarkWorstNetProfit'
+                  : 'benchmarkWorstProfit',
+                name: showAfterTax
+                  ? '벤치마크 세후 수익금 (최악)'
+                  : '벤치마크 수익금 (최악)',
                 color: '#00BCD4',
-                data: dashboardData.charts.benchmarkWorstProfit,
+                data: showAfterTax
+                  ? dashboardData.charts.benchmarkWorstNetProfit
+                  : dashboardData.charts.benchmarkWorstProfit,
               },
             ]}
           />

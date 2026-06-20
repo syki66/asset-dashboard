@@ -51,6 +51,7 @@ export const convertToDashboardData = (
   // 자산 증감 내역 차트용 데이터
   const principalChartData: ChartProps[] = [];
   const currentValueChartData: ChartProps[] = [];
+  const netCurrentValueChartData: ChartProps[] = [];
   const profitChartData: ChartProps[] = [];
   const netProfitChartData: ChartProps[] = [];
   const returnRateChartData: ChartProps[] = [];
@@ -75,9 +76,13 @@ export const convertToDashboardData = (
   const dividendYieldChartData: ChartProps[] = [];
   const dividendYieldChartDataNet: ChartProps[] = [];
   const benchmarkChartData: ChartProps[] = [];
+  const benchmarkNetChartData: ChartProps[] = [];
   const benchmarkProfitChartData: ChartProps[] = [];
+  const benchmarkNetProfitChartData: ChartProps[] = [];
   const benchmarkWorstChartData: ChartProps[] = [];
+  const benchmarkWorstNetChartData: ChartProps[] = [];
   const benchmarkWorstProfitChartData: ChartProps[] = [];
+  const benchmarkWorstNetProfitChartData: ChartProps[] = [];
   let stockTradeHistoryChartData: StockTradeHistoryChartProps[] = [];
 
   const getDividendTaxRate = (
@@ -679,6 +684,12 @@ export const convertToDashboardData = (
       value: currentValue,
     });
 
+    // 세후 평가금 차트
+    netCurrentValueChartData.push({
+      date: account.date,
+      value: netCurrentValue,
+    });
+
     // 수익금 차트
     profitChartData.push({
       date: account.date,
@@ -828,25 +839,49 @@ export const convertToDashboardData = (
     // 벤치마크 차트 데이터
     benchmarkChartData.push({
       date: account.date,
+      value: benchmarkValue,
+    });
+
+    // 벤치마크 세후 차트 데이터
+    benchmarkNetChartData.push({
+      date: account.date,
       value: benchmarkNetValue,
     });
 
-    // 벤치마크 수익률 차트 데이터
+    // 벤치마크 수익금 차트 데이터
     benchmarkProfitChartData.push({
       date: account.date,
-      value: benchmarkNetValue - principal,
+      value: benchmarkProfit,
+    });
+
+    // 벤치마크 세후 수익금 차트 데이터
+    benchmarkNetProfitChartData.push({
+      date: account.date,
+      value: benchmarkNetProfit,
     });
 
     // 벤치마크 (최악의 케이스) 차트 데이터
     benchmarkWorstChartData.push({
       date: account.date,
+      value: benchmarkWorstValue,
+    });
+
+    // 벤치마크 (최악의 케이스) 세후 차트 데이터
+    benchmarkWorstNetChartData.push({
+      date: account.date,
       value: benchmarkWorstNetValue,
     });
 
-    // 벤치마크 (최악의 케이스) 수익률 차트 데이터
+    // 벤치마크 (최악의 케이스) 수익금 차트 데이터
     benchmarkWorstProfitChartData.push({
       date: account.date,
-      value: benchmarkWorstNetValue - principal,
+      value: benchmarkWorstProfit,
+    });
+
+    // 벤치마크 (최악의 케이스) 세후 수익금 차트 데이터
+    benchmarkWorstNetProfitChartData.push({
+      date: account.date,
+      value: benchmarkWorstNetProfit,
     });
 
     // 주식 매매 기록 차트 데이터 (매수, 매도 통합)
@@ -992,6 +1027,7 @@ export const convertToDashboardData = (
       charts: {
         principal: [...principalChartData],
         currentValue: [...currentValueChartData],
+        netCurrentValue: [...netCurrentValueChartData],
         profit: [...profitChartData],
         netProfit: [...netProfitChartData],
         returnRate: [...returnRateChartData],
@@ -1016,9 +1052,13 @@ export const convertToDashboardData = (
         dividendYield: [...dividendYieldChartData],
         dividendYieldNet: [...dividendYieldChartDataNet],
         benchmark: [...benchmarkChartData],
+        benchmarkNet: [...benchmarkNetChartData],
         benchmarkProfit: [...benchmarkProfitChartData],
+        benchmarkNetProfit: [...benchmarkNetProfitChartData],
         benchmarkWorst: [...benchmarkWorstChartData],
+        benchmarkWorstNet: [...benchmarkWorstNetChartData],
         benchmarkWorstProfit: [...benchmarkWorstProfitChartData],
+        benchmarkWorstNetProfit: [...benchmarkWorstNetProfitChartData],
         stockTradeHistory: stockTradeHistoryChartData,
       },
     };
