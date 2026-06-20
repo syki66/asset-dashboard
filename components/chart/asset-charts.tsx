@@ -69,6 +69,13 @@ interface AssetSeries {
   unit?: 'currency' | 'percent';
 }
 
+interface SeriesToggleGroup {
+  id: string;
+  name: string;
+  color?: string;
+  seriesIds: string[];
+}
+
 // 기본 색상 팔레트 - 더 많은 시리즈가 있을 경우 사용
 const DEFAULT_COLORS = [
   '#6366f1', // 인디고
@@ -97,6 +104,7 @@ interface AssetHistoryChartProps {
   showInflationAdjustToggle?: boolean;
   fillBetween?: [string, string]; // [bottomKey, topKey]
   calendarCategory?: string;
+  seriesToggleGroups?: SeriesToggleGroup[];
 }
 
 export function AssetChart({
@@ -111,6 +119,7 @@ export function AssetChart({
   showInflationAdjustToggle = true,
   fillBetween,
   calendarCategory,
+  seriesToggleGroups = [],
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -440,6 +449,58 @@ export function AssetChart({
         return [...prev, seriesId];
       }
     });
+  };
+
+  const toggleSeriesGroup = (seriesIds: string[]) => {
+    setActiveSeries((prev) => {
+      const isGroupActive = seriesIds.every((id) => prev.includes(id));
+
+      if (isGroupActive) {
+        return prev.filter((id) => !seriesIds.includes(id));
+      }
+
+      return Array.from(new Set([...prev, ...seriesIds]));
+    });
+  };
+
+  const groupedSeriesIds = new Set(
+    seriesToggleGroups.flatMap((group) => group.seriesIds),
+  );
+  const toggleButtonSeries: SeriesInfo[] = [
+    ...seriesWithColors
+      .filter((series) => !groupedSeriesIds.has(series.id))
+      .map((series) => ({
+        id: series.id,
+        name: series.name,
+        color: series.color,
+      })),
+    ...seriesToggleGroups.map((group) => {
+      const firstSeries = seriesWithColors.find((series) =>
+        group.seriesIds.includes(series.id),
+      );
+
+      return {
+        id: group.id,
+        name: group.name,
+        color: group.color ?? firstSeries?.color ?? DEFAULT_COLORS[0],
+      };
+    }),
+  ];
+  const activeToggleSeries = [
+    ...activeSeries.filter((id) => !groupedSeriesIds.has(id)),
+    ...seriesToggleGroups
+      .filter((group) => group.seriesIds.every((id) => activeSeries.includes(id)))
+      .map((group) => group.id),
+  ];
+  const handleToggleButtonClick = (id: string) => {
+    const group = seriesToggleGroups.find((group) => group.id === id);
+
+    if (group) {
+      toggleSeriesGroup(group.seriesIds);
+      return;
+    }
+
+    toggleSeries(id);
   };
 
   // 시간 범위에 따른 틱 개수 결정
@@ -849,9 +910,9 @@ export function AssetChart({
 
         {/* 시리즈 선택 토글 */}
         <SeriesToggleButtons
-          series={seriesWithColors}
-          activeSeries={activeSeries}
-          onToggle={toggleSeries}
+          series={toggleButtonSeries}
+          activeSeries={activeToggleSeries}
+          onToggle={handleToggleButtonClick}
           className="mt-4"
         />
       </CardContent>

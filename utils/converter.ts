@@ -55,6 +55,10 @@ export const convertToDashboardData = (
   const netProfitChartData: ChartProps[] = [];
   const returnRateChartData: ChartProps[] = [];
   const netReturnRateChartData: ChartProps[] = [];
+  const benchmarkReturnRateChartData: ChartProps[] = [];
+  const benchmarkNetReturnRateChartData: ChartProps[] = [];
+  const benchmarkWorstReturnRateChartData: ChartProps[] = [];
+  const benchmarkWorstNetReturnRateChartData: ChartProps[] = [];
   const mwrChartData: ChartProps[] = [];
   const netMwrChartData: ChartProps[] = [];
   const twrChartData: ChartProps[] = [];
@@ -696,6 +700,22 @@ export const convertToDashboardData = (
       date: account.date,
       value: netReturnRate,
     });
+    benchmarkReturnRateChartData.push({
+      date: account.date,
+      value: benchmarkReturnRate,
+    });
+    benchmarkNetReturnRateChartData.push({
+      date: account.date,
+      value: benchmarkNetReturnRate,
+    });
+    benchmarkWorstReturnRateChartData.push({
+      date: account.date,
+      value: benchmarkWorstReturnRate,
+    });
+    benchmarkWorstNetReturnRateChartData.push({
+      date: account.date,
+      value: benchmarkWorstNetReturnRate,
+    });
     mwrChartData.push({
       date: account.date,
       value: mwr,
@@ -976,6 +996,10 @@ export const convertToDashboardData = (
         netProfit: [...netProfitChartData],
         returnRate: [...returnRateChartData],
         netReturnRate: [...netReturnRateChartData],
+        benchmarkReturnRate: [...benchmarkReturnRateChartData],
+        benchmarkNetReturnRate: [...benchmarkNetReturnRateChartData],
+        benchmarkWorstReturnRate: [...benchmarkWorstReturnRateChartData],
+        benchmarkWorstNetReturnRate: [...benchmarkWorstNetReturnRateChartData],
         mwr: [...mwrChartData],
         netMwr: [...netMwrChartData],
         twr: [...twrChartData],

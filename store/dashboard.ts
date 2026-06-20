@@ -130,6 +130,30 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
+    benchmarkReturnRate: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkNetReturnRate: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkWorstReturnRate: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    benchmarkWorstNetReturnRate: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
     mwr: [
       {
         date: '1970-01-01',

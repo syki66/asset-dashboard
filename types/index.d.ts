@@ -178,6 +178,10 @@ export type DashboardProps = {
     netProfit: ChartProps[]; // 세후 수익금 차트
     returnRate: ChartProps[]; // 누적수익률 차트
     netReturnRate: ChartProps[]; // 세후 누적수익률 차트
+    benchmarkReturnRate: ChartProps[]; // 벤치마크 누적수익률 차트
+    benchmarkNetReturnRate: ChartProps[]; // 세후 벤치마크 누적수익률 차트
+    benchmarkWorstReturnRate: ChartProps[]; // 최악의 벤치마크 누적수익률 차트
+    benchmarkWorstNetReturnRate: ChartProps[]; // 세후 최악의 벤치마크 누적수익률 차트
     mwr: ChartProps[]; // 금액가중수익률 차트
     netMwr: ChartProps[]; // 세후 금액가중수익률 차트
     twr: ChartProps[]; // 시간가중수익률 차트
