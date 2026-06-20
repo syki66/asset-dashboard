@@ -64,6 +64,7 @@ export default function Page() {
       <div className='grid gap-4 mt-4'>
         <AssetChart
           themeColor={themeColor}
+          calendarCategory='risk'
           chartType='area'
           series={[
             {

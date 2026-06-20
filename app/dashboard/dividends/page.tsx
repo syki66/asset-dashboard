@@ -153,6 +153,7 @@ export default function Page() {
       >
         <AssetChart
           themeColor={themeColor}
+          calendarCategory='dividends'
           series={[
             {
               id: 'dividendYield',
@@ -171,6 +172,7 @@ export default function Page() {
         />
         <AssetChart
           themeColor={themeColor}
+          calendarCategory='dividends'
           series={[
             {
               id: 'YoC',

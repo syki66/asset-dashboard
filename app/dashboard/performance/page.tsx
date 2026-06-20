@@ -37,12 +37,12 @@ export default function Page() {
   const mwrInfo = (
     <div className='space-y-1 text-xs'>
       <p>
-        입출금 시점과 금액을 반영한 연환산 수익률로, 예금 상품의 금리와
-        비교할 수 있습니다.
+        입출금 시점과 금액을 반영한 연환산 수익률로, 예금 상품의 금리와 비교할
+        수 있습니다.
       </p>
       <p className='text-muted-foreground'>
-        (0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해
-        0으로 표시된 값일 수 있습니다.)
+        (0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해 0으로
+        표시된 값일 수 있습니다.)
       </p>
     </div>
   );
@@ -55,8 +55,7 @@ export default function Page() {
   const principalInfo = '입금 총액에서 출금 총액을 뺀 금액입니다.';
   const excessReturnInfo =
     '벤치마크 수익금에서 내 포트폴리오 수익금을 뺀 값입니다. 양수면 벤치마크가 더 높고, 음수면 내 포트폴리오가 더 높습니다.';
-  const formatRate = (rate: number) =>
-    `${Number((rate * 100).toFixed(6))}%`;
+  const formatRate = (rate: number) => `${Number((rate * 100).toFixed(6))}%`;
   const fxFeeRate = EXCHANGE_FEE_RATE * EXCHANGE_SPREAD_RATE;
   const fxDiscountRate = 1 - EXCHANGE_FEE_RATE;
   const costInfo = {
@@ -259,7 +258,9 @@ export default function Page() {
         <Button
           variant='outline'
           size='sm'
-          onClick={() => setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')}
+          onClick={() =>
+            setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')
+          }
           className='flex items-center gap-2 hover:opacity-80 transition-all'
           style={
             chartLayout === 'expanded'
@@ -300,6 +301,7 @@ export default function Page() {
             title='자산 추이'
             themeColor={themeColor}
             chartType='line'
+            calendarCategory='performance'
             fillBetween={['benchmarkWorst', 'benchmark']}
             series={[
               {
@@ -334,6 +336,7 @@ export default function Page() {
             title='수익금 비교'
             themeColor={themeColor}
             chartType='line'
+            calendarCategory='performance'
             fillBetween={['benchmarkWorstProfit', 'benchmarkProfit']}
             series={[
               {
@@ -374,6 +377,7 @@ export default function Page() {
             title={`수익률 분석 ${showAfterTax ? '(세후)' : ''}`}
             themeColor={themeColor}
             chartType='line'
+            calendarCategory='performance'
             showLogScaleToggle={false}
             showInflationAdjustToggle={false}
             series={[

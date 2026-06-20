@@ -22,6 +22,7 @@ import {
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import {
+  CalendarDays,
   DollarSign,
   TrendingUp,
   ArrowUpRight,
@@ -45,11 +46,19 @@ import {
   SeriesToggleButtons,
   SeriesInfo,
 } from '../ui/series-toggle-buttons';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { CalendarPicker } from '../ui/calendar-picker';
 
 // 차트 시리즈 타입 정의
 interface AssetDataPoint {
   date: string;
   value: number;
+}
+
+interface ProcessedAssetDataPoint extends AssetDataPoint {
+  parsedDate: Date;
+  adjustedValue: number;
+  displayValue: number;
 }
 
 interface AssetSeries {
@@ -87,6 +96,7 @@ interface AssetHistoryChartProps {
   showLogScaleToggle?: boolean;
   showInflationAdjustToggle?: boolean;
   fillBetween?: [string, string]; // [bottomKey, topKey]
+  calendarCategory?: string;
 }
 
 export function AssetChart({
@@ -100,11 +110,16 @@ export function AssetChart({
   showLogScaleToggle = true,
   showInflationAdjustToggle = true,
   fillBetween,
+  calendarCategory,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
   const [timeRange, setTimeRange] = useState('all');
   const [activeSeries, setActiveSeries] = useState<string[]>([]);
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+  const [startPickerOpen, setStartPickerOpen] = useState(false);
+  const [endPickerOpen, setEndPickerOpen] = useState(false);
 
   // 시리즈에 색상 할당
   const seriesWithColors = series.map((s, index) => ({
@@ -127,8 +142,9 @@ export function AssetChart({
 
     // 현재 연도부터 해당 연도까지 인플레이션 적용
     for (let y = year; y < currentYear; y++) {
-      if (inflationRates[y]) {
-        adjustedValue = adjustedValue * (1 + inflationRates[y] / 100);
+      const inflationRate = (inflationRates as Record<number, number>)[y];
+      if (inflationRate) {
+        adjustedValue = adjustedValue * (1 + inflationRate / 100);
       }
     }
 
@@ -157,10 +173,62 @@ export function AssetChart({
     };
   });
 
+  const availableDateRange = useMemo(() => {
+    const dates = processedSeriesData.flatMap((series) =>
+      series.processedData.map((item) => item.parsedDate),
+    );
+
+    if (dates.length === 0) {
+      return {
+        minDate: undefined,
+        maxDate: undefined,
+      };
+    }
+
+    return {
+      minDate: new Date(Math.min(...dates.map((date) => date.getTime()))),
+      maxDate: new Date(Math.max(...dates.map((date) => date.getTime()))),
+    };
+  }, [processedSeriesData]);
+
+  useEffect(() => {
+    if (!availableDateRange.minDate || !availableDateRange.maxDate) return;
+
+    setCustomStartDate((current) => current ?? availableDateRange.minDate);
+    setCustomEndDate((current) => current ?? availableDateRange.maxDate);
+  }, [availableDateRange.minDate, availableDateRange.maxDate]);
+
   // 시간 범위에 따른 데이터 필터링
-  const getFilteredData = (data) => {
+  const getFilteredData = (data: ProcessedAssetDataPoint[]) => {
     if (timeRange === 'all') return data;
     if (data.length === 0) return [];
+
+    if (timeRange === 'custom') {
+      const start = customStartDate ?? availableDateRange.minDate;
+      const end = customEndDate ?? availableDateRange.maxDate;
+
+      if (!start || !end) return data;
+
+      const startTime = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate(),
+      ).getTime();
+      const endTime = new Date(
+        end.getFullYear(),
+        end.getMonth(),
+        end.getDate(),
+        23,
+        59,
+        59,
+        999,
+      ).getTime();
+
+      return data.filter((item) => {
+        const itemTime = item.parsedDate.getTime();
+        return itemTime >= startTime && itemTime <= endTime;
+      });
+    }
 
     // 가장 최근 날짜 찾기
     const latestDate = new Date(
@@ -313,7 +381,7 @@ export function AssetChart({
   const yDomain = calculateYDomain();
 
   // X축 포맷터 - 시간 범위에 따라 다른 형식 사용
-  const getXAxisTickFormatter = () => {
+  const getXAxisTickFormatter = (): ((dateStr: string) => string) => {
     switch (timeRange) {
       case '1w':
         return (dateStr) => format(parseISO(dateStr), 'M/d', { locale: ko });
@@ -326,9 +394,41 @@ export function AssetChart({
       case 'ytd':
       case '1y':
         return (dateStr) => format(parseISO(dateStr), 'M월', { locale: ko });
+      case 'custom':
+        return (dateStr) => format(parseISO(dateStr), 'yy.M.d', { locale: ko });
       default:
         return (dateStr) => format(parseISO(dateStr), 'yyyy', { locale: ko });
     }
+  };
+
+  const formatPickerDate = (date?: Date) =>
+    date ? format(date, 'yyyy.MM.dd', { locale: ko }) : '날짜 선택';
+  const calendarButtonHoverColor = themeColor.includes('-theme)')
+    ? themeColor.replace('-theme)', '-hover-bg)')
+    : `color-mix(in oklch, ${themeColor} 12%, transparent)`;
+  const calendarButtonStyle = {
+    '--chart-calendar-theme': themeColor,
+    '--chart-calendar-hover': calendarButtonHoverColor,
+    borderColor: 'var(--chart-calendar-theme)',
+    color: 'var(--chart-calendar-theme)',
+  } as React.CSSProperties;
+
+  const handleCustomStartDateSelect = (date: Date) => {
+    setCustomStartDate(date);
+    if (customEndDate && date > customEndDate) {
+      setCustomEndDate(date);
+    }
+    setTimeRange('custom');
+    setStartPickerOpen(false);
+  };
+
+  const handleCustomEndDateSelect = (date: Date) => {
+    setCustomEndDate(date);
+    if (customStartDate && date < customStartDate) {
+      setCustomStartDate(date);
+    }
+    setTimeRange('custom');
+    setEndPickerOpen(false);
   };
 
   // 시리즈 토글 핸들러
@@ -539,9 +639,6 @@ export function AssetChart({
               }
             >
               <TabsList className="grid w-full grid-cols-10 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs">
-                <TabsTrigger value="1w" className="rounded-md text-xs font-semibold">
-                  1주
-                </TabsTrigger>
                 <TabsTrigger value="1m" className="rounded-md text-xs font-semibold">
                   1개월
                 </TabsTrigger>
@@ -569,9 +666,61 @@ export function AssetChart({
                 <TabsTrigger value="all" className="rounded-md text-xs font-semibold">
                   전체
                 </TabsTrigger>
+                <TabsTrigger value="custom" className="rounded-md text-xs font-semibold">
+                  직접 설정
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
+          {timeRange === 'custom' && (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Popover open={startPickerOpen} onOpenChange={setStartPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]"
+                    style={calendarButtonStyle}
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    {formatPickerDate(customStartDate)}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-auto p-0">
+                  <CalendarPicker
+                    selectedDate={customStartDate}
+                    onDateSelect={handleCustomStartDateSelect}
+                    minDate={availableDateRange.minDate}
+                    maxDate={customEndDate ?? availableDateRange.maxDate}
+                    category={calendarCategory}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-sm text-muted-foreground">-</span>
+              <Popover open={endPickerOpen} onOpenChange={setEndPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]"
+                    style={calendarButtonStyle}
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    {formatPickerDate(customEndDate)}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-auto p-0">
+                  <CalendarPicker
+                    selectedDate={customEndDate}
+                    onDateSelect={handleCustomEndDateSelect}
+                    minDate={customStartDate ?? availableDateRange.minDate}
+                    maxDate={availableDateRange.maxDate}
+                    category={calendarCategory}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
         </div>
 
         <div className="h-80">

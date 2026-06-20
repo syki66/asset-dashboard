@@ -150,6 +150,7 @@ export default function Page() {
       >
         <AssetChart
           themeColor={themeColor}
+          calendarCategory='overview'
           chartType='line'
           series={[
             {

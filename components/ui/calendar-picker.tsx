@@ -189,7 +189,9 @@ export function CalendarPicker({
               'bg-accent/20 text-accent-foreground font-semibold',
             isSelectedDay &&
               isSelectable &&
-              (!category ? 'bg-primary text-primary-foreground font-semibold' : `bg-theme-${category} text-white font-semibold`),
+              (!category
+                ? 'bg-primary text-primary-foreground font-semibold'
+                : 'bg-[var(--calendar-theme)] text-white font-semibold hover:bg-[var(--calendar-theme)] hover:text-white'),
             isSelectable && !isCurrentDay && !isSelectedDay && 'text-foreground'
           )}
           aria-label={`${viewDate.getFullYear()}년 ${
@@ -292,7 +294,7 @@ export function CalendarPicker({
               "ml-1 h-7 px-2 text-xs font-medium cursor-pointer transition-opacity border-transparent",
               !isTodaySelectable && "cursor-not-allowed opacity-45",
               category && "bg-[var(--calendar-theme)] hover:bg-[var(--calendar-theme)] text-white hover:opacity-90",
-              category && isTodaySelectable && `bg-theme-${category}`
+              category && isTodaySelectable && 'bg-[var(--calendar-theme)]'
             )}
             style={category && isTodaySelectable ? { backgroundColor: `var(--${category}-theme)` } : undefined}
             size="sm"
