@@ -1,6 +1,6 @@
 'use client';
 
-import { AssetChart } from '@/components/chart';
+import { AssetChart, DividendChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
 import { useDashboardStore } from '@/store/dashboard';
@@ -10,7 +10,13 @@ import {
   useTaxStore,
 } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
-import { ChartLine, Landmark, Maximize2, Minimize2 } from 'lucide-react';
+import {
+  ChartLine,
+  Landmark,
+  Maximize2,
+  Minimize2,
+  TrendingUpDown,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,6 +73,17 @@ export default function Page() {
     krBrokerFee: `국내주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(KR_BROKER_FEE_RATE)}를 적용합니다.`,
     krRegulatoryFee: `국내주식 매도 시 발생하는 유관기관제비용입니다. 평가금액에 ${formatRate(KR_REGULATORY_FEE_RATE)}를 적용합니다.`,
   };
+  const bestYear = showAfterTax ? performance.netBestYear : performance.bestYear;
+  const worstYear = showAfterTax
+    ? performance.netWorstYear
+    : performance.worstYear;
+  const yearlyProfits = showAfterTax
+    ? performance.netYearlyProfits
+    : performance.yearlyProfits;
+  const yearlyProfitChartData = yearlyProfits.map((yearProfit) => ({
+    date: `${yearProfit.year}-01-01`,
+    value: yearProfit.profit,
+  }));
 
   const beforeTaxData = [
     {
@@ -251,6 +268,45 @@ export default function Page() {
               hasDivider: true,
             },
           ]}
+        />
+      </div>
+      <div className='mt-4 grid gap-4 xl:grid-cols-[minmax(18rem,24rem)_1fr]'>
+        <DashboardOverviewCard
+          title='Best / Worst Year'
+          icon={TrendingUpDown}
+          themeColor={themeColor}
+          contentItems={[
+            {
+              label: 'Best Year',
+              value: bestYear.year,
+            },
+            {
+              label: showAfterTax ? '순수익금' : '수익금',
+              value: formatCurrency(bestYear.profit, currency),
+              valueClassName: 'theme-performance',
+            },
+            {
+              label: 'Worst Year',
+              value: worstYear.year,
+              hasDivider: true,
+            },
+            {
+              label: showAfterTax ? '순수익금' : '수익금',
+              value: formatCurrency(worstYear.profit, currency),
+              valueClassName: 'theme-performance',
+            },
+          ]}
+        />
+        <DividendChart
+          themeColor={themeColor}
+          data={yearlyProfitChartData}
+          title={showAfterTax ? '연도별 순수익금' : '연도별 수익금'}
+          description=''
+          icon={ChartLine}
+          valueLabel={showAfterTax ? '순수익금' : '수익금'}
+          showTimeRangeTabs={false}
+          defaultTimeRange='max'
+          chartHeightClassName='h-40'
         />
       </div>
       <div className='mt-8 flex items-center justify-between'>

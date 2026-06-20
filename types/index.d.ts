@@ -80,6 +80,11 @@ export type ChartProps = {
   value: number;
 };
 
+export type YearPerformanceProps = {
+  year: string;
+  profit: number;
+};
+
 export type DashboardProps = {
   date: string; // 계좌 데이터 기준 날짜
   lastUpdated: string; // CSV 파일 업데이트 날짜
@@ -100,6 +105,12 @@ export type DashboardProps = {
     netMwr: number; // 순 금액가중수익률
     twr: number; // 시간가중수익률
     netTwr: number; // 순 시간가중수익률
+    bestYear: YearPerformanceProps; // 수익금 기준 최고 연도
+    worstYear: YearPerformanceProps; // 수익금 기준 최저 연도
+    netBestYear: YearPerformanceProps; // 순수익금 기준 최고 연도
+    netWorstYear: YearPerformanceProps; // 순수익금 기준 최저 연도
+    yearlyProfits: YearPerformanceProps[]; // 연도별 수익금
+    netYearlyProfits: YearPerformanceProps[]; // 연도별 순수익금
   };
   dividends: {
     annualDividends: number; // 배당금 (최근 1년)

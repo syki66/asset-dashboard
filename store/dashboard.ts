@@ -22,6 +22,24 @@ export const initialDashboardData: DashboardProps = {
     netMwr: 0,
     twr: 0,
     netTwr: 0,
+    bestYear: {
+      year: '-',
+      profit: 0,
+    },
+    worstYear: {
+      year: '-',
+      profit: 0,
+    },
+    netBestYear: {
+      year: '-',
+      profit: 0,
+    },
+    netWorstYear: {
+      year: '-',
+      profit: 0,
+    },
+    yearlyProfits: [],
+    netYearlyProfits: [],
   },
   dividends: {
     annualDividends: 0,

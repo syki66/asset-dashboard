@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ElementType } from 'react';
 import {
   Bar,
   BarChart,
@@ -43,6 +43,11 @@ interface DividendChartProps {
   title?: string;
   description?: string;
   themeColor?: string;
+  icon?: ElementType;
+  valueLabel?: string;
+  showTimeRangeTabs?: boolean;
+  defaultTimeRange?: TimeRange;
+  chartHeightClassName?: string;
 }
 
 type AggregationPeriod = 'monthly' | 'quarterly' | 'annual';
@@ -53,9 +58,15 @@ export function DividendChart({
   title = '배당금 내역 차트',
   description = '수령한 배당금의 내역입니다.',
   themeColor = 'var(--dividends-theme)',
+  icon: Icon = Landmark,
+  valueLabel = '배당금',
+  showTimeRangeTabs = true,
+  defaultTimeRange = 'ytd',
+  chartHeightClassName = 'h-80',
 }: DividendChartProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>('ytd');
+  const [timeRange, setTimeRange] = useState<TimeRange>(defaultTimeRange);
   const { currency } = useCurrencyStore();
+  const hoverColor = themeColor.replace('-theme)', '-hover-bg)');
 
   const { chartData, aggregationPeriod } = useMemo(() => {
     if (!data || data.length === 0)
@@ -196,7 +207,7 @@ export function DividendChart({
                   className='w-2.5 h-2.5 rounded-full mr-2'
                   style={{ backgroundColor: themeColor }}
                 />
-                <span>배당금</span>
+                <span>{valueLabel}</span>
               </div>
               <span className='font-semibold ml-4'>
                 {new Intl.NumberFormat('ko-KR', {
@@ -219,30 +230,46 @@ export function DividendChart({
         <div className='flex items-start justify-between'>
           <div className='flex flex-col gap-1'>
             <CardTitle className='text-lg flex items-center gap-2'>
-              <Landmark style={{ color: themeColor }} className='h-5 w-5' />
+              <Icon style={{ color: themeColor }} className='h-5 w-5' />
               {title}
             </CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
-          <Tabs
-            defaultValue='ytd'
-            value={timeRange}
-            onValueChange={(value) => setTimeRange(value as TimeRange)}
-            style={{ '--active-tab-color': themeColor } as React.CSSProperties}
-          >
-            <TabsList className='grid grid-cols-6 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
-              <TabsTrigger value='ytd' className='rounded-md font-semibold'>YTD</TabsTrigger>
-              <TabsTrigger value='1y' className='rounded-md font-semibold'>1년</TabsTrigger>
-              <TabsTrigger value='3y' className='rounded-md font-semibold'>3년</TabsTrigger>
-              <TabsTrigger value='5y' className='rounded-md font-semibold'>5년</TabsTrigger>
-              <TabsTrigger value='10y' className='rounded-md font-semibold'>10년</TabsTrigger>
-              <TabsTrigger value='max' className='rounded-md font-semibold'>MAX</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {showTimeRangeTabs && (
+            <Tabs
+              defaultValue={defaultTimeRange}
+              value={timeRange}
+              onValueChange={(value) => setTimeRange(value as TimeRange)}
+              style={
+                { '--active-tab-color': themeColor } as React.CSSProperties
+              }
+            >
+              <TabsList className='grid grid-cols-6 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
+                <TabsTrigger value='ytd' className='rounded-md font-semibold'>
+                  YTD
+                </TabsTrigger>
+                <TabsTrigger value='1y' className='rounded-md font-semibold'>
+                  1년
+                </TabsTrigger>
+                <TabsTrigger value='3y' className='rounded-md font-semibold'>
+                  3년
+                </TabsTrigger>
+                <TabsTrigger value='5y' className='rounded-md font-semibold'>
+                  5년
+                </TabsTrigger>
+                <TabsTrigger value='10y' className='rounded-md font-semibold'>
+                  10년
+                </TabsTrigger>
+                <TabsTrigger value='max' className='rounded-md font-semibold'>
+                  MAX
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className='h-80'>
+        <div className={chartHeightClassName}>
           <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (
               <BarChart data={chartData}>
@@ -268,7 +295,7 @@ export function DividendChart({
                 />
                 <Tooltip
                   content={<CustomTooltip />}
-                  cursor={{ fill: 'var(--dividends-hover-bg)' }}
+                  cursor={{ fill: hoverColor }}
                 />
                 <Bar
                   dataKey='value'

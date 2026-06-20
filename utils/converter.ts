@@ -42,6 +42,10 @@ import {
 } from '@/constants/keywords';
 import { getAverage } from './math';
 import { differenceInCalendarDays } from 'date-fns';
+import {
+  updateYearPerformance,
+  type YearPerformanceState,
+} from './year-performance';
 
 // 대시보드 표시용 데이터로 가공하는 함수
 export const convertToDashboardData = (
@@ -104,6 +108,7 @@ export const convertToDashboardData = (
   // MWR 계산용 현금흐름 배열 및 이전 원금
   const cashFlows: CashFlow[] = [];
   let prevPrincipal = 0;
+  const yearPerformanceMap = new Map<string, YearPerformanceState>();
 
   // TWR 계산용 이전 평가금 및 누적 수익 배율
   let prevCurrentValueForTwr = 0;
@@ -265,6 +270,20 @@ export const convertToDashboardData = (
         : 0;
     const netAverageAnnualReturn =
       calculateAverageAnnualReturn(netCurrentValue);
+
+    const {
+      bestYear,
+      worstYear,
+      netBestYear,
+      netWorstYear,
+      yearlyProfits,
+      netYearlyProfits,
+    } = updateYearPerformance({
+      yearPerformanceMap,
+      date: account.date,
+      profit,
+      netProfit,
+    });
 
     // MWR 계산
     const netDeposit = principal - prevPrincipal;
@@ -953,6 +972,12 @@ export const convertToDashboardData = (
         netMwr,
         twr,
         netTwr,
+        bestYear,
+        worstYear,
+        netBestYear,
+        netWorstYear,
+        yearlyProfits,
+        netYearlyProfits,
       },
       dividends: {
         annualDividends,
