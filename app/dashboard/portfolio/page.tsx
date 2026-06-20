@@ -64,6 +64,7 @@ export default function Page() {
           cash={dashboardData.cash.total}
           themeColor={themeColor}
           isCompact={chartLayout === 'compact'}
+          selectedDate={dashboardData.date}
         />
         <PortfolioAllocationChart
           stocks={dashboardData.stocks}
@@ -73,6 +74,7 @@ export default function Page() {
           description='현금과 VTI, QQQM의 섹터 구성을 합산한 포트폴리오 섹터 배분입니다.'
           allocationMode='sectors'
           isCompact={chartLayout === 'compact'}
+          selectedDate={dashboardData.date}
         />
       </div>
       <div className='mt-8'>

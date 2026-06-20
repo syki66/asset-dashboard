@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { InfoTooltip } from '@/components/dashboard/info-tooltip';
 import { StockProps } from '@/types';
 import { PieChart as PieChartIcon } from 'lucide-react';
 
@@ -27,6 +28,7 @@ interface PortfolioAllocationChartProps {
   description?: string;
   isCompact?: boolean;
   allocationMode?: 'holdings' | 'sectors';
+  selectedDate?: string;
 }
 
 const COLORS = [
@@ -45,6 +47,15 @@ const COLORS = [
   '#94a3b8', // 슬레이트 (현금용)
 ];
 
+const getCurrentRebalanceStartDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const rebalanceMonth = month >= 10 ? 10 : month >= 7 ? 7 : month >= 4 ? 4 : 1;
+
+  return `${year}-${String(rebalanceMonth).padStart(2, '0')}-01`;
+};
+
 export function PortfolioAllocationChart({
   stocks,
   cash,
@@ -53,14 +64,37 @@ export function PortfolioAllocationChart({
   description = '보유 종목 및 현금 자산 배분 현황입니다.',
   isCompact = false,
   allocationMode = 'holdings',
+  selectedDate,
 }: PortfolioAllocationChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isHistoricalRebalancePeriod, setIsHistoricalRebalancePeriod] =
+    useState(false);
+  const [currentRebalanceStartDate, setCurrentRebalanceStartDate] =
+    useState<string | null>(null);
 
   useEffect(() => {
     const fetchAndProcessData = async () => {
       setIsLoading(true);
+      setIsHistoricalRebalancePeriod(false);
       const stockMap = new Map<string, { value: number; fullName: string }>();
+      const rebalanceStartDate = getCurrentRebalanceStartDate();
+      setCurrentRebalanceStartDate(rebalanceStartDate);
+      const shouldUseFallback =
+        selectedDate !== undefined && selectedDate < rebalanceStartDate;
+      setIsHistoricalRebalancePeriod(shouldUseFallback);
+
+      const addStockMapItem = (
+        name: string,
+        value: number,
+        fullName: string,
+      ) => {
+        const existing = stockMap.get(name);
+        stockMap.set(name, {
+          value: (existing?.value ?? 0) + value,
+          fullName: existing?.fullName ?? fullName,
+        });
+      };
 
       for (const stock of stocks) {
         const isVanguard =
@@ -81,7 +115,7 @@ export function PortfolioAllocationChart({
               if (response.ok) {
                 const sectors = await response.json();
 
-                if (sectors.length > 0) {
+                if (!shouldUseFallback && sectors.length > 0) {
                   sectors.forEach((sector: any) => {
                     const sectorValue = stockValue * (sector.weight / 100);
                     const existing = stockMap.get(sector.name);
@@ -101,16 +135,18 @@ export function PortfolioAllocationChart({
             }
           }
 
-          const existing = stockMap.get('개별 주식');
-          stockMap.set('개별 주식', {
-            value: (existing?.value ?? 0) + stockValue,
-            fullName: '섹터 분류가 적용되지 않은 보유 주식',
-          });
+          addStockMapItem('주식', stockValue, '섹터 구성 미적용 주식 자산');
           continue;
         }
 
         if (isVanguard || isInvesco) {
           try {
+            const symbol = stock.symbol.toUpperCase();
+            if (shouldUseFallback && (symbol === 'VTI' || symbol === 'QQQM')) {
+              addStockMapItem(symbol, stockValue, stock.shortName);
+              continue;
+            }
+
             const response = await fetch(`/api/holdings/${stock.symbol}`);
             if (response.ok) {
               const holdings = await response.json();
@@ -118,18 +154,7 @@ export function PortfolioAllocationChart({
 
               holdings.forEach((holding: any) => {
                 const holdingValue = stockValue * (holding.weight / 100);
-                const existing = stockMap.get(holding.ticker);
-                if (existing) {
-                  stockMap.set(holding.ticker, {
-                    value: existing.value + holdingValue,
-                    fullName: holding.name || existing.fullName,
-                  });
-                } else {
-                  stockMap.set(holding.ticker, {
-                    value: holdingValue,
-                    fullName: holding.name,
-                  });
-                }
+                addStockMapItem(holding.ticker, holdingValue, holding.name);
               });
               continue; // Skip adding the ETF itself
             }
@@ -142,18 +167,7 @@ export function PortfolioAllocationChart({
         }
 
         // Regular stock or failed fetch
-        const existing = stockMap.get(stock.symbol);
-        if (existing) {
-          stockMap.set(stock.symbol, {
-            value: existing.value + stockValue,
-            fullName: stock.shortName,
-          });
-        } else {
-          stockMap.set(stock.symbol, {
-            value: stockValue,
-            fullName: stock.shortName,
-          });
-        }
+        addStockMapItem(stock.symbol, stockValue, stock.shortName);
       }
 
       const stockItems = Array.from(stockMap.entries()).map(
@@ -185,7 +199,7 @@ export function PortfolioAllocationChart({
       .finally(() => {
         setIsLoading(false);
       });
-  }, [stocks, cash, allocationMode]);
+  }, [stocks, cash, allocationMode, selectedDate]);
 
   const totalValue = useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.value, 0);
@@ -243,6 +257,21 @@ export function PortfolioAllocationChart({
 
     return topItems;
   }, [pieChartData]);
+  const sectorFallbackInfo = useMemo(() => {
+    if (!isHistoricalRebalancePeriod || !currentRebalanceStartDate) return null;
+
+    return (
+      <div className='max-w-64 space-y-1 text-xs'>
+        <p>
+          선택한 날짜가 현재 리밸런싱 구간 이전이라 최신 세부 구성을
+          적용하지 않았습니다.
+        </p>
+        <p className='text-muted-foreground'>
+          {currentRebalanceStartDate}부터 세부 비중으로 표시합니다.
+        </p>
+      </div>
+    );
+  }, [currentRebalanceStartDate, isHistoricalRebalancePeriod]);
 
   if (isLoading) {
     return (
@@ -333,6 +362,9 @@ export function PortfolioAllocationChart({
         <CardTitle className='text-lg flex items-center gap-2'>
           <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
           {title}
+          {sectorFallbackInfo && (
+            <InfoTooltip info={sectorFallbackInfo} side='right' />
+          )}
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
@@ -400,7 +432,9 @@ export function PortfolioAllocationChart({
             <div className='flex-1 overflow-y-auto pr-2 custom-scrollbar'>
               <div className='space-y-4'>
                 {chartData.map((item, index) => {
-                  const percentage = ((item.value / totalValue) * 100).toFixed(2);
+                  const percentage = ((item.value / totalValue) * 100).toFixed(
+                    2,
+                  );
 
                   // Determine color
                   const threshold = totalValue * 0.005;
