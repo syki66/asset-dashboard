@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { TermsProps } from '@/types';
+import { KR_DIVIDEND_TAX_RATE } from '@/constants/keywords';
 // processWithdrawal 함수는 generator.ts에서 import
 import { processWithdrawal } from '../generator';
 
@@ -10,6 +11,8 @@ import { processWithdrawal } from '../generator';
 // - 여러 상품이 있을 때 만기일이 늦은 상품부터 차감
 
 describe('processWithdrawal', () => {
+  const netInterestRate = 1 - KR_DIVIDEND_TAX_RATE;
+
   it('출금액이 원금보다 작으면 원금만 차감한다', () => {
     const terms: TermsProps[] = [
       {
@@ -37,7 +40,7 @@ describe('processWithdrawal', () => {
     ];
     processWithdrawal(terms, 600);
     expect(terms[0].principal).toBe(0);
-    expect(terms[0].interest).toBe(100);
+    expect(terms[0].interest).toBeCloseTo(200 - 100 / netInterestRate);
   });
 
   it('만기일이 늦은 상품부터 차감한다.', () => {
@@ -64,10 +67,17 @@ describe('processWithdrawal', () => {
         interestRate: 2,
       },
     ];
-    processWithdrawal(terms, 770);
+    processWithdrawal(terms, 750);
     expect(terms.length).toBe(1);
     expect(terms[0].principal).toBe(0);
-    expect(terms[0].interest).toBe(10);
+    expect(terms[0].interest).toBeCloseTo(
+      30 -
+        (750 -
+          (300 + 100 * netInterestRate) -
+          (200 + 50 * netInterestRate) -
+          100) /
+          netInterestRate,
+    );
   });
 
   it('원금이 0인 상품이 있으면 해당 이자부터 소비하고 남은 금액은 다음 상품에 적용한다', () => {
@@ -90,7 +100,7 @@ describe('processWithdrawal', () => {
     processWithdrawal(terms, 250);
     // 첫번째(이자만 있는) 상품이 먼저 소모되고 배열에서 제거
     expect(terms.length).toBe(1);
-    expect(terms[0].principal).toBe(950);
+    expect(terms[0].principal).toBeCloseTo(1000 - (250 - 200 * netInterestRate));
     expect(terms[0].interest).toBe(100);
   });
 
