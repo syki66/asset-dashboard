@@ -25,8 +25,8 @@ type AccountDetails = {
   stocksProfit: number;
   stocks: StockProps[];
   stockTradeHistory: StockTradeHistoryProps[];
-  benchmarkValue: number;
-  benchmarkNetValue: number;
+  benchmarkBestValue: number;
+  benchmarkBestNetValue: number;
   benchmarkWorstValue: number;
   benchmarkWorstNetValue: number;
 };
@@ -127,23 +127,23 @@ export type DashboardProps = {
     usTax: number; // 미국주식 양도소득세
   };
   stocks: StockProps[]; // 보유 주식 목록 (환전 처리된 값)
-  benchmark: {
-    value: number; // 벤치마크 평가금
-    netValue: number; // 벤치마크 평가금 (세후)
-    profit: number; // 벤치마크 수익금
-    netProfit: number; // 벤치마크 수익금 (세후)
-    returnRate: number; // 벤치마크 수익률
-    netReturnRate: number; // 벤치마크 수익률 (세후)
-    cagr: number; // 벤치마크 연평균 성장률
-    netCagr: number; // 벤치마크 연평균 성장률 (세후)
-    averageAnnualReturn: number; // 벤치마크 단순 연평균 수익률
-    netAverageAnnualReturn: number; // 벤치마크 단순 연평균 수익률 (세후)
-    mwr: number; // 벤치마크 금액가중수익률
-    netMwr: number; // 벤치마크 금액가중수익률 (세후)
-    twr: number; // 벤치마크 시간가중수익률
-    netTwr: number; // 벤치마크 시간가중수익률 (세후)
-    excessReturn: number; // 벤치마크 초과수익률
-    netExcessReturn: number; // 벤치마크 초과수익률 (세후)
+  benchmarkBest: {
+    value: number; // 최상의 벤치마크 평가금
+    netValue: number; // 최상의 벤치마크 평가금 (세후)
+    profit: number; // 최상의 벤치마크 수익금
+    netProfit: number; // 최상의 벤치마크 수익금 (세후)
+    returnRate: number; // 최상의 벤치마크 수익률
+    netReturnRate: number; // 최상의 벤치마크 수익률 (세후)
+    cagr: number; // 최상의 벤치마크 연평균 성장률
+    netCagr: number; // 최상의 벤치마크 연평균 성장률 (세후)
+    averageAnnualReturn: number; // 최상의 벤치마크 단순 연평균 수익률
+    netAverageAnnualReturn: number; // 최상의 벤치마크 단순 연평균 수익률 (세후)
+    mwr: number; // 최상의 벤치마크 금액가중수익률
+    netMwr: number; // 최상의 벤치마크 금액가중수익률 (세후)
+    twr: number; // 최상의 벤치마크 시간가중수익률
+    netTwr: number; // 최상의 벤치마크 시간가중수익률 (세후)
+    excessReturn: number; // 최상의 벤치마크 초과수익률
+    netExcessReturn: number; // 최상의 벤치마크 초과수익률 (세후)
   };
   benchmarkWorst: {
     value: number; // 최악의 벤치마크 평가금
@@ -179,8 +179,8 @@ export type DashboardProps = {
     netProfit: ChartProps[]; // 세후 수익금 차트
     returnRate: ChartProps[]; // 누적수익률 차트
     netReturnRate: ChartProps[]; // 세후 누적수익률 차트
-    benchmarkReturnRate: ChartProps[]; // 벤치마크 누적수익률 차트
-    benchmarkNetReturnRate: ChartProps[]; // 세후 벤치마크 누적수익률 차트
+    benchmarkBestReturnRate: ChartProps[]; // 최상의 벤치마크 누적수익률 차트
+    benchmarkBestNetReturnRate: ChartProps[]; // 세후 최상의 벤치마크 누적수익률 차트
     benchmarkWorstReturnRate: ChartProps[]; // 최악의 벤치마크 누적수익률 차트
     benchmarkWorstNetReturnRate: ChartProps[]; // 세후 최악의 벤치마크 누적수익률 차트
     mwr: ChartProps[]; // 금액가중수익률 차트
@@ -198,10 +198,10 @@ export type DashboardProps = {
     dividendYieldNet: ChartProps[]; // 세후 평가금 대비 배당수익률 차트
     yieldOnCost: ChartProps[]; // 원가 대비 배당수익률 차트
     yieldOnCostNet: ChartProps[]; // 세후 원가 대비 배당수익률 차트
-    benchmark: ChartProps[]; // 벤치마크 평가금 차트
-    benchmarkNet: ChartProps[]; // 세후 벤치마크 평가금 차트
-    benchmarkProfit: ChartProps[]; // 벤치마크 수익금 차트
-    benchmarkNetProfit: ChartProps[]; // 세후 벤치마크 수익금 차트
+    benchmarkBest: ChartProps[]; // 최상의 벤치마크 평가금 차트
+    benchmarkBestNet: ChartProps[]; // 세후 최상의 벤치마크 평가금 차트
+    benchmarkBestProfit: ChartProps[]; // 최상의 벤치마크 수익금 차트
+    benchmarkBestNetProfit: ChartProps[]; // 세후 최상의 벤치마크 수익금 차트
     benchmarkWorst: ChartProps[]; // 최악의 벤치마크 평가금 차트
     benchmarkWorstNet: ChartProps[]; // 세후 최악의 벤치마크 평가금 차트
     benchmarkWorstProfit: ChartProps[]; // 최악의 벤치마크 수익금 차트
@@ -221,7 +221,7 @@ export type TermsProps = {
 export type MergeAccountDataInput = {
   name: string;
   accountData: AccountProps[];
-  benchmarkData?: {
+  benchmarkBestData?: {
     date: string;
     benchmarkValueKrw: number;
     benchmarkValueUsd: number;

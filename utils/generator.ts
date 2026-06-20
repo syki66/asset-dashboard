@@ -156,7 +156,7 @@ const getCurrentRate = (date: string, rateType: 'best' | 'worst' = 'best') => {
   const storeState = useInterestRateStore.getState();
   const rates =
     rateType === 'best'
-      ? storeState.interestRates
+      ? storeState.bestInterestRates
       : storeState.worstInterestRates;
   const dateObj = new Date(date);
 

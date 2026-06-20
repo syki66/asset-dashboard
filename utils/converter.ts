@@ -56,8 +56,8 @@ export const convertToDashboardData = (
   const netProfitChartData: ChartProps[] = [];
   const returnRateChartData: ChartProps[] = [];
   const netReturnRateChartData: ChartProps[] = [];
-  const benchmarkReturnRateChartData: ChartProps[] = [];
-  const benchmarkNetReturnRateChartData: ChartProps[] = [];
+  const benchmarkBestReturnRateChartData: ChartProps[] = [];
+  const benchmarkBestNetReturnRateChartData: ChartProps[] = [];
   const benchmarkWorstReturnRateChartData: ChartProps[] = [];
   const benchmarkWorstNetReturnRateChartData: ChartProps[] = [];
   const mwrChartData: ChartProps[] = [];
@@ -75,10 +75,10 @@ export const convertToDashboardData = (
   const yieldOnCostChartDataNet: ChartProps[] = [];
   const dividendYieldChartData: ChartProps[] = [];
   const dividendYieldChartDataNet: ChartProps[] = [];
-  const benchmarkChartData: ChartProps[] = [];
-  const benchmarkNetChartData: ChartProps[] = [];
-  const benchmarkProfitChartData: ChartProps[] = [];
-  const benchmarkNetProfitChartData: ChartProps[] = [];
+  const benchmarkBestChartData: ChartProps[] = [];
+  const benchmarkBestNetChartData: ChartProps[] = [];
+  const benchmarkBestProfitChartData: ChartProps[] = [];
+  const benchmarkBestNetProfitChartData: ChartProps[] = [];
   const benchmarkWorstChartData: ChartProps[] = [];
   const benchmarkWorstNetChartData: ChartProps[] = [];
   const benchmarkWorstProfitChartData: ChartProps[] = [];
@@ -108,14 +108,14 @@ export const convertToDashboardData = (
   // TWR 계산용 이전 평가금 및 누적 수익 배율
   let prevCurrentValueForTwr = 0;
   let prevNetCurrentValueForTwr = 0;
-  let prevBenchmarkValueForTwr = 0;
-  let prevBenchmarkNetValueForTwr = 0;
+  let prevBenchmarkBestValueForTwr = 0;
+  let prevBenchmarkBestNetValueForTwr = 0;
   let prevBenchmarkWorstValueForTwr = 0;
   let prevBenchmarkWorstNetValueForTwr = 0;
   let twrFactor = 1;
   let netTwrFactor = 1;
-  let benchmarkTwrFactor = 1;
-  let benchmarkNetTwrFactor = 1;
+  let benchmarkBestTwrFactor = 1;
+  let benchmarkBestNetTwrFactor = 1;
   let benchmarkWorstTwrFactor = 1;
   let benchmarkWorstNetTwrFactor = 1;
 
@@ -275,8 +275,8 @@ export const convertToDashboardData = (
 
     let mwr = 0;
     let netMwr = 0;
-    let benchmarkMwr = 0;
-    let benchmarkNetMwr = 0;
+    let benchmarkBestMwr = 0;
+    let benchmarkBestNetMwr = 0;
     let benchmarkWorstMwr = 0;
     let benchmarkWorstNetMwr = 0;
 
@@ -468,67 +468,67 @@ export const convertToDashboardData = (
     prevValue = stocksProfit;
 
     //////////////////////////////////////////////////////
-    // 벤치마크 데이터 가공
+    // 최상의 벤치마크 데이터 가공
     /////////////////////////////////////////////////////
-    // 벤치마크 평가금
-    const benchmarkValue =
+    // 최상의 벤치마크 평가금
+    const benchmarkBestValue =
       currency === 'usd'
-        ? account.usd.benchmarkValue
-        : account.krw.benchmarkValue;
+        ? account.usd.benchmarkBestValue
+        : account.krw.benchmarkBestValue;
 
-    // 벤치마크 수익금
-    const benchmarkProfit = benchmarkValue - principal;
+    // 최상의 벤치마크 수익금
+    const benchmarkBestProfit = benchmarkBestValue - principal;
 
-    // 벤치마크 수익률
-    const benchmarkReturnRate = Number(
-      (((benchmarkValue - principal) / principal) * 100).toFixed(2),
+    // 최상의 벤치마크 수익률
+    const benchmarkBestReturnRate = Number(
+      (((benchmarkBestValue - principal) / principal) * 100).toFixed(2),
     );
 
-    // 벤치마크 CAGR
-    const benchmarkCagr =
+    // 최상의 벤치마크 CAGR
+    const benchmarkBestCagr =
       years > 0
         ? Number(
             (
-              (Math.pow(benchmarkValue / principal, 1 / years) - 1) *
+              (Math.pow(benchmarkBestValue / principal, 1 / years) - 1) *
               100
             ).toFixed(2),
           )
         : 0;
-    const benchmarkAverageAnnualReturn =
-      calculateAverageAnnualReturn(benchmarkValue);
+    const benchmarkBestAverageAnnualReturn =
+      calculateAverageAnnualReturn(benchmarkBestValue);
 
-    // 벤치마크 초과수익
-    const benchmarkExcessReturn = -(profit - benchmarkProfit);
+    // 최상의 벤치마크 초과수익
+    const benchmarkBestExcessReturn = -(profit - benchmarkBestProfit);
 
-    // 벤치마크 순평가금
-    const benchmarkNetValue =
+    // 최상의 벤치마크 순평가금
+    const benchmarkBestNetValue =
       currency === 'usd'
-        ? account.usd.benchmarkNetValue
-        : account.krw.benchmarkNetValue;
+        ? account.usd.benchmarkBestNetValue
+        : account.krw.benchmarkBestNetValue;
 
-    // 벤치마크 순수익금
-    const benchmarkNetProfit = benchmarkNetValue - principal;
+    // 최상의 벤치마크 순수익금
+    const benchmarkBestNetProfit = benchmarkBestNetValue - principal;
 
-    // 벤치마크 순수익률
-    const benchmarkNetReturnRate = Number(
-      (((benchmarkNetValue - principal) / principal) * 100).toFixed(2),
+    // 최상의 벤치마크 순수익률
+    const benchmarkBestNetReturnRate = Number(
+      (((benchmarkBestNetValue - principal) / principal) * 100).toFixed(2),
     );
 
-    // 벤치마크 순 CAGR
-    const benchmarkNetCagr =
+    // 최상의 벤치마크 순 CAGR
+    const benchmarkBestNetCagr =
       years > 0
         ? Number(
             (
-              (Math.pow(benchmarkNetValue / principal, 1 / years) - 1) *
+              (Math.pow(benchmarkBestNetValue / principal, 1 / years) - 1) *
               100
             ).toFixed(2),
           )
         : 0;
-    const benchmarkNetAverageAnnualReturn =
-      calculateAverageAnnualReturn(benchmarkNetValue);
+    const benchmarkBestNetAverageAnnualReturn =
+      calculateAverageAnnualReturn(benchmarkBestNetValue);
 
-    // 벤치마크 순초과수익
-    const benchmarkNetExcessReturn = -(netProfit - benchmarkNetProfit);
+    // 최상의 벤치마크 순초과수익
+    const benchmarkBestNetExcessReturn = -(netProfit - benchmarkBestNetProfit);
 
     // 벤치마크 평가금 (최악의 케이스)
     const benchmarkWorstValue =
@@ -595,17 +595,17 @@ export const convertToDashboardData = (
 
     // 벤치마크 MWR 계산
     if (cashFlows.length > 0) {
-      const currentBenchmarkCFs = [
+      const currentBenchmarkBestCFs = [
         ...cashFlows,
-        { date: account.date, amount: benchmarkValue },
+        { date: account.date, amount: benchmarkBestValue },
       ];
-      benchmarkMwr = calculateXIRR(currentBenchmarkCFs);
+      benchmarkBestMwr = calculateXIRR(currentBenchmarkBestCFs);
 
-      const currentBenchmarkNetCFs = [
+      const currentBenchmarkBestNetCFs = [
         ...cashFlows,
-        { date: account.date, amount: benchmarkNetValue },
+        { date: account.date, amount: benchmarkBestNetValue },
       ];
-      benchmarkNetMwr = calculateXIRR(currentBenchmarkNetCFs);
+      benchmarkBestNetMwr = calculateXIRR(currentBenchmarkBestNetCFs);
 
       const currentBenchmarkWorstCFs = [
         ...cashFlows,
@@ -631,14 +631,14 @@ export const convertToDashboardData = (
       prevNetCurrentValueForTwr,
       netDeposit,
     );
-    benchmarkTwrFactor *= calculateTwrFactor(
-      benchmarkValue,
-      prevBenchmarkValueForTwr,
+    benchmarkBestTwrFactor *= calculateTwrFactor(
+      benchmarkBestValue,
+      prevBenchmarkBestValueForTwr,
       netDeposit,
     );
-    benchmarkNetTwrFactor *= calculateTwrFactor(
-      benchmarkNetValue,
-      prevBenchmarkNetValueForTwr,
+    benchmarkBestNetTwrFactor *= calculateTwrFactor(
+      benchmarkBestNetValue,
+      prevBenchmarkBestNetValueForTwr,
       netDeposit,
     );
     benchmarkWorstTwrFactor *= calculateTwrFactor(
@@ -654,8 +654,8 @@ export const convertToDashboardData = (
 
     const twr = annualizeTwr(twrFactor, years);
     const netTwr = annualizeTwr(netTwrFactor, years);
-    const benchmarkTwr = annualizeTwr(benchmarkTwrFactor, years);
-    const benchmarkNetTwr = annualizeTwr(benchmarkNetTwrFactor, years);
+    const benchmarkBestTwr = annualizeTwr(benchmarkBestTwrFactor, years);
+    const benchmarkBestNetTwr = annualizeTwr(benchmarkBestNetTwrFactor, years);
     const benchmarkWorstTwr = annualizeTwr(benchmarkWorstTwrFactor, years);
     const benchmarkWorstNetTwr = annualizeTwr(
       benchmarkWorstNetTwrFactor,
@@ -664,8 +664,8 @@ export const convertToDashboardData = (
 
     prevCurrentValueForTwr = currentValue;
     prevNetCurrentValueForTwr = netCurrentValue;
-    prevBenchmarkValueForTwr = benchmarkValue;
-    prevBenchmarkNetValueForTwr = benchmarkNetValue;
+    prevBenchmarkBestValueForTwr = benchmarkBestValue;
+    prevBenchmarkBestNetValueForTwr = benchmarkBestNetValue;
     prevBenchmarkWorstValueForTwr = benchmarkWorstValue;
     prevBenchmarkWorstNetValueForTwr = benchmarkWorstNetValue;
 
@@ -711,13 +711,13 @@ export const convertToDashboardData = (
       date: account.date,
       value: netReturnRate,
     });
-    benchmarkReturnRateChartData.push({
+    benchmarkBestReturnRateChartData.push({
       date: account.date,
-      value: benchmarkReturnRate,
+      value: benchmarkBestReturnRate,
     });
-    benchmarkNetReturnRateChartData.push({
+    benchmarkBestNetReturnRateChartData.push({
       date: account.date,
-      value: benchmarkNetReturnRate,
+      value: benchmarkBestNetReturnRate,
     });
     benchmarkWorstReturnRateChartData.push({
       date: account.date,
@@ -836,28 +836,28 @@ export const convertToDashboardData = (
       value: netDividendYield,
     });
 
-    // 벤치마크 차트 데이터
-    benchmarkChartData.push({
+    // 최상의 벤치마크 차트 데이터
+    benchmarkBestChartData.push({
       date: account.date,
-      value: benchmarkValue,
+      value: benchmarkBestValue,
     });
 
-    // 벤치마크 세후 차트 데이터
-    benchmarkNetChartData.push({
+    // 최상의 벤치마크 세후 차트 데이터
+    benchmarkBestNetChartData.push({
       date: account.date,
-      value: benchmarkNetValue,
+      value: benchmarkBestNetValue,
     });
 
-    // 벤치마크 수익금 차트 데이터
-    benchmarkProfitChartData.push({
+    // 최상의 벤치마크 수익금 차트 데이터
+    benchmarkBestProfitChartData.push({
       date: account.date,
-      value: benchmarkProfit,
+      value: benchmarkBestProfit,
     });
 
-    // 벤치마크 세후 수익금 차트 데이터
-    benchmarkNetProfitChartData.push({
+    // 최상의 벤치마크 세후 수익금 차트 데이터
+    benchmarkBestNetProfitChartData.push({
       date: account.date,
-      value: benchmarkNetProfit,
+      value: benchmarkBestNetProfit,
     });
 
     // 벤치마크 (최악의 케이스) 차트 데이터
@@ -980,23 +980,23 @@ export const convertToDashboardData = (
         usTax,
       },
       stocks: stocksConverted,
-      benchmark: {
-        value: benchmarkValue,
-        netValue: benchmarkNetValue,
-        profit: benchmarkProfit,
-        netProfit: benchmarkNetProfit,
-        returnRate: benchmarkReturnRate,
-        netReturnRate: benchmarkNetReturnRate,
-        cagr: benchmarkCagr,
-        netCagr: benchmarkNetCagr,
-        averageAnnualReturn: benchmarkAverageAnnualReturn,
-        netAverageAnnualReturn: benchmarkNetAverageAnnualReturn,
-        mwr: benchmarkMwr,
-        netMwr: benchmarkNetMwr,
-        twr: benchmarkTwr,
-        netTwr: benchmarkNetTwr,
-        excessReturn: benchmarkExcessReturn,
-        netExcessReturn: benchmarkNetExcessReturn,
+      benchmarkBest: {
+        value: benchmarkBestValue,
+        netValue: benchmarkBestNetValue,
+        profit: benchmarkBestProfit,
+        netProfit: benchmarkBestNetProfit,
+        returnRate: benchmarkBestReturnRate,
+        netReturnRate: benchmarkBestNetReturnRate,
+        cagr: benchmarkBestCagr,
+        netCagr: benchmarkBestNetCagr,
+        averageAnnualReturn: benchmarkBestAverageAnnualReturn,
+        netAverageAnnualReturn: benchmarkBestNetAverageAnnualReturn,
+        mwr: benchmarkBestMwr,
+        netMwr: benchmarkBestNetMwr,
+        twr: benchmarkBestTwr,
+        netTwr: benchmarkBestNetTwr,
+        excessReturn: benchmarkBestExcessReturn,
+        netExcessReturn: benchmarkBestNetExcessReturn,
       },
       benchmarkWorst: {
         value: benchmarkWorstValue,
@@ -1032,8 +1032,8 @@ export const convertToDashboardData = (
         netProfit: [...netProfitChartData],
         returnRate: [...returnRateChartData],
         netReturnRate: [...netReturnRateChartData],
-        benchmarkReturnRate: [...benchmarkReturnRateChartData],
-        benchmarkNetReturnRate: [...benchmarkNetReturnRateChartData],
+        benchmarkBestReturnRate: [...benchmarkBestReturnRateChartData],
+        benchmarkBestNetReturnRate: [...benchmarkBestNetReturnRateChartData],
         benchmarkWorstReturnRate: [...benchmarkWorstReturnRateChartData],
         benchmarkWorstNetReturnRate: [...benchmarkWorstNetReturnRateChartData],
         mwr: [...mwrChartData],
@@ -1051,10 +1051,10 @@ export const convertToDashboardData = (
         yieldOnCostNet: [...yieldOnCostChartDataNet],
         dividendYield: [...dividendYieldChartData],
         dividendYieldNet: [...dividendYieldChartDataNet],
-        benchmark: [...benchmarkChartData],
-        benchmarkNet: [...benchmarkNetChartData],
-        benchmarkProfit: [...benchmarkProfitChartData],
-        benchmarkNetProfit: [...benchmarkNetProfitChartData],
+        benchmarkBest: [...benchmarkBestChartData],
+        benchmarkBestNet: [...benchmarkBestNetChartData],
+        benchmarkBestProfit: [...benchmarkBestProfitChartData],
+        benchmarkBestNetProfit: [...benchmarkBestNetProfitChartData],
         benchmarkWorst: [...benchmarkWorstChartData],
         benchmarkWorstNet: [...benchmarkWorstNetChartData],
         benchmarkWorstProfit: [...benchmarkWorstProfitChartData],
@@ -1282,8 +1282,8 @@ export const createAccountData = async (
             stocks: [],
             stocksProfit: 0,
             stockTradeHistory: [],
-            benchmarkValue: 0,
-            benchmarkNetValue: 0,
+            benchmarkBestValue: 0,
+            benchmarkBestNetValue: 0,
             benchmarkWorstValue: 0,
             benchmarkWorstNetValue: 0,
           },
@@ -1294,8 +1294,8 @@ export const createAccountData = async (
             stocks: [],
             stocksProfit: 0,
             stockTradeHistory: [],
-            benchmarkValue: 0,
-            benchmarkNetValue: 0,
+            benchmarkBestValue: 0,
+            benchmarkBestNetValue: 0,
             benchmarkWorstValue: 0,
             benchmarkWorstNetValue: 0,
           },
@@ -1457,45 +1457,45 @@ export const mergeAccountData = (
       }
     });
 
-    // Benchmark data 병합
-    if (account.benchmarkData) {
-      account.benchmarkData.forEach((benchmark) => {
-        const date = benchmark.date;
+    // Benchmark Best data 병합
+    if (account.benchmarkBestData) {
+      account.benchmarkBestData.forEach((benchmarkBest) => {
+        const date = benchmarkBest.date;
         const merged = mergedMap.get(date)!; // merged는 반드시 존재해야 함
 
-        // benchmarkValue, benchmarkNetValue 값이 없으면 0으로 초기화 하고 누적 합산
-        merged['krw'].benchmarkValue =
-          (merged['krw'].benchmarkValue ?? 0) + benchmark.benchmarkValueKrw;
-        merged['usd'].benchmarkValue =
-          (merged['usd'].benchmarkValue ?? 0) + benchmark.benchmarkValueUsd;
-        merged['krw'].benchmarkNetValue =
-          (merged['krw'].benchmarkNetValue ?? 0) +
-          benchmark.benchmarkNetValueKrw;
-        merged['usd'].benchmarkNetValue =
-          (merged['usd'].benchmarkNetValue ?? 0) +
-          benchmark.benchmarkNetValueUsd;
+        // benchmarkBestValue, benchmarkBestNetValue 값이 없으면 0으로 초기화 하고 누적 합산
+        merged['krw'].benchmarkBestValue =
+          (merged['krw'].benchmarkBestValue ?? 0) + benchmarkBest.benchmarkValueKrw;
+        merged['usd'].benchmarkBestValue =
+          (merged['usd'].benchmarkBestValue ?? 0) + benchmarkBest.benchmarkValueUsd;
+        merged['krw'].benchmarkBestNetValue =
+          (merged['krw'].benchmarkBestNetValue ?? 0) +
+          benchmarkBest.benchmarkNetValueKrw;
+        merged['usd'].benchmarkBestNetValue =
+          (merged['usd'].benchmarkBestNetValue ?? 0) +
+          benchmarkBest.benchmarkNetValueUsd;
       });
     }
 
     // Benchmark Worst data 병합
     if (account.benchmarkWorstData) {
-      account.benchmarkWorstData.forEach((benchmark) => {
-        const date = benchmark.date;
+      account.benchmarkWorstData.forEach((benchmarkWorst) => {
+        const date = benchmarkWorst.date;
         const merged = mergedMap.get(date)!; // merged는 반드시 존재해야 함
 
         // benchmarkWorstValue, benchmarkWorstNetValue 값이 없으면 0으로 초기화 하고 누적 합산
         merged['krw'].benchmarkWorstValue =
           (merged['krw'].benchmarkWorstValue ?? 0) +
-          benchmark.benchmarkValueKrw;
+          benchmarkWorst.benchmarkValueKrw;
         merged['usd'].benchmarkWorstValue =
           (merged['usd'].benchmarkWorstValue ?? 0) +
-          benchmark.benchmarkValueUsd;
+          benchmarkWorst.benchmarkValueUsd;
         merged['krw'].benchmarkWorstNetValue =
           (merged['krw'].benchmarkWorstNetValue ?? 0) +
-          benchmark.benchmarkNetValueKrw;
+          benchmarkWorst.benchmarkNetValueKrw;
         merged['usd'].benchmarkWorstNetValue =
           (merged['usd'].benchmarkWorstNetValue ?? 0) +
-          benchmark.benchmarkNetValueUsd;
+          benchmarkWorst.benchmarkNetValueUsd;
       });
     }
   });

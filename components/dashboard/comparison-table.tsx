@@ -15,7 +15,7 @@ import { InfoTooltip } from './info-tooltip';
 export type ComparisonData = {
   metric: string;
   investment: string;
-  benchmark: string;
+  benchmarkBest: string;
   benchmarkWorst?: string;
   info?: React.ReactNode;
 };
@@ -83,7 +83,9 @@ export function ComparisonTable({
                 <TableCell style={{ color: themeColor }} className='text-right'>
                   {data.investment}
                 </TableCell>
-                <TableCell className='text-right'>{data.benchmark}</TableCell>
+                <TableCell className='text-right'>
+                  {data.benchmarkBest}
+                </TableCell>
                 <TableCell className='text-right'>
                   {data.benchmarkWorst || '-'}
                 </TableCell>

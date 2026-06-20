@@ -166,10 +166,10 @@ export default function Page() {
               data: dashboardData.charts.currentValue,
             },
             {
-              id: 'benchmarkProfit',
-              name: '벤치마크',
+              id: 'benchmarkBest',
+              name: '벤치마크 (최상)',
               color: '#03A9F4',
-              data: dashboardData.charts.benchmark,
+              data: dashboardData.charts.benchmarkBest,
             },
           ]}
           title='자산 추이'

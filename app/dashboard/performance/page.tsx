@@ -33,7 +33,7 @@ export default function Page() {
   const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
   const showAfterTax = tax === 'post';
 
-  const { performance, benchmark, benchmarkWorst, costs } = dashboardData;
+  const { performance, benchmarkBest, benchmarkWorst, costs } = dashboardData;
   const mwrInfo = (
     <div className='space-y-1 text-xs'>
       <p>
@@ -72,60 +72,60 @@ export default function Page() {
     {
       metric: '원금',
       investment: formatCurrency(performance.principal, currency),
-      benchmark: formatCurrency(performance.principal, currency),
+      benchmarkBest: formatCurrency(performance.principal, currency),
       benchmarkWorst: formatCurrency(performance.principal, currency),
       info: principalInfo,
     },
     {
       metric: '평가금액',
       investment: formatCurrency(performance.currentValue, currency),
-      benchmark: formatCurrency(benchmark.value, currency),
+      benchmarkBest: formatCurrency(benchmarkBest.value, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.value, currency),
     },
     {
       metric: '누적수익금',
       investment: formatCurrency(performance.profit, currency),
-      benchmark: formatCurrency(benchmark.profit, currency),
+      benchmarkBest: formatCurrency(benchmarkBest.profit, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.profit, currency),
     },
     {
       metric: '누적수익률',
       investment: `${performance.returnRate}%`,
-      benchmark: `${benchmark.returnRate}%`,
+      benchmarkBest: `${benchmarkBest.returnRate}%`,
       benchmarkWorst: `${benchmarkWorst.returnRate}%`,
     },
     {
       metric: '금액가중수익률(MWR)',
       investment: `${performance.mwr}%`,
-      benchmark: `${benchmark.mwr}%`,
+      benchmarkBest: `${benchmarkBest.mwr}%`,
       benchmarkWorst: `${benchmarkWorst.mwr}%`,
       info: mwrInfo,
     },
     {
       metric: '시간가중수익률(TWR)',
       investment: `${performance.twr}%`,
-      benchmark: `${benchmark.twr}%`,
+      benchmarkBest: `${benchmarkBest.twr}%`,
       benchmarkWorst: `${benchmarkWorst.twr}%`,
       info: twrInfo,
     },
     {
       metric: '복리연평균수익률(CAGR)',
       investment: `${performance.cagr}%`,
-      benchmark: `${benchmark.cagr}%`,
+      benchmarkBest: `${benchmarkBest.cagr}%`,
       benchmarkWorst: `${benchmarkWorst.cagr}%`,
       info: cagrInfo,
     },
     {
       metric: '단순연평균수익률',
       investment: `${performance.averageAnnualReturn}%`,
-      benchmark: `${benchmark.averageAnnualReturn}%`,
+      benchmarkBest: `${benchmarkBest.averageAnnualReturn}%`,
       benchmarkWorst: `${benchmarkWorst.averageAnnualReturn}%`,
       info: averageAnnualReturnInfo,
     },
     {
       metric: '초과수익',
       investment: '-',
-      benchmark: formatCurrency(benchmark.excessReturn, currency),
+      benchmarkBest: formatCurrency(benchmarkBest.excessReturn, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.excessReturn, currency),
       info: excessReturnInfo,
     },
@@ -135,60 +135,60 @@ export default function Page() {
     {
       metric: '원금',
       investment: formatCurrency(performance.principal, currency),
-      benchmark: formatCurrency(performance.principal, currency),
+      benchmarkBest: formatCurrency(performance.principal, currency),
       benchmarkWorst: formatCurrency(performance.principal, currency),
       info: principalInfo,
     },
     {
       metric: '순평가금액',
       investment: formatCurrency(performance.netCurrentValue, currency),
-      benchmark: formatCurrency(benchmark.netValue, currency),
+      benchmarkBest: formatCurrency(benchmarkBest.netValue, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netValue, currency),
     },
     {
       metric: '순누적수익금',
       investment: formatCurrency(performance.netProfit, currency),
-      benchmark: formatCurrency(benchmark.netProfit, currency),
+      benchmarkBest: formatCurrency(benchmarkBest.netProfit, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netProfit, currency),
     },
     {
       metric: '순누적수익률',
       investment: `${performance.netReturnRate}%`,
-      benchmark: `${benchmark.netReturnRate}%`,
+      benchmarkBest: `${benchmarkBest.netReturnRate}%`,
       benchmarkWorst: `${benchmarkWorst.netReturnRate}%`,
     },
     {
       metric: '순금액가중수익률(MWR)',
       investment: `${performance.netMwr}%`,
-      benchmark: `${benchmark.netMwr}%`,
+      benchmarkBest: `${benchmarkBest.netMwr}%`,
       benchmarkWorst: `${benchmarkWorst.netMwr}%`,
       info: mwrInfo,
     },
     {
       metric: '순시간가중수익률(TWR)',
       investment: `${performance.netTwr}%`,
-      benchmark: `${benchmark.netTwr}%`,
+      benchmarkBest: `${benchmarkBest.netTwr}%`,
       benchmarkWorst: `${benchmarkWorst.netTwr}%`,
       info: twrInfo,
     },
     {
       metric: '순복리연평균수익률(CAGR)',
       investment: `${performance.netCagr}%`,
-      benchmark: `${benchmark.netCagr}%`,
+      benchmarkBest: `${benchmarkBest.netCagr}%`,
       benchmarkWorst: `${benchmarkWorst.netCagr}%`,
       info: cagrInfo,
     },
     {
       metric: '순단순연평균수익률',
       investment: `${performance.netAverageAnnualReturn}%`,
-      benchmark: `${benchmark.netAverageAnnualReturn}%`,
+      benchmarkBest: `${benchmarkBest.netAverageAnnualReturn}%`,
       benchmarkWorst: `${benchmarkWorst.netAverageAnnualReturn}%`,
       info: averageAnnualReturnInfo,
     },
     {
       metric: '순초과수익',
       investment: '-',
-      benchmark: formatCurrency(benchmark.netExcessReturn, currency),
+      benchmarkBest: formatCurrency(benchmarkBest.netExcessReturn, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netExcessReturn, currency),
       info: excessReturnInfo,
     },
@@ -304,8 +304,8 @@ export default function Page() {
             calendarCategory='performance'
             fillBetween={
               showAfterTax
-                ? ['benchmarkWorstNet', 'benchmarkNet']
-                : ['benchmarkWorst', 'benchmark']
+                ? ['benchmarkWorstNet', 'benchmarkBestNet']
+                : ['benchmarkWorst', 'benchmarkBest']
             }
             seriesToggleGroups={[
               {
@@ -313,8 +313,8 @@ export default function Page() {
                 name: showAfterTax ? '벤치마크 세후 평가금' : '벤치마크 평가금',
                 color: '#FF9800',
                 seriesIds: showAfterTax
-                  ? ['benchmarkNet', 'benchmarkWorstNet']
-                  : ['benchmark', 'benchmarkWorst'],
+                  ? ['benchmarkBestNet', 'benchmarkWorstNet']
+                  : ['benchmarkBest', 'benchmarkWorst'],
               },
             ]}
             series={[
@@ -333,14 +333,14 @@ export default function Page() {
                   : dashboardData.charts.currentValue,
               },
               {
-                id: showAfterTax ? 'benchmarkNet' : 'benchmark',
+                id: showAfterTax ? 'benchmarkBestNet' : 'benchmarkBest',
                 name: showAfterTax
                   ? '벤치마크 세후 평가금 (최상)'
                   : '벤치마크 평가금 (최상)',
                 color: '#FF9800',
                 data: showAfterTax
-                  ? dashboardData.charts.benchmarkNet
-                  : dashboardData.charts.benchmark,
+                  ? dashboardData.charts.benchmarkBestNet
+                  : dashboardData.charts.benchmarkBest,
               },
               {
                 id: showAfterTax ? 'benchmarkWorstNet' : 'benchmarkWorst',
@@ -363,8 +363,8 @@ export default function Page() {
             calendarCategory='performance'
             fillBetween={
               showAfterTax
-                ? ['benchmarkWorstNetProfit', 'benchmarkNetProfit']
-                : ['benchmarkWorstProfit', 'benchmarkProfit']
+                ? ['benchmarkWorstNetProfit', 'benchmarkBestNetProfit']
+                : ['benchmarkWorstProfit', 'benchmarkBestProfit']
             }
             seriesToggleGroups={[
               {
@@ -372,8 +372,8 @@ export default function Page() {
                 name: showAfterTax ? '벤치마크 세후 수익금' : '벤치마크 수익금',
                 color: '#03A9F4',
                 seriesIds: showAfterTax
-                  ? ['benchmarkNetProfit', 'benchmarkWorstNetProfit']
-                  : ['benchmarkProfit', 'benchmarkWorstProfit'],
+                  ? ['benchmarkBestNetProfit', 'benchmarkWorstNetProfit']
+                  : ['benchmarkBestProfit', 'benchmarkWorstProfit'],
               },
             ]}
             series={[
@@ -386,14 +386,14 @@ export default function Page() {
                   : dashboardData.charts.profit,
               },
               {
-                id: showAfterTax ? 'benchmarkNetProfit' : 'benchmarkProfit',
+                id: showAfterTax ? 'benchmarkBestNetProfit' : 'benchmarkBestProfit',
                 name: showAfterTax
                   ? '벤치마크 세후 수익금 (최상)'
                   : '벤치마크 수익금 (최상)',
                 color: '#03A9F4',
                 data: showAfterTax
-                  ? dashboardData.charts.benchmarkNetProfit
-                  : dashboardData.charts.benchmarkProfit,
+                  ? dashboardData.charts.benchmarkBestNetProfit
+                  : dashboardData.charts.benchmarkBestProfit,
               },
               {
                 id: showAfterTax
@@ -428,14 +428,14 @@ export default function Page() {
               themeColor={themeColor}
               chartType='line'
               calendarCategory='performance'
-              fillBetween={['benchmarkWorstReturnRate', 'benchmarkReturnRate']}
+              fillBetween={['benchmarkWorstReturnRate', 'benchmarkBestReturnRate']}
               seriesToggleGroups={[
                 {
                   id: 'benchmarkRange',
                   name: showAfterTax ? '벤치마크 순수익률' : '벤치마크 수익률',
                   color: '#F59E0B',
                   seriesIds: [
-                    'benchmarkReturnRate',
+                    'benchmarkBestReturnRate',
                     'benchmarkWorstReturnRate',
                   ],
                 },
@@ -453,14 +453,14 @@ export default function Page() {
                   unit: 'percent',
                 },
                 {
-                  id: 'benchmarkReturnRate',
+                  id: 'benchmarkBestReturnRate',
                   name: showAfterTax
                     ? '벤치마크 순수익률 (최상)'
                     : '벤치마크 수익률 (최상)',
                   color: '#F59E0B',
                   data: showAfterTax
-                    ? dashboardData.charts.benchmarkNetReturnRate
-                    : dashboardData.charts.benchmarkReturnRate,
+                    ? dashboardData.charts.benchmarkBestNetReturnRate
+                    : dashboardData.charts.benchmarkBestReturnRate,
                   unit: 'percent',
                 },
                 {

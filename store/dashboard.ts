@@ -49,7 +49,7 @@ export const initialDashboardData: DashboardProps = {
     usTax: 0,
   },
   stocks: [],
-  benchmark: {
+  benchmarkBest: {
     value: 0,
     netValue: 0,
     profit: 0,
@@ -136,13 +136,13 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
-    benchmarkReturnRate: [
+    benchmarkBestReturnRate: [
       {
         date: '1970-01-01',
         value: 0,
       },
     ],
-    benchmarkNetReturnRate: [
+    benchmarkBestNetReturnRate: [
       {
         date: '1970-01-01',
         value: 0,
@@ -250,25 +250,25 @@ export const initialDashboardData: DashboardProps = {
         value: 0,
       },
     ],
-    benchmark: [
+    benchmarkBest: [
       {
         date: '1970-01-01',
         value: 0,
       },
     ],
-    benchmarkNet: [
+    benchmarkBestNet: [
       {
         date: '1970-01-01',
         value: 0,
       },
     ],
-    benchmarkProfit: [
+    benchmarkBestProfit: [
       {
         date: '1970-01-01',
         value: 0,
       },
     ],
-    benchmarkNetProfit: [
+    benchmarkBestNetProfit: [
       {
         date: '1970-01-01',
         value: 0,

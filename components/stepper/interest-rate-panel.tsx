@@ -40,7 +40,7 @@ function getMonthRange(
 function defaultRateForMonth(year: number, month: number): number {
   const rate = useInterestRateStore
     .getState()
-    .interestRates.find(
+    .bestInterestRates.find(
       (r) =>
         new Date(r.date).getFullYear() === year &&
         new Date(r.date).getMonth() + 1 === month
@@ -126,8 +126,8 @@ export function InterestRatePanel({
   const [loading, setLoading] = useState(true);
   const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set());
 
-  const setInterestRates = useInterestRateStore(
-    (state) => state.setInterestRates
+  const setBestInterestRates = useInterestRateStore(
+    (state) => state.setBestInterestRates
   );
 
   const groupedRates = useMemo(() => groupByYear(rates), [rates]);
@@ -144,7 +144,7 @@ export function InterestRatePanel({
     setLoading(false);
   }, [months]);
 
-  // 금리가 변경될 때마다
+  // 최상 금리가 변경될 때마다
   useEffect(() => {
     const formattedRates = rates
       .filter(({ active }) => active)
@@ -152,8 +152,8 @@ export function InterestRatePanel({
         date: `${year}-${month.toString().padStart(2, '0')}-01`,
         interestRate: rate,
       }));
-    setInterestRates(formattedRates);
-  }, [rates]);
+    setBestInterestRates(formattedRates);
+  }, [rates, setBestInterestRates]);
 
   function updateRate(year: number, month: number, value: string) {
     const next = value.replace(',', '.'); // support comma decimal
@@ -219,7 +219,7 @@ export function InterestRatePanel({
       <div className={`space-y-4 ${className}`}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">월별 금리</h3>
+            <h3 className="text-lg font-semibold">최상 월별 금리</h3>
             <p className="text-sm text-muted-foreground">
               데이터를 불러오는 중...
             </p>
@@ -235,7 +235,7 @@ export function InterestRatePanel({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">월별 금리</h3>
+          <h3 className="text-lg font-semibold">최상 월별 금리</h3>
           <p className="text-sm text-muted-foreground">
             단위: % (카드 클릭으로 활성화/비활성화)
           </p>
@@ -340,7 +340,7 @@ export function InterestRatePanel({
                           inputMode="decimal"
                           type="text"
                           value={String(rate)}
-                          aria-label={`${year}년 ${month}월 금리`}
+                          aria-label={`${year}년 ${month}월 최상 금리`}
                           onChange={(e) =>
                             updateRate(year, month, e.target.value)
                           }

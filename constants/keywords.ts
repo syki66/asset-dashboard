@@ -46,7 +46,7 @@ export const inflationRates = {
 };
 
 // 금리 데이터 (최상의 시나리오)
-export const rateTable = [
+export const bestRateTable = [
   // 저축은행 예금 금리 (월 중 가장 높은 금리로 적용)
   { date: '2026-04-01', interestRate: 3.7 },
   { date: '2026-03-01', interestRate: 3.32 },

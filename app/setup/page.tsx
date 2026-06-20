@@ -72,13 +72,18 @@ export default function Page() {
           const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
           const accountData = await createAccountData(transactions); // 거래내역을 계좌정보로 변환
-          const benchmarkData = await createBenchmarkData(transactions, 'best');
+          const benchmarkBestData = await createBenchmarkData(transactions, 'best');
           const benchmarkWorstData = await createBenchmarkData(
             transactions,
             'worst',
           );
 
-          return { name: file.name, accountData, benchmarkData, benchmarkWorstData };
+          return {
+            name: file.name,
+            accountData,
+            benchmarkBestData,
+            benchmarkWorstData,
+          };
         })
       );
       return totalAccountData;
