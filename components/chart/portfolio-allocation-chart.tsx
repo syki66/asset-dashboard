@@ -26,6 +26,7 @@ interface PortfolioAllocationChartProps {
   title?: string;
   description?: string;
   isCompact?: boolean;
+  allocationMode?: 'holdings' | 'sectors';
 }
 
 const COLORS = [
@@ -51,6 +52,7 @@ export function PortfolioAllocationChart({
   title = '포트폴리오 비중',
   description = '보유 종목 및 현금 자산 배분 현황입니다.',
   isCompact = false,
+  allocationMode = 'holdings',
 }: PortfolioAllocationChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +71,43 @@ export function PortfolioAllocationChart({
           stock.shortName?.includes('Invesco');
 
         const stockValue = stock.balance.length * stock.price;
+
+        if (allocationMode === 'sectors') {
+          const symbol = stock.symbol.toUpperCase();
+
+          if (symbol === 'VTI' || symbol === 'QQQM') {
+            try {
+              const response = await fetch(`/api/sectors/${symbol}`);
+              if (response.ok) {
+                const sectors = await response.json();
+
+                if (sectors.length > 0) {
+                  sectors.forEach((sector: any) => {
+                    const sectorValue = stockValue * (sector.weight / 100);
+                    const existing = stockMap.get(sector.name);
+                    stockMap.set(sector.name, {
+                      value: (existing?.value ?? 0) + sectorValue,
+                      fullName: sector.name,
+                    });
+                  });
+                  continue;
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Failed to fetch sectors for ${stock.symbol}`,
+                error,
+              );
+            }
+          }
+
+          const existing = stockMap.get('개별 주식');
+          stockMap.set('개별 주식', {
+            value: (existing?.value ?? 0) + stockValue,
+            fullName: '섹터 분류가 적용되지 않은 보유 주식',
+          });
+          continue;
+        }
 
         if (isVanguard || isInvesco) {
           try {
@@ -146,7 +185,7 @@ export function PortfolioAllocationChart({
       .finally(() => {
         setIsLoading(false);
       });
-  }, [stocks, cash]);
+  }, [stocks, cash, allocationMode]);
 
   const totalValue = useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.value, 0);
@@ -175,7 +214,7 @@ export function PortfolioAllocationChart({
 
     const topItems = pieChartData.slice(0, 7).map((entry, index) => ({
       value: entry.name,
-      type: 'square',
+      type: 'square' as const,
       id: entry.name,
       color: COLORS[index % COLORS.length],
       payload: entry, // Pass the full entry for the formatter
@@ -195,7 +234,7 @@ export function PortfolioAllocationChart({
 
       topItems.push({
         value: '기타',
-        type: 'square',
+        type: 'square' as const,
         id: '기타',
         color: '#94a3b8',
         payload: othersEntry,
@@ -249,14 +288,16 @@ export function PortfolioAllocationChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const percentage = ((data.value / totalValue) * 100).toFixed(2);
-      
+
       const index = pieChartData.findIndex((item) => item.name === data.name);
       const isOthers = data.name === '기타';
       const color = isOthers ? '#94a3b8' : COLORS[index % COLORS.length];
 
       return (
         <div className='glassmorphism-tooltip'>
-          <p className='font-bold text-base mb-1' style={{ color }}>{data.name}</p>
+          <p className='font-bold text-base mb-1' style={{ color }}>
+            {data.name}
+          </p>
           <p className='text-xs text-muted-foreground mb-2'>{data.fullName}</p>
           <hr className='border-border my-1' />
           <div className='mt-2 space-y-1'>
@@ -268,7 +309,9 @@ export function PortfolioAllocationChart({
             </div>
             <div className='flex justify-between gap-4 text-sm'>
               <span>비중</span>
-              <span className='font-semibold' style={{ color }}>{percentage}%</span>
+              <span className='font-semibold' style={{ color }}>
+                {percentage}%
+              </span>
             </div>
           </div>
         </div>
@@ -278,9 +321,13 @@ export function PortfolioAllocationChart({
   };
 
   return (
-    <Card 
+    <Card
       className='glass-card'
-      style={{ '--theme-hover': `color-mix(in srgb, ${themeColor} 15%, transparent)` } as React.CSSProperties}
+      style={
+        {
+          '--theme-hover': `color-mix(in srgb, ${themeColor} 15%, transparent)`,
+        } as React.CSSProperties
+      }
     >
       <CardHeader>
         <CardTitle className='text-lg flex items-center gap-2'>
@@ -290,8 +337,16 @@ export function PortfolioAllocationChart({
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div className={`flex flex-col md:flex-row gap-8 ${isCompact ? 'h-[350px]' : 'h-[500px]'}`}>
-          <div className='flex-1 min-h-[300px]'>
+        <div
+          className={`flex flex-col md:flex-row gap-8 ${
+            isCompact ? 'h-[420px]' : 'h-[500px]'
+          }`}
+        >
+          <div
+            className={
+              isCompact ? 'flex-1 min-h-[360px]' : 'flex-1 min-h-[300px]'
+            }
+          >
             <ResponsiveContainer width='100%' height='100%'>
               <PieChart>
                 <Pie
@@ -323,7 +378,7 @@ export function PortfolioAllocationChart({
                   verticalAlign='bottom'
                   height={36}
                   payload={legendPayload}
-                  wrapperStyle={{ paddingTop: isCompact ? '40px' : '0' }}
+                  wrapperStyle={{ paddingTop: isCompact ? '8px' : '0' }}
                   formatter={(value, entry: any) => {
                     const payload = entry.payload; // This is the 'payload' property I set in 'topItems'
                     const percentage = (
