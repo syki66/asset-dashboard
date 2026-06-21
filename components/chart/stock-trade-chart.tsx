@@ -24,6 +24,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 import { StockTradeHistoryChartProps } from '@/types';
+import { cn } from '@/lib/utils';
+import { useCurrencyStore } from '@/store/options';
 
 interface AggregatedTradeData {
   date: string;
@@ -136,6 +138,20 @@ export function StockTradeChart({
   const [viewMode, setViewMode] = useState<DataViewMode>('quantity');
   const [aggregationMode, setAggregationMode] = useState<AggregationMode>('daily');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
+  const currency = useCurrencyStore((state) => state.currency);
+  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
+  const formatTradeValue = (value: number) => {
+    if (viewMode === 'quantity') {
+      return `${Math.round(value).toLocaleString()}주`;
+    }
+
+    const formattedValue = value.toLocaleString(undefined, {
+      minimumFractionDigits: currency === 'usd' ? 2 : 0,
+      maximumFractionDigits: currency === 'usd' ? 2 : 0,
+    });
+
+    return `${formattedValue}${currencyUnit}`;
+  };
 
   const allStocks = useMemo(
     () =>
@@ -272,8 +288,6 @@ export function StockTradeChart({
         a.dataKey.localeCompare(b.dataKey),
       );
 
-      const unit = viewMode === 'quantity' ? '주' : '원';
-
       const buyTotal = sortedPayload
         .filter((e: any) => e.dataKey.endsWith('(매수)'))
         .reduce((sum: number, e: any) => sum + e.value, 0);
@@ -303,7 +317,7 @@ export function StockTradeChart({
                     <span className={`font-medium ${textColorClass}`}>{entry.dataKey.replace(/\(매수\)|\(매도\)/g, '')}</span>
                   </div>
                   <span className={`font-semibold ml-4 ${textColorClass}`}>
-                    {Math.round(entry.value).toLocaleString()}{unit}
+                    {formatTradeValue(entry.value)}
                   </span>
                 </div>
               ))}
@@ -335,7 +349,7 @@ export function StockTradeChart({
           <div className='flex items-center justify-between font-bold text-sm text-foreground'>
             <span>합계</span>
             <span className={netTotal > 0 ? 'text-red-500' : netTotal < 0 ? 'text-blue-500' : ''}>
-              {netTotal > 0 ? '+' : ''}{Math.round(netTotal).toLocaleString()}{unit}
+              {netTotal > 0 ? '+' : ''}{formatTradeValue(netTotal)}
             </span>
           </div>
         </div>
@@ -372,21 +386,26 @@ export function StockTradeChart({
         }).format(value) + '주';
     } else {
       return (value: number) =>
-        new Intl.NumberFormat('ko-KR', {
+        new Intl.NumberFormat(currency === 'usd' ? 'en-US' : 'ko-KR', {
           notation: 'compact',
           style: 'currency',
-          currency: 'KRW',
-          maximumFractionDigits: 0,
+          currency: currency === 'usd' ? 'USD' : 'KRW',
+          maximumFractionDigits: currency === 'usd' ? 2 : 0,
         }).format(value);
     }
   };
 
-  const getTotalUnit = () => {
-    return viewMode === 'quantity' ? '주' : '원';
-  };
+  const tradeThemeHoverColor = `color-mix(in srgb, ${themeColor} 15%, transparent)`;
 
   return (
-    <Card className='w-full glass-card'>
+    <Card
+      className='w-full glass-card'
+      style={
+        {
+          '--trade-theme-hover': tradeThemeHoverColor,
+        } as React.CSSProperties
+      }
+    >
       <CardHeader>
         <div className='flex items-start justify-between'>
           <div className='flex flex-col gap-1'>
@@ -402,7 +421,11 @@ export function StockTradeChart({
                 variant={viewMode === 'quantity' ? 'default' : 'ghost'}
                 size='sm'
                 onClick={() => setViewMode('quantity')}
-                className='h-7'
+                className={cn(
+                  'h-7 cursor-pointer',
+                  viewMode !== 'quantity' &&
+                    'hover:!bg-[var(--trade-theme-hover)] hover:!text-current',
+                )}
                 style={viewMode === 'quantity' ? { backgroundColor: themeColor } : {}}
               >
                 수량
@@ -411,7 +434,11 @@ export function StockTradeChart({
                 variant={viewMode === 'price' ? 'default' : 'ghost'}
                 size='sm'
                 onClick={() => setViewMode('price')}
-                className='h-7'
+                className={cn(
+                  'h-7 cursor-pointer',
+                  viewMode !== 'price' &&
+                    'hover:!bg-[var(--trade-theme-hover)] hover:!text-current',
+                )}
                 style={viewMode === 'price' ? { backgroundColor: themeColor } : {}}
               >
                 가격
@@ -559,19 +586,19 @@ export function StockTradeChart({
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>총 매수</span>
             <span className='text-lg font-bold text-red-500'>
-              {Math.round(totalBuy).toLocaleString()}{getTotalUnit()}
+              {formatTradeValue(totalBuy)}
             </span>
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>총 매도</span>
             <span className='text-lg font-bold text-blue-500'>
-              {Math.round(totalSell).toLocaleString()}{getTotalUnit()}
+              {formatTradeValue(totalSell)}
             </span>
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>합계</span>
             <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-red-500' : totalBuy + totalSell < 0 ? 'text-blue-500' : 'text-foreground'}`}>
-              {totalBuy + totalSell > 0 ? '+' : ''}{Math.round(totalBuy + totalSell).toLocaleString()}{getTotalUnit()}
+              {totalBuy + totalSell > 0 ? '+' : ''}{formatTradeValue(totalBuy + totalSell)}
             </span>
           </div>
         </div>

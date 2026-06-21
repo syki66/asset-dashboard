@@ -396,7 +396,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           size='sm'
                           style={dateButtonStyle}
                           className={cn(
-                            'h-6 rounded-md border border-white/20 bg-white/15 px-2 py-0 text-xs font-medium text-foreground shadow-sm transition-all hover:bg-[var(--date-button-hover)] hover:text-white hover:shadow-md focus-visible:ring-2',
+                            'h-6 cursor-pointer rounded-md border border-white/20 bg-white/15 px-2 py-0 text-xs font-medium text-foreground shadow-sm transition-all hover:bg-[var(--date-button-hover)] hover:text-white hover:shadow-md focus-visible:ring-2',
                           )}
                         >
                           <span>{formatDateKr(dashboardData.date)}</span>

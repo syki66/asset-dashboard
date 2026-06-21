@@ -109,7 +109,7 @@ export default function Page() {
               </CardTitle>
               <CardDescription className='text-muted-foreground mt-1'>
                 대시보드에 표시할 계좌를 선택해주세요. 선택된 계좌들은 합산해서
-                표시됩니다.
+                표시되며, 데이터가 많으면 반영까지 시간이 걸릴 수 있습니다.
               </CardDescription>
             </div>
 
@@ -125,7 +125,7 @@ export default function Page() {
                 variant='outline'
                 size='sm'
                 onClick={handleSelectAllAccounts}
-                className='text-xs font-semibold h-8 rounded-lg border-white/10 hover:bg-white/10 hover:text-foreground transition-all shadow-sm'
+                className='h-8 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm transition-all hover:bg-white/10 hover:text-foreground'
               >
                 {selectedAccounts.length === totalAccountData?.length
                   ? '전체 선택 해제'
@@ -168,45 +168,44 @@ export default function Page() {
                           : 'border-white/10 hover:border-white/20 hover:bg-card/50',
                       )}
                     >
-                      {/* Checkbox highlight indicator */}
-                      {isSelected && (
-                        <div
-                          className='absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full text-white shadow-md transition-transform duration-300'
-                          style={{
-                            backgroundColor: themeColor,
-                            boxShadow: `0 8px 24px color-mix(in srgb, ${themeColor} 30%, transparent)`,
-                          }}
-                        >
-                          <CheckCircle2 className='h-4 w-4 stroke-[3]' />
-                        </div>
-                      )}
-
                       <div>
                         {/* Card Header Info */}
                         <div className='flex items-center gap-3 mb-4'>
                           <div
                             className={cn(
-                              'p-2.5 rounded-xl border transition-colors',
+                              'relative p-2.5 rounded-xl border transition-colors',
                               isSelected
                                 ? 'border-[color:var(--settings-theme)]/20 bg-[color:var(--settings-theme)]/10 text-[color:var(--settings-theme)]'
                                 : 'bg-white/5 border-white/10 text-muted-foreground',
                             )}
                           >
                             <Wallet className='h-4 w-4' />
+                            {isSelected && (
+                              <span
+                                className='absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-white shadow-sm'
+                                style={{ backgroundColor: themeColor }}
+                              >
+                                <CheckCircle2 className='h-3 w-3 stroke-[3]' />
+                              </span>
+                            )}
                           </div>
 
-                          <div className='flex items-center gap-2 flex-1'>
+                          <div className='flex min-w-0 flex-1 items-center justify-between gap-2'>
                             <h3 className='font-bold text-base text-foreground group-hover:text-primary transition-colors break-all'>
                               {card.name.replace(/\.csv$/i, '')}
                             </h3>
+                            <span className='shrink-0 rounded-full border border-blue-300/40 bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm shadow-blue-500/30'>
+                              신한투자증권
+                            </span>
                           </div>
                         </div>
 
                         {/* Stats block */}
-                        <div className='space-y-3.5 my-4 p-3.5 border border-white/20 rounded-lg bg-white/[0.05] backdrop-blur-sm text-sm'>
+                        <div className='my-4 rounded-xl border border-white/20 bg-white/[0.075] p-3.5 text-sm shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
+                          <div className='space-y-2'>
                           {/* Principal row */}
                           {(card.krwPrincipal > 0 || card.usdPrincipal > 0) && (
-                            <div className='flex items-center justify-between'>
+                            <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.055] px-2.5 py-2 shadow-sm shadow-black/5 backdrop-blur-md'>
                               <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
                                 <TrendingUp className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
                                 원금
@@ -228,7 +227,7 @@ export default function Page() {
 
                           {/* Cash balance row */}
                           {(card.krwCash > 0 || card.usdCash > 0) && (
-                            <div className='flex items-center justify-between'>
+                            <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.055] px-2.5 py-2 shadow-sm shadow-black/5 backdrop-blur-md'>
                               <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
                                 <Coins className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
                                 예수금
@@ -249,7 +248,7 @@ export default function Page() {
                           )}
 
                           {/* Stocks holdings count row */}
-                          <div className='flex items-center justify-between'>
+                          <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.055] px-2.5 py-2 shadow-sm shadow-black/5 backdrop-blur-md'>
                             <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
                               <BarChart3 className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
                               보유 종목
@@ -263,7 +262,7 @@ export default function Page() {
                                     {card.stockSnippets.map((s, idx) => (
                                       <span
                                         key={s + idx}
-                                        className='text-[10px] text-muted-foreground font-normal bg-white/5 border border-white/10 px-1.5 py-0.5 rounded'
+                                        className='rounded-md border border-white/15 bg-white/[0.09] px-1.5 py-0.5 text-[10px] font-semibold text-foreground/80 shadow-sm shadow-black/10 backdrop-blur-md ring-1 ring-white/5'
                                       >
                                         {s}
                                       </span>
@@ -277,11 +276,13 @@ export default function Page() {
                               )}
                             </span>
                           </div>
+                          </div>
                         </div>
                       </div>
 
                       {/* Footer timestamps */}
-                      <div className='mt-auto p-3.5 border border-white/20 rounded-lg bg-white/[0.05] backdrop-blur-sm space-y-1.5 text-[10px] text-muted-foreground'>
+                      <div className='mt-auto rounded-xl border border-white/20 bg-white/[0.075] p-3.5 text-[10px] text-muted-foreground shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
+                        <div className='space-y-1.5'>
                         <div className='flex items-center gap-1.5'>
                           <Calendar className='h-3 w-3 text-muted-foreground/50' />
                           <span>
@@ -296,6 +297,7 @@ export default function Page() {
                             </span>
                           </div>
                         )}
+                        </div>
                       </div>
                     </div>
                   );
