@@ -27,6 +27,7 @@ import { formatCurrency, formatDateKr, timeAgo } from '@/utils/format';
 import { cn } from '@/lib/utils';
 
 export default function Page() {
+  const themeColor = 'var(--settings-theme)';
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const { selectedAccounts, setSelectedAccounts } = useSelectedAccountsStore();
 
@@ -103,7 +104,8 @@ export default function Page() {
           <div className='flex items-center justify-between gap-4'>
             <div>
               <CardTitle className='text-2xl font-bold text-foreground flex items-center gap-2'>
-                <Sparkles className='h-5 w-5 text-primary' /> 대시보드 설정
+                <Sparkles className='h-5 w-5' style={{ color: themeColor }} />{' '}
+                대시보드 설정
               </CardTitle>
               <CardDescription className='text-muted-foreground mt-1'>
                 대시보드에 표시할 계좌를 선택해주세요. 선택된 계좌들은 합산해서
@@ -114,7 +116,7 @@ export default function Page() {
             <div className='flex items-center gap-4'>
               <div className='text-xs font-semibold text-muted-foreground'>
                 선택됨:{' '}
-                <span className='text-blue-400 font-bold'>
+                <span className='font-bold' style={{ color: themeColor }}>
                   {selectedAccounts.length}
                 </span>{' '}
                 / {totalAccountData?.length || 0}
@@ -162,13 +164,19 @@ export default function Page() {
                       className={cn(
                         'group relative cursor-pointer overflow-hidden rounded-2xl border bg-card/30 backdrop-blur-md p-6 shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between min-h-[220px]',
                         isSelected
-                          ? 'border-blue-500/50 bg-blue-500/5 shadow-blue-500/10'
+                          ? 'border-[color:var(--settings-theme)]/50 bg-[color:var(--settings-theme)]/5 shadow-[color:var(--settings-theme)]/10'
                           : 'border-white/10 hover:border-white/20 hover:bg-card/50',
                       )}
                     >
                       {/* Checkbox highlight indicator */}
                       {isSelected && (
-                        <div className='absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white shadow-md shadow-blue-500/30 transition-transform duration-300'>
+                        <div
+                          className='absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full text-white shadow-md transition-transform duration-300'
+                          style={{
+                            backgroundColor: themeColor,
+                            boxShadow: `0 8px 24px color-mix(in srgb, ${themeColor} 30%, transparent)`,
+                          }}
+                        >
                           <CheckCircle2 className='h-4 w-4 stroke-[3]' />
                         </div>
                       )}
@@ -180,7 +188,7 @@ export default function Page() {
                             className={cn(
                               'p-2.5 rounded-xl border transition-colors',
                               isSelected
-                                ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                ? 'border-[color:var(--settings-theme)]/20 bg-[color:var(--settings-theme)]/10 text-[color:var(--settings-theme)]'
                                 : 'bg-white/5 border-white/10 text-muted-foreground',
                             )}
                           >

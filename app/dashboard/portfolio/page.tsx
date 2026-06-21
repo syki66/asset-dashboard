@@ -63,6 +63,7 @@ export default function Page() {
           stocks={dashboardData.stocks}
           cash={dashboardData.cash.total}
           themeColor={themeColor}
+          description='포트폴리오 내 포함된 ETF의 개별 종목 비중을 합산하여 실제 비중을 계산해 표시합니다. 현재는 일부 ETF만 지원합니다.'
           isCompact={chartLayout === 'compact'}
           selectedDate={dashboardData.date}
         />
@@ -71,7 +72,7 @@ export default function Page() {
           cash={dashboardData.cash.total}
           themeColor={themeColor}
           title='섹터 비중'
-          description='현금과 VTI, QQQM의 섹터 구성을 합산한 포트폴리오 섹터 배분입니다.'
+          description='포트폴리오 내 포함된 ETF의 섹터 비중을 계산하여 표시합니다. 현재는 일부 ETF만 지원합니다.'
           allocationMode='sectors'
           isCompact={chartLayout === 'compact'}
           selectedDate={dashboardData.date}
@@ -81,10 +82,7 @@ export default function Page() {
         <h2 className='text-xl font-bold'>주식 현황</h2>
       </div>
       <div className='mt-4'>
-        <HoldingsView
-          stocks={dashboardData.stocks}
-          themeColor={themeColor}
-        />
+        <HoldingsView stocks={dashboardData.stocks} themeColor={themeColor} />
       </div>
     </>
   );
