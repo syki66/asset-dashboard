@@ -8,6 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { StockProps } from '@/types';
+import { useCurrencyStore } from '@/store/options';
 import { getAverage } from '@/utils/math';
 import { DollarSign } from 'lucide-react'; // Placeholder icon
 
@@ -18,6 +19,13 @@ interface SimpleHoldingsTableProps {
 
 export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableProps) {
   const hoverBgVar = themeColor.replace('-theme)', '-hover-bg)');
+  const currency = useCurrencyStore((state) => state.currency);
+  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
+  const formatAmount = (value: number) =>
+    value.toLocaleString(undefined, {
+      minimumFractionDigits: currency === 'usd' ? 2 : 0,
+      maximumFractionDigits: currency === 'usd' ? 2 : 0,
+    });
 
   return (
     <Table>
@@ -34,6 +42,9 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
           const currentValue = stock.price * stock.balance.length;
           const profit = currentValue - (avgPrice * stock.balance.length);
           const returnRate = avgPrice > 0 ? (profit / (avgPrice * stock.balance.length)) * 100 : 0;
+          const formattedQuantity = stock.balance.length.toLocaleString();
+          const formattedCurrentValue = formatAmount(currentValue);
+          const formattedProfit = formatAmount(profit);
 
           return (
             <TableRow
@@ -43,12 +54,19 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
               <TableCell><DollarSign className="h-4 w-4" style={{ color: themeColor }} /></TableCell>
               <TableCell>
                 <div className="font-medium">{stock.shortName}</div>
-                <div className="text-sm text-muted-foreground">{stock.balance.length} 주</div>
+                <div className="text-sm text-muted-foreground">{formattedQuantity} 주</div>
               </TableCell>
               <TableCell className="text-right">
-                <div className="font-medium">{currentValue.toFixed(2)}</div>
+                <div className="font-medium">
+                  {formattedCurrentValue}
+                  <span className="text-xs font-normal text-muted-foreground ml-1">
+                    {currencyUnit}
+                  </span>
+                </div>
                 <div className={`text-sm ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {profit >= 0 ? '+' : ''}{profit.toFixed(2)} ({returnRate >= 0 ? '+' : ''}{returnRate.toFixed(2)}%)
+                  {profit >= 0 ? '+' : ''}{formattedProfit}
+                  <span className="text-xs font-normal ml-1">{currencyUnit}</span>
+                  {' '}({returnRate >= 0 ? '+' : ''}{returnRate.toFixed(2)}%)
                 </div>
               </TableCell>
             </TableRow>

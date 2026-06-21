@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/dashboard/info-tooltip';
 import { StockProps } from '@/types';
+import { useCurrencyStore } from '@/store/options';
 import { PieChart as PieChartIcon } from 'lucide-react';
 
 interface PortfolioAllocationChartProps {
@@ -47,6 +48,23 @@ const COLORS = [
   '#94a3b8', // 슬레이트 (현금용)
 ];
 
+const SECTOR_NAME_KO: Record<string, string> = {
+  'basic materials': '원자재',
+  'consumer discretionary': '임의소비재',
+  'consumer staples': '필수소비재',
+  energy: '에너지',
+  financials: '금융',
+  'health care': '헬스케어',
+  industrials: '산업재',
+  'real estate': '부동산',
+  technology: '기술',
+  telecommunications: '통신',
+  utilities: '유틸리티',
+};
+
+const translateSectorName = (name: string) =>
+  SECTOR_NAME_KO[name.trim().toLowerCase()] ?? name;
+
 const getCurrentRebalanceStartDate = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -70,8 +88,16 @@ export function PortfolioAllocationChart({
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoricalRebalancePeriod, setIsHistoricalRebalancePeriod] =
     useState(false);
-  const [currentRebalanceStartDate, setCurrentRebalanceStartDate] =
-    useState<string | null>(null);
+  const [currentRebalanceStartDate, setCurrentRebalanceStartDate] = useState<
+    string | null
+  >(null);
+  const currency = useCurrencyStore((state) => state.currency);
+  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
+  const formatAmount = (value: number) =>
+    value.toLocaleString(undefined, {
+      minimumFractionDigits: currency === 'usd' ? 2 : 0,
+      maximumFractionDigits: currency === 'usd' ? 2 : 0,
+    });
 
   useEffect(() => {
     const fetchAndProcessData = async () => {
@@ -117,11 +143,14 @@ export function PortfolioAllocationChart({
 
                 if (!shouldUseFallback && sectors.length > 0) {
                   sectors.forEach((sector: any) => {
+                    const translatedSectorName = translateSectorName(
+                      sector.name,
+                    );
                     const sectorValue = stockValue * (sector.weight / 100);
-                    const existing = stockMap.get(sector.name);
-                    stockMap.set(sector.name, {
+                    const existing = stockMap.get(translatedSectorName);
+                    stockMap.set(translatedSectorName, {
                       value: (existing?.value ?? 0) + sectorValue,
-                      fullName: sector.name,
+                      fullName: existing?.fullName ?? sector.name,
                     });
                   });
                   continue;
@@ -208,6 +237,10 @@ export function PortfolioAllocationChart({
   const pieChartData = useMemo(() => {
     if (totalValue === 0) return [];
 
+    if (allocationMode === 'sectors') {
+      return chartData;
+    }
+
     const threshold = totalValue * 0.004;
     const largeItems = chartData.filter((item) => item.value >= threshold);
     const smallItems = chartData.filter((item) => item.value < threshold);
@@ -221,12 +254,14 @@ export function PortfolioAllocationChart({
     }
 
     return largeItems;
-  }, [chartData, totalValue]);
+  }, [allocationMode, chartData, totalValue]);
 
   const legendPayload = useMemo(() => {
     if (pieChartData.length === 0) return [];
 
-    const topItems = pieChartData.slice(0, 7).map((entry, index) => ({
+    const visibleLegendItems =
+      allocationMode === 'sectors' ? pieChartData : pieChartData.slice(0, 7);
+    const topItems = visibleLegendItems.map((entry, index) => ({
       value: entry.name,
       type: 'square' as const,
       id: entry.name,
@@ -234,7 +269,7 @@ export function PortfolioAllocationChart({
       payload: entry, // Pass the full entry for the formatter
     }));
 
-    if (pieChartData.length > 7) {
+    if (allocationMode !== 'sectors' && pieChartData.length > 7) {
       const remainingItems = pieChartData.slice(7);
       const othersValue = remainingItems.reduce(
         (acc, curr) => acc + curr.value,
@@ -256,15 +291,15 @@ export function PortfolioAllocationChart({
     }
 
     return topItems;
-  }, [pieChartData]);
+  }, [allocationMode, pieChartData]);
   const sectorFallbackInfo = useMemo(() => {
     if (!isHistoricalRebalancePeriod || !currentRebalanceStartDate) return null;
 
     return (
       <div className='max-w-64 space-y-1 text-xs'>
         <p>
-          선택한 날짜가 현재 리밸런싱 구간 이전이라 최신 세부 구성을
-          적용하지 않았습니다.
+          선택한 날짜가 현재 리밸런싱 구간 이전이라 최신 세부 구성을 적용하지
+          않았습니다.
         </p>
         <p className='text-muted-foreground'>
           {currentRebalanceStartDate}부터 세부 비중으로 표시합니다.
@@ -333,7 +368,10 @@ export function PortfolioAllocationChart({
             <div className='flex justify-between gap-4 text-sm'>
               <span>평가금액</span>
               <span className='font-semibold' style={{ color }}>
-                {Math.round(data.value).toLocaleString()}
+                {formatAmount(data.value)}
+                <span className='ml-1 text-xs font-normal text-muted-foreground'>
+                  {currencyUnit}
+                </span>
               </span>
             </div>
             <div className='flex justify-between gap-4 text-sm'>
@@ -408,9 +446,12 @@ export function PortfolioAllocationChart({
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign='bottom'
-                  height={36}
+                  height={allocationMode === 'sectors' ? 64 : 44}
                   payload={legendPayload}
-                  wrapperStyle={{ paddingTop: isCompact ? '8px' : '0' }}
+                  wrapperStyle={{
+                    paddingTop: isCompact ? '8px' : '0',
+                    lineHeight: '1.5',
+                  }}
                   formatter={(value, entry: any) => {
                     const payload = entry.payload; // This is the 'payload' property I set in 'topItems'
                     const percentage = (
@@ -473,9 +514,9 @@ export function PortfolioAllocationChart({
                       </div>
                       <div className='text-right'>
                         <p className='font-bold tabular-nums'>
-                          {Math.round(item.value).toLocaleString()}
+                          {formatAmount(item.value)}
                           <span className='text-xs font-normal text-muted-foreground ml-1'>
-                            KRW
+                            {currencyUnit}
                           </span>
                         </p>
                         <p className='text-xs text-muted-foreground tabular-nums'>

@@ -42,6 +42,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { inflationRates } from '@/constants/keywords';
+import { useCurrencyStore } from '@/store/options';
 import { Button } from '../ui/button';
 import {
   SeriesToggleButtons,
@@ -134,6 +135,7 @@ export function AssetChart({
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const [startPickerOpen, setStartPickerOpen] = useState(false);
   const [endPickerOpen, setEndPickerOpen] = useState(false);
+  const currency = useCurrencyStore((state) => state.currency);
 
   // 시리즈에 색상 할당
   const seriesWithColors = series.map((s, index) => ({
@@ -372,9 +374,9 @@ export function AssetChart({
       return displayValue.toFixed(2);
     }
 
-    return new Intl.NumberFormat('ko-KR', {
+    return new Intl.NumberFormat(currency === 'usd' ? 'en-US' : 'ko-KR', {
       style: 'currency',
-      currency: 'KRW',
+      currency: currency === 'usd' ? 'USD' : 'KRW',
       maximumFractionDigits: 0,
     }).format(displayValue);
   };
@@ -390,7 +392,9 @@ export function AssetChart({
       return displayValue.toFixed(2);
     }
 
-    return new Intl.NumberFormat('ko-KR', {
+    return new Intl.NumberFormat(currency === 'usd' ? 'en-US' : 'ko-KR', {
+      style: 'currency',
+      currency: currency === 'usd' ? 'USD' : 'KRW',
       notation: 'compact',
       compactDisplay: 'short',
       maximumFractionDigits: 1,
@@ -604,6 +608,39 @@ export function AssetChart({
   // X축 틱 계산 - 중복 방지
   const calculateXAxisTicks = useMemo(() => {
     if (chartData.length === 0) return [];
+
+    if (timeRange === 'all') {
+      const firstDate = parseISO(chartData[0].date);
+      const lastDate = parseISO(chartData[chartData.length - 1].date);
+      const firstYear = firstDate.getFullYear();
+      const lastYear = lastDate.getFullYear();
+      const maxTickYear = Math.min(lastYear, new Date().getFullYear());
+      const yearCount = maxTickYear - firstYear + 1;
+      const yearStep = Math.max(1, Math.ceil(yearCount / 8));
+      const firstDataByYear = new Map<number, string>();
+
+      chartData.forEach((item) => {
+        const year = parseISO(item.date).getFullYear();
+        if (!firstDataByYear.has(year)) {
+          firstDataByYear.set(year, item.date);
+        }
+      });
+
+      // 전체 기간은 데이터 인덱스가 아니라 연도 기준으로 X축을 고정한다.
+      const ticks = Array.from(firstDataByYear.entries())
+        .filter(
+          ([year]) =>
+            year <= maxTickYear && (year - firstYear) % yearStep === 0,
+        )
+        .map(([, date]) => date);
+      const lastDataDate = chartData[chartData.length - 1].date;
+
+      if (lastYear <= maxTickYear && !ticks.includes(lastDataDate)) {
+        ticks.push(lastDataDate);
+      }
+
+      return ticks;
+    }
 
     const tickCount = getTickCountByTimeRange();
     const step = Math.max(1, Math.floor(chartData.length / tickCount));
