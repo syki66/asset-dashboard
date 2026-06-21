@@ -152,6 +152,21 @@ export default function Page() {
           themeColor={themeColor}
           calendarCategory='overview'
           chartType='line'
+          fillBetween={
+            isPostTax
+              ? ['benchmarkWorstNet', 'benchmarkBestNet']
+              : ['benchmarkWorst', 'benchmarkBest']
+          }
+          seriesToggleGroups={[
+            {
+              id: 'benchmarkRange',
+              name: '벤치마크',
+              color: '#FF9800',
+              seriesIds: isPostTax
+                ? ['benchmarkBestNet', 'benchmarkWorstNet']
+                : ['benchmarkBest', 'benchmarkWorst'],
+            },
+          ]}
           series={[
             {
               id: 'principal',
@@ -160,16 +175,28 @@ export default function Page() {
               data: dashboardData.charts.principal,
             },
             {
-              id: 'currentValue',
-              name: '평가금',
+              id: isPostTax ? 'netCurrentValue' : 'currentValue',
+              name: isPostTax ? '세후 평가금' : '평가금',
               color: '#F44336',
-              data: dashboardData.charts.currentValue,
+              data: isPostTax
+                ? dashboardData.charts.netCurrentValue
+                : dashboardData.charts.currentValue,
             },
             {
-              id: 'benchmarkBest',
+              id: isPostTax ? 'benchmarkBestNet' : 'benchmarkBest',
               name: '벤치마크 (최상)',
-              color: '#03A9F4',
-              data: dashboardData.charts.benchmarkBest,
+              color: '#FF9800',
+              data: isPostTax
+                ? dashboardData.charts.benchmarkBestNet
+                : dashboardData.charts.benchmarkBest,
+            },
+            {
+              id: isPostTax ? 'benchmarkWorstNet' : 'benchmarkWorst',
+              name: '벤치마크 (최악)',
+              color: '#FF5722',
+              data: isPostTax
+                ? dashboardData.charts.benchmarkWorstNet
+                : dashboardData.charts.benchmarkWorst,
             },
           ]}
           title='자산 추이'

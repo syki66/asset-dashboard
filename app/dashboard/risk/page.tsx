@@ -10,7 +10,6 @@ import { useChartLayoutStore, useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
 import {
   Activity,
-  Gauge,
   Maximize2,
   Minimize2,
   ShieldAlert,
@@ -49,7 +48,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
+      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
         <DashboardOverviewCard
           title='최대 손실 낙폭(MDD)'
           icon={ShieldAlert}
@@ -93,29 +92,22 @@ export default function Page() {
           ]}
         />
         <DashboardOverviewCard
-          title='샤프지수'
-          icon={Gauge}
+          title='리스크 지표'
+          icon={Activity}
           themeColor={themeColor}
           contentItems={[
             {
-              label: '최상 금리 기준',
+              label: '샤프지수 (최상 금리)',
               value: dashboardData.drawdown.bestSharpeRatio,
               valueClassName: 'theme-risk',
               info: rollingRiskInfo,
             },
             {
-              label: '최악 금리 기준',
+              label: '샤프지수 (최악 금리)',
               value: dashboardData.drawdown.worstSharpeRatio,
               valueClassName: 'theme-risk',
               info: rollingRiskInfo,
             },
-          ]}
-        />
-        <DashboardOverviewCard
-          title='변동성 지수'
-          icon={Activity}
-          themeColor={themeColor}
-          contentItems={[
             {
               label: '90거래일 롤링 변동성',
               value: `${dashboardData.drawdown.volatility}%`,

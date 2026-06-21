@@ -33,7 +33,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-4'>
+      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
         <DashboardCard
           title={showAfterTax ? '세후 배당금' : '배당금'}
           value={formatCurrency(
