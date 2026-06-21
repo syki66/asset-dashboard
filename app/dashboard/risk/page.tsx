@@ -1,18 +1,51 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useDashboardStore } from '@/store/dashboard';
-import { useCurrencyStore } from '@/store/options';
+import { useChartLayoutStore, useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
-import { Activity, Gauge, ShieldAlert, TrendingDown } from 'lucide-react';
+import {
+  Activity,
+  Gauge,
+  Maximize2,
+  Minimize2,
+  ShieldAlert,
+  TrendingDown,
+} from 'lucide-react';
+
+type ChartLayout = 'expanded' | 'compact';
 
 export default function Page() {
   const themeColor = 'var(--risk-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
+  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
+  const [rollingChartLayout, setRollingChartLayout] =
+    useState<ChartLayout>(chartLayout);
   const rollingRiskInfo =
     '최근 90개 거래일의 TWR 일별 수익률로 계산합니다. 주말 스냅샷은 금요일 가격 복사값이므로 리스크 계산에서 제외합니다.';
+
+  useEffect(() => {
+    setRollingChartLayout(chartLayout);
+  }, [chartLayout]);
+
+  const chartLayoutButtonStyle =
+    rollingChartLayout === 'expanded'
+      ? {
+          color: themeColor,
+          borderColor: themeColor,
+          backgroundColor: 'var(--card)',
+          backdropFilter: 'blur(1.25rem)',
+        }
+      : {
+          color: '#fff',
+          borderColor: themeColor,
+          backgroundColor: themeColor,
+        };
 
   return (
     <>
@@ -93,7 +126,7 @@ export default function Page() {
         />
       </div>
       <div className='mt-8'>
-        <h2 className='text-xl font-bold'>상세 차트</h2>
+        <h2 className='text-xl font-bold'>상세 낙폭 차트</h2>
       </div>
       <div className='grid gap-4 mt-4'>
         <AssetChart
@@ -108,10 +141,43 @@ export default function Page() {
               data: dashboardData.charts.drawdown,
             },
           ]}
-          title='손실 낙폭 차트'
+          title='낙폭 상세 차트'
           description='손실 낙폭 변화 추이'
           reverseYAxis={true}
         />
+      </div>
+      <div className='mt-8 flex items-center justify-between'>
+        <h2 className='text-xl font-bold'>90거래일 롤링 지표</h2>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={() =>
+            setRollingChartLayout(
+              rollingChartLayout === 'compact' ? 'expanded' : 'compact',
+            )
+          }
+          className='flex items-center gap-2 transition-all hover:opacity-80'
+          style={chartLayoutButtonStyle}
+        >
+          {rollingChartLayout === 'expanded' ? (
+            <>
+              <Minimize2 className='h-4 w-4' />
+              모아보기
+            </>
+          ) : (
+            <>
+              <Maximize2 className='h-4 w-4' />
+              펼쳐보기
+            </>
+          )}
+        </Button>
+      </div>
+      <div
+        className={cn(
+          'mt-4 grid gap-4',
+          rollingChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+        )}
+      >
         <AssetChart
           themeColor={themeColor}
           calendarCategory='risk'

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AssetChart, DividendChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
@@ -30,14 +31,24 @@ import {
   US_SEC_FEE_RATE,
 } from '@/constants/keywords';
 
+type ChartLayout = 'expanded' | 'compact';
+
 export default function Page() {
   const themeColor = 'var(--performance-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
   const chartLayout = useChartLayoutStore((state) => state.chartLayout);
-  const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
+  const [detailChartLayout, setDetailChartLayout] =
+    useState<ChartLayout>(chartLayout);
+  const [returnChartLayout, setReturnChartLayout] =
+    useState<ChartLayout>(chartLayout);
   const showAfterTax = tax === 'post';
+
+  useEffect(() => {
+    setDetailChartLayout(chartLayout);
+    setReturnChartLayout(chartLayout);
+  }, [chartLayout]);
 
   const { performance, benchmarkBest, benchmarkWorst, costs } = dashboardData;
   const mwrInfo = (
@@ -84,6 +95,43 @@ export default function Page() {
     date: `${yearProfit.year}-01-01`,
     value: yearProfit.profit,
   }));
+  const getChartLayoutButtonStyle = (layout: ChartLayout) =>
+    layout === 'expanded'
+      ? {
+          color: themeColor,
+          borderColor: themeColor,
+          backgroundColor: 'var(--card)',
+          backdropFilter: 'blur(1.25rem)',
+        }
+      : {
+          color: '#fff',
+          borderColor: themeColor,
+          backgroundColor: themeColor,
+        };
+  const renderChartLayoutButton = (
+    layout: ChartLayout,
+    setLayout: (layout: ChartLayout) => void,
+  ) => (
+    <Button
+      variant='outline'
+      size='sm'
+      onClick={() => setLayout(layout === 'compact' ? 'expanded' : 'compact')}
+      className='flex items-center gap-2 hover:opacity-80 transition-all'
+      style={getChartLayoutButtonStyle(layout)}
+    >
+      {layout === 'expanded' ? (
+        <>
+          <Minimize2 className='w-4 h-4' />
+          모아보기
+        </>
+      ) : (
+        <>
+          <Maximize2 className='w-4 h-4' />
+          펼쳐보기
+        </>
+      )}
+    </Button>
+  );
 
   const beforeTaxData = [
     {
@@ -311,45 +359,12 @@ export default function Page() {
       </div>
       <div className='mt-8 flex items-center justify-between'>
         <h2 className='text-xl font-bold'>상세 차트</h2>
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={() =>
-            setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')
-          }
-          className='flex items-center gap-2 hover:opacity-80 transition-all'
-          style={
-            chartLayout === 'expanded'
-              ? {
-                  color: themeColor,
-                  borderColor: themeColor,
-                  backgroundColor: 'var(--card)',
-                  backdropFilter: 'blur(1.25rem)',
-                }
-              : {
-                  color: '#fff',
-                  borderColor: themeColor,
-                  backgroundColor: themeColor,
-                }
-          }
-        >
-          {chartLayout === 'expanded' ? (
-            <>
-              <Minimize2 className='w-4 h-4' />
-              모아보기
-            </>
-          ) : (
-            <>
-              <Maximize2 className='w-4 h-4' />
-              펼쳐보기
-            </>
-          )}
-        </Button>
+        {renderChartLayoutButton(detailChartLayout, setDetailChartLayout)}
       </div>
       <div
         className={cn(
           'mt-4 grid gap-4',
-          chartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+          detailChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
         )}
       >
         <div>
@@ -469,14 +484,17 @@ export default function Page() {
         <div
           className={cn(
             'mt-8',
-            chartLayout === 'compact' ? 'lg:col-span-2' : undefined,
+            detailChartLayout === 'compact' ? 'lg:col-span-2' : undefined,
           )}
         >
-          <h2 className='mb-4 text-xl font-bold'>수익률 차트</h2>
+          <div className='mb-4 flex items-center justify-between'>
+            <h2 className='text-xl font-bold'>수익률 차트</h2>
+            {renderChartLayoutButton(returnChartLayout, setReturnChartLayout)}
+          </div>
           <div
             className={cn(
               'grid gap-4',
-              chartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+              returnChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
             )}
           >
             <AssetChart
