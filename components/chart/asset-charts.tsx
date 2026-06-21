@@ -66,7 +66,7 @@ interface AssetSeries {
   name: string;
   color?: string;
   data: AssetDataPoint[];
-  unit?: 'currency' | 'percent';
+  unit?: 'currency' | 'percent' | 'number';
 }
 
 interface SeriesToggleGroup {
@@ -342,6 +342,44 @@ export function AssetChart({
   const usesPercentUnit = seriesWithColors.some(
     (series) => series.unit === 'percent',
   );
+  const usesNumberUnit = seriesWithColors.some(
+    (series) => series.unit === 'number',
+  );
+
+  const formatChartValue = (
+    value: number,
+    unit: AssetSeries['unit'] = 'currency',
+  ) => {
+    if (unit === 'percent') {
+      return `${value.toFixed(2)}%`;
+    }
+
+    if (unit === 'number') {
+      return value.toFixed(2);
+    }
+
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW',
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatYAxisTick = (value: number) => {
+    if (usesPercentUnit) {
+      return `${Number(value).toFixed(1)}%`;
+    }
+
+    if (usesNumberUnit) {
+      return Number(value).toFixed(2);
+    }
+
+    return new Intl.NumberFormat('ko-KR', {
+      notation: 'compact',
+      compactDisplay: 'short',
+      maximumFractionDigits: 1,
+    }).format(value);
+  };
 
   // 차트 도메인 계산
   const calculateYDomain = () => {
@@ -598,13 +636,7 @@ export function AssetChart({
                     <span>{seriesName}</span>
                   </div>
                   <span className="font-semibold ml-4">
-                    {series?.unit === 'percent'
-                      ? `${(pld.value as number).toFixed(2)}%`
-                      : new Intl.NumberFormat('ko-KR', {
-                        style: 'currency',
-                        currency: 'KRW',
-                        maximumFractionDigits: 0,
-                      }).format(pld.value as number)}
+                    {formatChartValue(pld.value as number, series?.unit)}
                   </span>
                 </div>
               );
@@ -804,15 +836,7 @@ export function AssetChart({
                   fontSize={12}
                   scale={useLogScale ? 'log' : 'linear'}
                   domain={yDomain}
-                  tickFormatter={(value) =>
-                    usesPercentUnit
-                      ? `${Number(value).toFixed(1)}%`
-                      : new Intl.NumberFormat('ko-KR', {
-                          notation: 'compact',
-                          compactDisplay: 'short',
-                          maximumFractionDigits: 1,
-                        }).format(value)
-                  }
+                  tickFormatter={formatYAxisTick}
                   reversed={reverseYAxis}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -852,15 +876,7 @@ export function AssetChart({
                 <YAxis
                   scale={useLogScale ? 'log' : 'linear'}
                   domain={yDomain}
-                  tickFormatter={(value) =>
-                    usesPercentUnit
-                      ? `${Number(value).toFixed(1)}%`
-                      : new Intl.NumberFormat('ko-KR', {
-                          notation: 'compact',
-                          compactDisplay: 'short',
-                          maximumFractionDigits: 1,
-                        }).format(value)
-                  }
+                  tickFormatter={formatYAxisTick}
                   reversed={reverseYAxis}
                   axisLine={false}
                 />

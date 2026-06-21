@@ -110,6 +110,9 @@ export const initialDashboardData: DashboardProps = {
     recoveryDuration: 0,
     maxDailyDrawdown: 0,
     maxDailyDrawdownDate: '1970-01-01',
+    bestSharpeRatio: 0,
+    worstSharpeRatio: 0,
+    volatility: 0,
   },
   charts: {
     principal: [
@@ -227,6 +230,24 @@ export const initialDashboardData: DashboardProps = {
       },
     ],
     drawdown: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    bestSharpeRatio: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    worstSharpeRatio: [
+      {
+        date: '1970-01-01',
+        value: 0,
+      },
+    ],
+    volatility: [
       {
         date: '1970-01-01',
         value: 0,

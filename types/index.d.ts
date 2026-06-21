@@ -181,6 +181,9 @@ export type DashboardProps = {
     recoveryDuration: number; // 회복 기간 (일)
     maxDailyDrawdown: number; // 최대 일간 낙폭
     maxDailyDrawdownDate: string; // 최대 일간 낙폭 날짜
+    bestSharpeRatio: number; // 최상 금리 기준 90일 롤링 샤프지수
+    worstSharpeRatio: number; // 최악 금리 기준 90일 롤링 샤프지수
+    volatility: number; // 90일 롤링 연환산 변동성
   };
   charts: {
     principal: ChartProps[]; // 원금 차트
@@ -203,6 +206,9 @@ export type DashboardProps = {
     averageAnnualReturn: ChartProps[]; // 단순연평균수익률 차트
     netAverageAnnualReturn: ChartProps[]; // 세후 단순연평균수익률 차트
     drawdown: ChartProps[]; // 낙폭 차트
+    bestSharpeRatio: ChartProps[]; // 최상 금리 기준 90일 롤링 샤프지수 차트
+    worstSharpeRatio: ChartProps[]; // 최악 금리 기준 90일 롤링 샤프지수 차트
+    volatility: ChartProps[]; // 90일 롤링 연환산 변동성 차트
     dividendHistory: ChartProps[]; // 배당금 차트
     dividendHistoryNet: ChartProps[]; // 세후 배당금 차트
     dividendYield: ChartProps[]; // 평가금 대비 배당수익률 차트

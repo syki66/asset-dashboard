@@ -46,6 +46,14 @@ import {
   updateYearPerformance,
   type YearPerformanceState,
 } from './year-performance';
+import {
+  calculateSharpeRatio,
+  calculateVolatility,
+  getAnnualRiskFreeRate,
+  isWeekendDate,
+  toRoundedRiskMetric,
+} from './risk';
+import { useInterestRateStore } from '@/store/account';
 
 // 대시보드 표시용 데이터로 가공하는 함수
 export const convertToDashboardData = (
@@ -73,6 +81,9 @@ export const convertToDashboardData = (
   const averageAnnualReturnChartData: ChartProps[] = [];
   const netAverageAnnualReturnChartData: ChartProps[] = [];
   const drawdownChartData: ChartProps[] = [];
+  const bestSharpeRatioChartData: ChartProps[] = [];
+  const worstSharpeRatioChartData: ChartProps[] = [];
+  const volatilityChartData: ChartProps[] = [];
   let dividendHistoryChartData: ChartProps[] = [];
   let dividendHistoryChartDataNet: ChartProps[] = [];
   const yieldOnCostChartData: ChartProps[] = [];
@@ -123,6 +134,11 @@ export const convertToDashboardData = (
   let benchmarkBestNetTwrFactor = 1;
   let benchmarkWorstTwrFactor = 1;
   let benchmarkWorstNetTwrFactor = 1;
+  const rollingRiskReturns: number[] = [];
+  // 주말을 제외한 최근 90개 거래일 수익률로 샤프지수와 변동성을 계산합니다.
+  const rollingRiskWindow = 90;
+  const { bestInterestRates, worstInterestRates } =
+    useInterestRateStore.getState();
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -640,11 +656,12 @@ export const convertToDashboardData = (
     }
 
     // TWR 계산
-    twrFactor *= calculateTwrFactor(
+    const dailyTwrFactor = calculateTwrFactor(
       currentValue,
       prevCurrentValueForTwr,
       netDeposit,
     );
+    twrFactor *= dailyTwrFactor;
     netTwrFactor *= calculateTwrFactor(
       netCurrentValue,
       prevNetCurrentValueForTwr,
@@ -679,6 +696,28 @@ export const convertToDashboardData = (
     const benchmarkWorstNetTwr = annualizeTwr(
       benchmarkWorstNetTwrFactor,
       years,
+    );
+    // 주말 스냅샷은 금요일 가격 복사값이라 리스크 지표의 0% 수익률 왜곡을 막기 위해 제외합니다.
+    if (!isWeekendDate(account.date)) {
+      rollingRiskReturns.push(dailyTwrFactor - 1);
+      if (rollingRiskReturns.length > rollingRiskWindow) {
+        rollingRiskReturns.shift();
+      }
+    }
+    const bestSharpeRatio = toRoundedRiskMetric(
+      calculateSharpeRatio(
+        rollingRiskReturns,
+        getAnnualRiskFreeRate(bestInterestRates, account.date),
+      ),
+    );
+    const worstSharpeRatio = toRoundedRiskMetric(
+      calculateSharpeRatio(
+        rollingRiskReturns,
+        getAnnualRiskFreeRate(worstInterestRates, account.date),
+      ),
+    );
+    const volatility = toRoundedRiskMetric(
+      calculateVolatility(rollingRiskReturns) * 100,
     );
 
     prevCurrentValueForTwr = currentValue;
@@ -783,6 +822,18 @@ export const convertToDashboardData = (
     drawdownChartData.push({
       date: account.date,
       value: drawdown,
+    });
+    bestSharpeRatioChartData.push({
+      date: account.date,
+      value: bestSharpeRatio,
+    });
+    worstSharpeRatioChartData.push({
+      date: account.date,
+      value: worstSharpeRatio,
+    });
+    volatilityChartData.push({
+      date: account.date,
+      value: volatility,
     });
 
     // 배당금 기록 차트 데이터
@@ -1048,6 +1099,9 @@ export const convertToDashboardData = (
         recoveryDuration,
         maxDailyDrawdown: -maxDailyDrawdown,
         maxDailyDrawdownDate,
+        bestSharpeRatio,
+        worstSharpeRatio,
+        volatility,
       },
       charts: {
         principal: [...principalChartData],
@@ -1070,6 +1124,9 @@ export const convertToDashboardData = (
         averageAnnualReturn: [...averageAnnualReturnChartData],
         netAverageAnnualReturn: [...netAverageAnnualReturnChartData],
         drawdown: [...drawdownChartData],
+        bestSharpeRatio: [...bestSharpeRatioChartData],
+        worstSharpeRatio: [...worstSharpeRatioChartData],
+        volatility: [...volatilityChartData],
         dividendHistory: dividendHistoryChartData,
         dividendHistoryNet: dividendHistoryChartDataNet,
         yieldOnCost: [...yieldOnCostChartData],
