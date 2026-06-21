@@ -45,7 +45,16 @@ export function DashboardOverviewCard({
                 </span>
                 {item.info && <InfoTooltip info={item.info} />}
               </div>
-              <span className={cn('font-semibold', item.valueClassName)}>
+              <span
+                className={cn('font-semibold', item.valueClassName)}
+                // CSS의 ::after가 같은 텍스트를 복제해 글로우 레이어로 쓰기 위한 값
+                data-value={
+                  typeof item.value === 'string' ||
+                  typeof item.value === 'number'
+                    ? item.value
+                    : undefined
+                }
+              >
                 {item.value}
               </span>
             </div>

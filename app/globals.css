@@ -365,35 +365,54 @@
     background-color: var(--settings-hover-bg);
   }
 
+  /* 개요 평가금액: 테마 색상이 흐르는 텍스트와 복제 글로우 레이어 */
   .asset-value-wave {
+    position: relative;
+    display: inline-block;
     background-image: linear-gradient(
       90deg,
       var(--overview-theme),
-      var(--performance-theme),
-      var(--dividends-theme),
       var(--transaction-theme),
       var(--portfolio-theme),
+      var(--risk-theme),
+      var(--dividends-theme),
+      var(--performance-theme),
       var(--overview-theme)
     );
-    background-size: 240% 100%;
+    background-repeat: repeat-x;
+    background-size: 36rem 100%;
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
     font-size: 1.125rem;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    animation: asset-value-wave 3.6s ease-in-out infinite;
+    animation: asset-value-wave 10s linear infinite;
+  }
+
+  /* data-value로 같은 텍스트를 복제해 글로우도 같은 파도 타이밍을 따른다. */
+  .asset-value-wave::after {
+    content: attr(data-value);
+    position: absolute;
+    inset: 0;
+    background-image: inherit;
+    background-repeat: inherit;
+    background-size: inherit;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    filter: blur(0.625rem);
+    opacity: 0.56;
+    pointer-events: none;
+    animation: asset-value-wave 10s linear infinite;
   }
 
   @keyframes asset-value-wave {
     0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
+      background-position: 0 50%;
     }
     100% {
-      background-position: 0% 50%;
+      background-position: 36rem 50%;
     }
   }
 
