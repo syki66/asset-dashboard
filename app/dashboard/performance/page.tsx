@@ -367,7 +367,7 @@ export default function Page() {
           detailChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
         )}
       >
-        <div>
+        <div className='h-full'>
           <AssetChart
             title='자산 추이'
             themeColor={themeColor}
@@ -426,12 +426,13 @@ export default function Page() {
             ]}
           />
         </div>
-        <div>
+        <div className='h-full'>
           <AssetChart
             title='수익금 비교'
             themeColor={themeColor}
             chartType='line'
             calendarCategory='performance'
+            enableSymLogScale
             fillBetween={
               showAfterTax
                 ? ['benchmarkWorstNetProfit', 'benchmarkBestNetProfit']

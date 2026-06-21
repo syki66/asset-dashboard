@@ -20,6 +20,7 @@ import {
   subYears,
   startOfYear,
 } from 'date-fns';
+import { scaleSymlog } from 'd3-scale';
 import { ko } from 'date-fns/locale';
 import {
   CalendarDays,
@@ -105,6 +106,8 @@ interface AssetHistoryChartProps {
   fillBetween?: [string, string]; // [bottomKey, topKey]
   calendarCategory?: string;
   seriesToggleGroups?: SeriesToggleGroup[];
+  enableSymLogScale?: boolean;
+  displayAsNegative?: boolean;
 }
 
 export function AssetChart({
@@ -120,6 +123,8 @@ export function AssetChart({
   fillBetween,
   calendarCategory,
   seriesToggleGroups = [],
+  enableSymLogScale = false,
+  displayAsNegative = false,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -339,6 +344,13 @@ export function AssetChart({
   };
 
   const chartData = prepareChartData();
+  const hasNonPositiveValue = chartData.some((dataPoint) =>
+    activeSeriesData.some((series) => {
+      const value = dataPoint[series.id];
+      return typeof value === 'number' && value <= 0;
+    }),
+  );
+  const usesSymLogScale = enableSymLogScale && useLogScale && hasNonPositiveValue;
   const usesPercentUnit = seriesWithColors.some(
     (series) => series.unit === 'percent',
   );
@@ -350,35 +362,39 @@ export function AssetChart({
     value: number,
     unit: AssetSeries['unit'] = 'currency',
   ) => {
+    const displayValue = displayAsNegative ? -Math.abs(value) : value;
+
     if (unit === 'percent') {
-      return `${value.toFixed(2)}%`;
+      return `${displayValue.toFixed(2)}%`;
     }
 
     if (unit === 'number') {
-      return value.toFixed(2);
+      return displayValue.toFixed(2);
     }
 
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
       currency: 'KRW',
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(displayValue);
   };
 
   const formatYAxisTick = (value: number) => {
+    const displayValue = displayAsNegative ? -Math.abs(Number(value)) : Number(value);
+
     if (usesPercentUnit) {
-      return `${Number(value).toFixed(1)}%`;
+      return `${displayValue.toFixed(1)}%`;
     }
 
     if (usesNumberUnit) {
-      return Number(value).toFixed(2);
+      return displayValue.toFixed(2);
     }
 
     return new Intl.NumberFormat('ko-KR', {
       notation: 'compact',
       compactDisplay: 'short',
       maximumFractionDigits: 1,
-    }).format(value);
+    }).format(displayValue);
   };
 
   // 차트 도메인 계산
@@ -405,6 +421,11 @@ export function AssetChart({
     const safeMin = Number.isFinite(minValue) ? minValue : 0;
     const safeMax = Number.isFinite(maxValue) ? maxValue : 100;
 
+    if (usesSymLogScale) {
+      const padding = Math.max((safeMax - safeMin) * 0.1, 1);
+      return [safeMin - padding, safeMax + padding];
+    }
+
     // 로그 스케일을 위한 도메인 조정 (0이나 음수 방지)
     if (useLogScale) {
       const minLogValue = safeMin <= 0 ? 0.1 : safeMin; // Ensure min is positive for log scale
@@ -426,6 +447,18 @@ export function AssetChart({
   };
 
   const yDomain = calculateYDomain();
+  const maxAbsYDomain = Math.max(Math.abs(yDomain[0]), Math.abs(yDomain[1]));
+  const symLogConstant = Math.max(maxAbsYDomain / 20, 1);
+  const yScale = usesSymLogScale
+    ? scaleSymlog().constant(symLogConstant)
+    : useLogScale
+      ? 'log'
+      : 'linear';
+  const logScaleDescription = useLogScale
+    ? usesSymLogScale
+      ? '0 이하 값이 있어 대칭 로그 스케일을 사용합니다. 0 부근은 차트 범위의 5%를 완충 구간으로 둡니다.'
+      : '큰 값과 작은 값의 차이를 로그로 압축합니다.'
+    : '';
 
   // X축 포맷터 - 시간 범위에 따라 다른 형식 사용
   const getXAxisTickFormatter = (): ((dateStr: string) => string) => {
@@ -674,10 +707,10 @@ export function AssetChart({
   }
 
   return (
-    <Card className="w-full glass-card">
+    <Card className="w-full h-full glass-card flex flex-col">
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between gap-4">
             <CardTitle className="text-lg flex items-center gap-2">
               {Icon ? (
                 <Icon style={{ color: themeColor }} className="h-5 w-5" />
@@ -686,40 +719,44 @@ export function AssetChart({
               )}
               {title}
             </CardTitle>
-            {description && <CardDescription>{description}</CardDescription>}
-          </div>
-          <div className="flex items-center gap-4 pt-1">
-            {(showLogScaleToggle === undefined || showLogScaleToggle) && (
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="log-scale"
-                  checked={useLogScale}
-                  onCheckedChange={setUseLogScale}
-                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                />
-                <Label htmlFor="log-scale" className="text-sm font-medium">
-                  로그 스케일
-                </Label>
-              </div>
-            )}
-            {(showInflationAdjustToggle === undefined ||
-              showInflationAdjustToggle) && (
+            <div className="flex shrink-0 items-center gap-4">
+              {(showLogScaleToggle === undefined || showLogScaleToggle) && (
                 <div className="flex items-center space-x-2">
                   <Switch
-                    id="inflation-adjust"
-                    checked={adjustForInflation}
-                    onCheckedChange={setAdjustForInflation}
+                    id="log-scale"
+                    checked={useLogScale}
+                    onCheckedChange={setUseLogScale}
                     style={{ '--switch-bg': themeColor } as React.CSSProperties}
                   />
-                  <Label htmlFor="inflation-adjust" className="text-sm font-medium">
-                    인플레이션 보정
+                  <Label htmlFor="log-scale" className="text-sm font-medium">
+                    {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
                   </Label>
                 </div>
               )}
+              {(showInflationAdjustToggle === undefined ||
+                showInflationAdjustToggle) && (
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="inflation-adjust"
+                      checked={adjustForInflation}
+                      onCheckedChange={setAdjustForInflation}
+                      style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                    />
+                    <Label htmlFor="inflation-adjust" className="text-sm font-medium">
+                      인플레이션 보정
+                    </Label>
+                  </div>
+                )}
+            </div>
           </div>
+          {(description || logScaleDescription) && (
+            <CardDescription>
+              {[description, logScaleDescription].filter(Boolean).join(' ')}
+            </CardDescription>
+          )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-1 flex-col">
         <div className="mb-4 flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Tabs
@@ -834,7 +871,7 @@ export function AssetChart({
                 <YAxis
                   axisLine={false}
                   fontSize={12}
-                  scale={useLogScale ? 'log' : 'linear'}
+                  scale={yScale}
                   domain={yDomain}
                   tickFormatter={formatYAxisTick}
                   reversed={reverseYAxis}
@@ -874,7 +911,7 @@ export function AssetChart({
                   axisLine={false}
                 />
                 <YAxis
-                  scale={useLogScale ? 'log' : 'linear'}
+                  scale={yScale}
                   domain={yDomain}
                   tickFormatter={formatYAxisTick}
                   reversed={reverseYAxis}

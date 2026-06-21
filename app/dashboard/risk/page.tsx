@@ -144,6 +144,9 @@ export default function Page() {
           title='낙폭 상세 차트'
           description='손실 낙폭 변화 추이'
           reverseYAxis={true}
+          displayAsNegative
+          showLogScaleToggle={false}
+          showInflationAdjustToggle={false}
         />
       </div>
       <div className='mt-8 flex items-center justify-between'>
