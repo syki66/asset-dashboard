@@ -250,12 +250,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className={cn('min-h-screen flex', pageBgClass)}>
-      <Sidebar menuItems={menuItems} />
+      <Sidebar
+        menuItems={menuItems}
+        activeThemeColor={`var(--${activeCategory}-theme)`}
+      />
 
       <div className='w-72 shrink-0' />
       <div className={cn('flex-1 p-4 pl-0')}>
         <div className='glass-card rounded-2xl w-full p-8 flex flex-col'>
-          <header>
+          <header className='lg:sticky lg:top-4 lg:z-40 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-card/65 lg:px-6 lg:py-3 lg:shadow-lg lg:backdrop-blur-xl'>
             <div className='flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6'>
               <div>
                 <h1 className={cn('text-4xl font-bold mb-2', textThemeClass)}>
@@ -275,17 +278,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                       <TabsList
                         style={activeTabStyle}
-                        className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                        className='h-7 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
                       >
                         <TabsTrigger
                           value='pre'
-                          className='text-[11px] h-5 rounded-md p-0'
+                          className='h-5 rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
                         >
                           세전
                         </TabsTrigger>
                         <TabsTrigger
                           value='post'
-                          className='text-[11px] h-5 rounded-md p-0'
+                          className='h-5 rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
                         >
                           세후
                         </TabsTrigger>
@@ -301,18 +304,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                       <TabsList
                         style={activeTabStyle}
-                        className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                        className='h-7 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
                       >
                         <TabsTrigger
                           value='expanded'
-                          className='text-[10px] h-5 rounded-md p-0'
+                          className='h-5 rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
                           title='펼쳐보기'
                         >
                           <Maximize2 className='h-4 w-4' />
                         </TabsTrigger>
                         <TabsTrigger
                           value='compact'
-                          className='text-[10px] h-5 rounded-md p-0'
+                          className='h-5 rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
                           title='모아보기'
                         >
                           <LayoutGrid className='h-4 w-4' />
@@ -329,17 +332,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                       <TabsList
                         style={activeTabStyle}
-                        className='h-6 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                        className='h-7 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
                       >
                         <TabsTrigger
                           value='krw'
-                          className='text-[11px] h-5 rounded-md font-semibold p-0'
+                          className='h-5 rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
                         >
                           ₩
                         </TabsTrigger>
                         <TabsTrigger
                           value='usd'
-                          className='text-[11px] h-5 rounded-md font-semibold p-0'
+                          className='h-5 rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
                         >
                           $
                         </TabsTrigger>

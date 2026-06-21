@@ -397,6 +397,35 @@
     }
   }
 
+  @keyframes float-soft {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    25% {
+      transform: translate3d(0.125rem, -0.125rem, 0);
+    }
+    50% {
+      transform: translate3d(0, -0.25rem, 0);
+    }
+    75% {
+      transform: translate3d(-0.125rem, -0.125rem, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes theme-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 color-mix(in oklch, var(--sidebar-brand-theme) 0%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 1rem
+        color-mix(in oklch, var(--sidebar-brand-theme) 14%, transparent);
+    }
+  }
+
   /* Tab Trigger Hover - theme colored */
   .tab-trigger-hover:hover:not([data-state='active']) {
     background-color: color-mix(
