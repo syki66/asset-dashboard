@@ -15,6 +15,9 @@ import {
 import {
   format,
   parseISO,
+  addDays,
+  addMonths,
+  addYears,
   subDays,
   subMonths,
   subYears,
@@ -473,8 +476,7 @@ export function AssetChart({
         return (dateStr) => format(parseISO(dateStr), 'M/d', { locale: ko });
       case '3m':
       case '6m':
-        return (dateStr) =>
-          format(parseISO(dateStr), 'M월 d일', { locale: ko });
+        return (dateStr) => format(parseISO(dateStr), 'M/d', { locale: ko });
       case 'ytd':
       case '1y':
         return (dateStr) => format(parseISO(dateStr), 'M월', { locale: ko });
@@ -578,97 +580,176 @@ export function AssetChart({
     toggleSeries(id);
   };
 
-  // 시간 범위에 따른 틱 개수 결정
-  const getTickCountByTimeRange = () => {
-    switch (timeRange) {
-      case '1w':
-        return 7; // 매일
-      case '1m':
-        return 8; // 약 4일마다
-      case '3m':
-        return 6; // 약 2주마다
-      case '6m':
-        return 6; // 약 1개월마다
-      case '1y':
-      case 'ytd':
-        return 6; // 약 2개월마다
-      case '3y':
-        return 6; // 약 6개월마다
-      case '5y':
-        return 5; // 약 1년마다
-      case '10y':
-        return 5; // 약 2년마다
-      case 'all':
-        return 8; // 적절한 간격
-      default:
-        return 6;
-    }
-  };
-
-  // X축 틱 계산 - 중복 방지
+  // X축 틱 계산 - 데이터 인덱스가 아니라 실제 달력 간격을 기준으로 잡는다.
   const calculateXAxisTicks = useMemo(() => {
     if (chartData.length === 0) return [];
 
+    const firstDataDate = chartData[0].date;
+    const lastDataDate = chartData[chartData.length - 1].date;
+    const firstDate = parseISO(firstDataDate);
+    const lastDate = parseISO(lastDataDate);
+    const pushUniqueTick = (ticks: string[], date: string) => {
+      if (!ticks.includes(date)) ticks.push(date);
+    };
+    const findFirstDataOnOrAfter = (targetDate: Date) => {
+      const targetTime = targetDate.getTime();
+      return chartData.find((item) => parseISO(item.date).getTime() >= targetTime)
+        ?.date;
+    };
+    const findExactDateTick = (targetDate: Date) => {
+      const targetDateString = format(targetDate, 'yyyy-MM-dd');
+      return chartData.some((item) => item.date === targetDateString)
+        ? targetDateString
+        : undefined;
+    };
+    const findPeriodStartTick = (
+      targetDate: Date,
+      interval: 'month' | 'year',
+      strict = false,
+    ) => {
+      const nextDate = findFirstDataOnOrAfter(targetDate);
+      if (!nextDate) return undefined;
+
+      const parsedDate = parseISO(nextDate);
+      const isSamePeriod =
+        interval === 'year'
+          ? parsedDate.getFullYear() === targetDate.getFullYear()
+          : parsedDate.getFullYear() === targetDate.getFullYear() &&
+            parsedDate.getMonth() === targetDate.getMonth();
+
+      if (!isSamePeriod) return undefined;
+
+      if (strict) {
+        return parsedDate.getTime() === targetDate.getTime()
+          ? nextDate
+          : undefined;
+      }
+
+      // 연도 라벨은 해당 연도 1분기 데이터까지 대표 tick으로 인정한다.
+      if (interval === 'year') {
+        return parsedDate.getMonth() <= 2 ? nextDate : undefined;
+      }
+
+      // 월 라벨은 월 후반부터 시작한 잘린 구간을 피하고, 월 초반 데이터만 쓴다.
+      return parsedDate.getDate() <= 25 ? nextDate : undefined;
+    };
+    const buildCalendarTicks = (
+      interval: 'day' | 'month' | 'year',
+      step: number,
+      includeLast = true,
+      strictPeriodStart = false,
+      strictExactDate = false,
+    ) => {
+      const ticks: string[] = interval === 'day' ? [firstDataDate] : [];
+      let cursor =
+        interval === 'day'
+          ? addDays(firstDate, step)
+          : interval === 'month'
+            ? new Date(firstDate.getFullYear(), firstDate.getMonth(), 1)
+            : startOfYear(firstDate);
+
+      while (cursor <= lastDate) {
+        const nextDate =
+          strictExactDate
+            ? findExactDateTick(cursor)
+            : interval === 'year'
+            ? findPeriodStartTick(cursor, 'year', strictPeriodStart)
+            : interval === 'month'
+              ? findPeriodStartTick(cursor, 'month', strictPeriodStart)
+            : findFirstDataOnOrAfter(cursor);
+
+        if (nextDate) {
+          const formattedTick = getXAxisTickFormatter()(nextDate);
+          const hasSameLabel = ticks.some(
+            (tick) => getXAxisTickFormatter()(tick) === formattedTick,
+          );
+
+          if (!hasSameLabel) {
+            pushUniqueTick(ticks, nextDate);
+          }
+        }
+
+        cursor =
+          interval === 'day'
+            ? addDays(cursor, step)
+            : interval === 'month'
+              ? addMonths(cursor, step)
+              : addYears(cursor, step);
+      }
+
+      if (
+        includeLast &&
+        interval !== 'year' &&
+        !strictPeriodStart &&
+        !strictExactDate
+      ) {
+        const lastFormattedTick = getXAxisTickFormatter()(lastDataDate);
+        const hasSameLastLabel = ticks.some(
+          (tick) => getXAxisTickFormatter()(tick) === lastFormattedTick,
+        );
+
+        if (!hasSameLastLabel) {
+          pushUniqueTick(ticks, lastDataDate);
+        }
+      }
+
+      return ticks;
+    };
+
     if (timeRange === 'all') {
-      const firstDate = parseISO(chartData[0].date);
-      const lastDate = parseISO(chartData[chartData.length - 1].date);
       const firstYear = firstDate.getFullYear();
       const lastYear = lastDate.getFullYear();
       const maxTickYear = Math.min(lastYear, new Date().getFullYear());
       const yearCount = maxTickYear - firstYear + 1;
       const yearStep = Math.max(1, Math.ceil(yearCount / 8));
-      const firstDataByYear = new Map<number, string>();
-
-      chartData.forEach((item) => {
-        const year = parseISO(item.date).getFullYear();
-        if (!firstDataByYear.has(year)) {
-          firstDataByYear.set(year, item.date);
-        }
-      });
 
       // 전체 기간은 데이터 인덱스가 아니라 연도 기준으로 X축을 고정한다.
-      const ticks = Array.from(firstDataByYear.entries())
-        .filter(
-          ([year]) =>
-            year <= maxTickYear && (year - firstYear) % yearStep === 0,
-        )
-        .map(([, date]) => date);
-      const lastDataDate = chartData[chartData.length - 1].date;
+      const ticks: string[] = [];
 
-      if (lastYear <= maxTickYear && !ticks.includes(lastDataDate)) {
-        ticks.push(lastDataDate);
+      for (let year = firstYear; year <= maxTickYear; year += yearStep) {
+        const tickDate = findPeriodStartTick(new Date(year, 0, 1), 'year');
+
+        if (tickDate) {
+          ticks.push(tickDate);
+        }
       }
 
       return ticks;
     }
 
-    const tickCount = getTickCountByTimeRange();
-    const step = Math.max(1, Math.floor(chartData.length / tickCount));
+    switch (timeRange) {
+      case '1w':
+        return buildCalendarTicks('day', 1);
+      case '1m':
+        return buildCalendarTicks('day', 5, true, false, true);
+      case '3m':
+        return buildCalendarTicks('day', 15, true, false, true);
+      case '6m':
+        return buildCalendarTicks('month', 1, true, true);
+      case 'ytd':
+      case '1y':
+        return buildCalendarTicks('month', 1, true, true);
+      case '3y':
+      case '5y':
+      case '10y':
+        return buildCalendarTicks('year', 1);
+      case 'custom': {
+        const rangeDays = Math.max(
+          1,
+          Math.ceil(
+            (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24),
+          ),
+        );
 
-    // 시간 범위에 따라 적절한 간격으로 틱 선택
-    const ticks: string[] = [];
-    let lastFormattedTick = '';
-
-    for (let i = 0; i < chartData.length; i += step) {
-      const date = chartData[i].date;
-      const formattedTick = getXAxisTickFormatter()(date);
-
-      // 중복 방지: 이전 틱과 다른 경우에만 추가
-      if (formattedTick !== lastFormattedTick) {
-        ticks.push(date);
-        lastFormattedTick = formattedTick;
+        if (rangeDays <= 45) return buildCalendarTicks('day', 7);
+        if (rangeDays <= 120) return buildCalendarTicks('day', 15);
+        if (rangeDays <= 730) return buildCalendarTicks('month', 1);
+        if (rangeDays <= 1825) return buildCalendarTicks('month', 6);
+        return buildCalendarTicks('month', 12);
       }
+      default:
+        return buildCalendarTicks('month', 1);
     }
-
-    // 마지막 데이터 포인트가 포함되어 있지 않으면 추가
-    const lastDate = chartData[chartData.length - 1].date;
-    const lastFormattedDate = getXAxisTickFormatter()(lastDate);
-
-    if (lastFormattedDate !== lastFormattedTick) {
-      ticks.push(lastDate);
-    }
-
-    return ticks;
   }, [chartData, timeRange]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
