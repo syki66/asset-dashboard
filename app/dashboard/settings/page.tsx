@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Wallet,
   Calendar,
@@ -25,26 +25,76 @@ import { useAccountStore } from '@/store/account';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
 import { formatCurrency, formatDateKr, timeAgo } from '@/utils/format';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function Page() {
   const themeColor = 'var(--settings-theme)';
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const { selectedAccounts, setSelectedAccounts } = useSelectedAccountsStore();
+  // 계좌 클릭만으로 무거운 대시보드 계산이 돌지 않도록, 적용 전 선택값은 화면 안에서만 보관합니다.
+  const [draftSelectedAccounts, setDraftSelectedAccounts] =
+    useState<string[]>(selectedAccounts);
+  const [isApplyingSelection, setIsApplyingSelection] = useState(false);
 
+  // 실제 적용된 계좌가 바뀌면 임시 선택값도 맞춰서 설정 화면의 체크 상태를 동기화합니다.
+  useEffect(() => {
+    setDraftSelectedAccounts(selectedAccounts);
+  }, [selectedAccounts]);
+
+  // 전역 선택값이 반영된 뒤에도 차트 재계산/렌더링 시간을 조금 확보하고, 완료 안내를 표시합니다.
+  useEffect(() => {
+    if (!isApplyingSelection) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setIsApplyingSelection(false);
+      toast.success('계좌 선택 반영 완료', {
+        description: '선택한 계좌 기준으로 대시보드를 다시 계산했습니다.',
+      });
+    }, 700);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [selectedAccounts, isApplyingSelection]);
+
+  // 오버레이를 먼저 렌더링한 뒤 선택값을 적용해서, 긴 계산이 시작되기 전에 로딩 화면이 보이게 합니다.
+  const runWithLoading = (updateSelection: () => void) => {
+    setIsApplyingSelection(true);
+    window.setTimeout(() => {
+      updateSelection();
+    }, 80);
+  };
+
+  // 적용 버튼은 실제 적용 상태와 화면에서 고른 임시 선택값이 다를 때만 활성화합니다.
+  const hasSelectionChanges = useMemo(() => {
+    const selectedSet = new Set(selectedAccounts);
+    return (
+      selectedAccounts.length !== draftSelectedAccounts.length ||
+      draftSelectedAccounts.some((name) => !selectedSet.has(name))
+    );
+  }, [draftSelectedAccounts, selectedAccounts]);
+
+  // 계좌 카드는 임시 선택값만 변경합니다. 실제 대시보드 반영은 적용 버튼에서만 진행합니다.
   const handleAccountToggle = (accountName: string) => {
-    setSelectedAccounts(
-      selectedAccounts.includes(accountName)
-        ? selectedAccounts.filter((name) => name !== accountName)
-        : [...selectedAccounts, accountName],
+    setDraftSelectedAccounts((current) =>
+      current.includes(accountName)
+        ? current.filter((name) => name !== accountName)
+        : [...current, accountName],
     );
   };
 
+  // 전체 선택도 화면 안의 임시 선택만 바꾸므로, 여러 계좌를 고른 뒤 한 번에 적용할 수 있습니다.
   const handleSelectAllAccounts = () => {
-    if (selectedAccounts.length === totalAccountData?.length) {
-      setSelectedAccounts([]);
+    if (draftSelectedAccounts.length === totalAccountData?.length) {
+      setDraftSelectedAccounts([]);
     } else {
-      setSelectedAccounts(totalAccountData?.map((acc) => acc.name) || []);
+      setDraftSelectedAccounts(totalAccountData?.map((acc) => acc.name) || []);
     }
+  };
+
+  // 여기서만 전역 selectedAccounts를 갱신하므로, 대시보드 재계산도 적용 버튼을 눌렀을 때만 발생합니다.
+  const handleApplySelectedAccounts = () => {
+    runWithLoading(() => {
+      setSelectedAccounts(draftSelectedAccounts);
+    });
   };
 
   // Convert account list into formatted stats cards
@@ -99,6 +149,17 @@ export default function Page() {
 
   return (
     <div className='relative mb-8'>
+      {isApplyingSelection && (
+        <div className='fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-background/55 backdrop-blur-xl'>
+          <div
+            className='h-10 w-10 animate-spin rounded-full border-4 border-t-transparent'
+            style={{ borderColor: themeColor, borderTopColor: 'transparent' }}
+          />
+          <p className='text-sm font-semibold' style={{ color: themeColor }}>
+            계좌 선택을 반영하는 중입니다...
+          </p>
+        </div>
+      )}
       <Card className='relative z-10 border border-white/10 bg-card/30 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden'>
         <CardHeader className='pb-4 border-b border-white/5'>
           <div className='flex items-center justify-between gap-4'>
@@ -108,8 +169,9 @@ export default function Page() {
                 대시보드 설정
               </CardTitle>
               <CardDescription className='text-muted-foreground mt-1'>
-                대시보드에 표시할 계좌를 선택해주세요. 선택된 계좌들은 합산해서
-                표시되며, 데이터가 많으면 반영까지 시간이 걸릴 수 있습니다.
+                대시보드에 표시할 계좌를 선택한 뒤 적용 버튼을 눌러주세요.
+                선택된 계좌들은 합산해서 표시되며, 데이터가 많으면 반영까지
+                시간이 걸릴 수 있습니다.
               </CardDescription>
             </div>
 
@@ -117,7 +179,7 @@ export default function Page() {
               <div className='text-xs font-semibold text-muted-foreground'>
                 선택됨:{' '}
                 <span className='font-bold' style={{ color: themeColor }}>
-                  {selectedAccounts.length}
+                  {draftSelectedAccounts.length}
                 </span>{' '}
                 / {totalAccountData?.length || 0}
               </div>
@@ -127,9 +189,18 @@ export default function Page() {
                 onClick={handleSelectAllAccounts}
                 className='h-8 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm transition-all hover:bg-white/10 hover:text-foreground'
               >
-                {selectedAccounts.length === totalAccountData?.length
+                {draftSelectedAccounts.length === totalAccountData?.length
                   ? '전체 선택 해제'
                   : '전체 선택'}
+              </Button>
+              <Button
+                size='sm'
+                onClick={handleApplySelectedAccounts}
+                disabled={!hasSelectionChanges || isApplyingSelection}
+                className='h-8 cursor-pointer rounded-lg text-xs font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50'
+                style={{ backgroundColor: themeColor }}
+              >
+                적용
               </Button>
             </div>
           </div>
@@ -156,7 +227,7 @@ export default function Page() {
               {/* Account Grid */}
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                 {accountCards.map((card) => {
-                  const isSelected = selectedAccounts.includes(card.name);
+                  const isSelected = draftSelectedAccounts.includes(card.name);
                   return (
                     <div
                       key={card.name}

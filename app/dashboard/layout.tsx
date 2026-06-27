@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { Disclaimer } from '@/components/footer/disclaimer';
 import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import {
@@ -174,23 +180,61 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [allDashboardData, setAllDashboardData] = useState<DashboardProps[]>([]);
+  const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
+  // 계좌 선택 순서가 달라도 같은 조합이면 같은 캐시를 쓰도록 정렬한 키를 만듭니다.
+  const selectedAccountKey = useMemo(
+    () => [...selectedAccounts].sort().join('|'),
+    [selectedAccounts],
+  );
 
-  // totalAccountData와 선택된 체크박스에 따라 병합된 데이터를 메모이제이션
-  const mergedAccountData = useMemo(() => {
-    if (!totalAccountData) return [];
+  // 원본 계좌 데이터가 새로 업로드되거나 교체되면 이전 계산 결과는 더 이상 유효하지 않습니다.
+  useEffect(() => {
+    dashboardDataCacheRef.current.clear();
+  }, [totalAccountData]);
 
-    const filteredData =
-      selectedAccounts.length > 0
-        ? totalAccountData.filter((data) =>
-          selectedAccounts.includes(data.name),
-        )
-        : [];
-    return mergeAccountData(filteredData);
-  }, [totalAccountData, selectedAccounts]);
+  // 선택 계좌와 통화 조합별로 대시보드 변환 결과를 캐시해 불필요한 재계산을 줄입니다.
+  useEffect(() => {
+    let isCancelled = false;
+    const cacheKey = `${currency}:${selectedAccountKey}`;
+    const cachedDashboardData = dashboardDataCacheRef.current.get(cacheKey);
 
-  const allDashboardData = useMemo(() => {
-    return convertToDashboardData(mergedAccountData, currency);
-  }, [mergedAccountData, currency]);
+    if (cachedDashboardData) {
+      setAllDashboardData(cachedDashboardData);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      if (!totalAccountData || selectedAccounts.length === 0) {
+        if (!isCancelled) {
+          dashboardDataCacheRef.current.set(cacheKey, []);
+          setAllDashboardData([]);
+        }
+        return;
+      }
+
+      const selectedAccountSet = new Set(selectedAccounts);
+      const filteredData = totalAccountData.filter((data) =>
+        selectedAccountSet.has(data.name),
+      );
+      const mergedAccountData = mergeAccountData(filteredData);
+      const convertedDashboardData = convertToDashboardData(
+        mergedAccountData,
+        currency,
+      );
+
+      if (!isCancelled) {
+        // 계산 결과를 저장해두면 같은 계좌/통화 조합을 다시 선택할 때 즉시 재사용할 수 있습니다.
+        dashboardDataCacheRef.current.set(cacheKey, convertedDashboardData);
+        setAllDashboardData(convertedDashboardData);
+      }
+    }, 0);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [currency, selectedAccountKey, selectedAccounts, totalAccountData]);
 
   const dashboardDateRange = useMemo(() => {
     const parseDate = (dateString: string) => {
