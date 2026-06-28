@@ -13,13 +13,14 @@ import {
   useCurrencyStore,
   useTaxStore,
   useChartLayoutStore,
+  useDashboardDateStore,
 } from '@/store/options';
 import { useAccountStore } from '@/store/account';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
 import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
 import { DashboardProps } from '@/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatDateKr, timeAgo } from '@/utils/format';
+import { formatDateKey, formatDateKr, timeAgo } from '@/utils/format';
 import {
   RefreshCw,
   CalendarDays,
@@ -169,17 +170,34 @@ const getPageDetails = (pathname: string) => {
   return { title: '대시보드', description: '데이터를 분석하고 관리하세요.' };
 };
 
+const findDashboardDataByDate = (
+  data: DashboardProps[],
+  targetDate: string | null,
+) => {
+  if (data.length === 0) return undefined;
+  if (!targetDate) return data.at(-1);
+
+  const exact = data.find((item) => item.date === targetDate);
+  if (exact) return exact;
+
+  // 조회일 데이터가 없으면 최신값으로 튀지 않도록 선택일 이전의 가장 가까운 데이터를 사용합니다.
+  return [...data].reverse().find((item) => item.date <= targetDate) ?? data[0];
+};
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const setDashboardData = useDashboardStore((state) => state.setDashboardData);
   const { currency, setCurrency } = useCurrencyStore();
   const { tax, setTax } = useTaxStore();
   const { chartLayout, setChartLayout } = useChartLayoutStore();
+  const dashboardDate = useDashboardDateStore((state) => state.dashboardDate);
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const { selectedAccounts } = useSelectedAccountsStore();
   const pathname = usePathname();
 
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(() =>
+    formatDateKey(dashboardDate),
+  );
   const [allDashboardData, setAllDashboardData] = useState<DashboardProps[]>([]);
   const [isCurrencyCalculating, setIsCurrencyCalculating] = useState(false);
   const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
@@ -258,14 +276,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // 계좌 데이터와 통화가 변경될 때마다 전역 상태관리로 데이터 전달
   useEffect(() => {
     if (allDashboardData.length > 0) {
-      const found = selectedDate
-        ? allDashboardData.find((d) => d.date === selectedDate)
-        : null;
-      const data = found || allDashboardData.at(-1);
+      const data = findDashboardDataByDate(allDashboardData, selectedDate);
       setDashboardData(data as DashboardProps);
 
       // 선택한 날짜가 데이터에 없거나 초기 상태인 경우, 실제 데이터의 날짜로 상태 업데이트
-      if ((!found || !selectedDate) && data) {
+      if (data && data.date !== selectedDate) {
         setSelectedDate(data.date);
       }
     } else {
