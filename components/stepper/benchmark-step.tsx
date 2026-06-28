@@ -32,12 +32,12 @@ export const BenchmarkStep = () => {
           <p className='mt-1 text-sm text-muted-foreground'>
             월별 최상/최하 예금 금리를 기준으로 포트폴리오 성과와 비교합니다.
             단위는 %이며, 월 헤더를 클릭해 해당 월을 활성화하거나 비활성화할 수 있습니다.
-            비활성화한 월은 직전 월의 금리를 그대로 사용합니다.
+            최상/최하 입력칸을 비우면 해당 시나리오만 직전 월 금리를 사용합니다.
           </p>
         </div>
         <InterestRatePanel />
       </div>
-      <div className='rounded-xl border border-dashed border-[color:var(--setup-secondary,var(--primary))]/25 bg-[color-mix(in_oklch,var(--setup-secondary,var(--primary))_4%,transparent)] p-4'>
+      <div className='rounded-xl border border-dashed border-[color:var(--setup-secondary,var(--primary))]/30 bg-[color-mix(in_oklch,var(--setup-secondary,var(--primary))_6%,transparent)] p-4 shadow-sm backdrop-blur-md'>
         <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <div className='inline-flex items-center rounded-full border border-[color:var(--setup-secondary,var(--primary))]/20 bg-[color-mix(in_oklch,var(--setup-secondary,var(--primary))_8%,transparent)] px-2.5 py-1 text-xs font-semibold text-[color:var(--setup-secondary,var(--primary))]'>
@@ -52,7 +52,7 @@ export const BenchmarkStep = () => {
           {upcomingBenchmarks.map((benchmark) => (
             <span
               key={benchmark}
-              className='rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-muted-foreground'
+              className='cursor-not-allowed rounded-full border border-white/10 bg-white/[0.025] px-2.5 py-1 text-xs text-muted-foreground/60 opacity-70 backdrop-blur-sm'
             >
               {benchmark}
             </span>

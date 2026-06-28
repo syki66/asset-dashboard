@@ -4,12 +4,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useInterestRateStore } from '@/store/account';
 
+type RateInputValue = number | string;
+
 type MonthRate = {
   year: number;
   month: number;
-  bestRate: number;
-  worstRate: number;
-  active: boolean;
+  bestRate: RateInputValue;
+  worstRate: RateInputValue;
+  bestActive: boolean;
+  worstActive: boolean;
 };
 
 interface InterestRatePanelProps {
@@ -24,10 +27,24 @@ const inactiveMonthButtonClass =
 const activeRateInputClass =
   'border-white/15 bg-white/[0.08] text-foreground shadow-sm backdrop-blur-md focus-visible:ring-[color:var(--setup-primary,var(--primary))]/35';
 const inactiveRateInputClass =
-  'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50';
+  'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50 placeholder:text-[0.5625rem] placeholder:text-muted-foreground/70';
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
+}
+
+function toRateNumber(value: RateInputValue) {
+  if (typeof value === 'number') return value;
+  const numberValue = Number(value || 0);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function isValidRateInput(value: string) {
+  if (value === '' || value === '.') return true;
+  if (!/^\d{0,2}(\.\d{0,2})?$/.test(value)) return false;
+
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) && numberValue >= 0 && numberValue < 100;
 }
 
 function getMonthRange(
@@ -77,7 +94,8 @@ function makeDefaults(months: { year: number; month: number }[]): MonthRate[] {
       month,
       bestRate,
       worstRate,
-      active: bestRate !== 0 || worstRate !== 0, // 금리가 모두 0이면 비활성화
+      bestActive: bestRate !== 0,
+      worstActive: worstRate !== 0,
     };
   });
 }
@@ -105,23 +123,34 @@ function getYearStats(yearData: MonthRate[]) {
     return { bestAvg: 0, worstAvg: 0, activeCount: 0 };
   }
 
-  const activeData = yearData.filter((d) => d.active);
-  if (activeData.length === 0) {
+  const bestActiveData = yearData.filter((d) => d.bestActive);
+  const worstActiveData = yearData.filter((d) => d.worstActive);
+  if (bestActiveData.length === 0 && worstActiveData.length === 0) {
     return { bestAvg: 0, worstAvg: 0, activeCount: 0 };
   }
 
   // 연도 요약에는 최상/최하 평균만 보여 복잡도를 줄입니다.
   const bestAvg =
-    activeData.reduce((sum, rate) => sum + rate.bestRate, 0) /
-    activeData.length;
+    bestActiveData.length === 0
+      ? 0
+      : bestActiveData.reduce(
+          (sum, rate) => sum + toRateNumber(rate.bestRate),
+          0
+        ) /
+        bestActiveData.length;
   const worstAvg =
-    activeData.reduce((sum, rate) => sum + rate.worstRate, 0) /
-    activeData.length;
+    worstActiveData.length === 0
+      ? 0
+      : worstActiveData.reduce(
+          (sum, rate) => sum + toRateNumber(rate.worstRate),
+          0
+        ) /
+        worstActiveData.length;
 
   return {
     bestAvg: round2(bestAvg),
     worstAvg: round2(worstAvg),
-    activeCount: activeData.length,
+    activeCount: yearData.filter((d) => d.bestActive || d.worstActive).length,
   };
 }
 
@@ -158,16 +187,16 @@ export function InterestRatePanel({
   // 월별 최상/최하 금리가 변경될 때마다 벤치마크 계산용 store에 반영합니다.
   useEffect(() => {
     const bestRates = rates
-      .filter(({ active }) => active)
+      .filter(({ bestActive }) => bestActive)
       .map(({ year, month, bestRate }) => ({
         date: `${year}-${month.toString().padStart(2, '0')}-01`,
-        interestRate: bestRate,
+        interestRate: toRateNumber(bestRate),
       }));
     const worstRates = rates
-      .filter(({ active }) => active)
+      .filter(({ worstActive }) => worstActive)
       .map(({ year, month, worstRate }) => ({
         date: `${year}-${month.toString().padStart(2, '0')}-01`,
-        interestRate: worstRate,
+        interestRate: toRateNumber(worstRate),
       }));
     setBestInterestRates(bestRates);
     setWorstInterestRates(worstRates);
@@ -181,8 +210,8 @@ export function InterestRatePanel({
   ) {
     // 쉼표 소수점 입력도 허용해서 3,5처럼 입력해도 3.5로 처리합니다.
     const next = value.replace(',', '.');
-    if (!/^[-+]?\d*\.?\d*$/.test(next)) {
-      // 숫자/부호/소수점 외 입력은 무시해 controlled input 값을 유지합니다.
+    if (!isValidRateInput(next)) {
+      // 금리는 0 이상 100 미만, 소수부는 둘째 자리까지만 허용합니다.
       return;
     }
     setRates((prev) =>
@@ -190,8 +219,9 @@ export function InterestRatePanel({
         r.year === year && r.month === month
           ? {
               ...r,
-              [scenario === 'best' ? 'bestRate' : 'worstRate']:
-                next === '' || next === '-' || next === '+' ? 0 : Number(next),
+              [scenario === 'best' ? 'bestRate' : 'worstRate']: next,
+              [scenario === 'best' ? 'bestActive' : 'worstActive']:
+                next !== '',
             }
           : r
       )
@@ -206,12 +236,22 @@ export function InterestRatePanel({
     setRates((prev) =>
       prev.map((r) =>
         r.year === year && r.month === month
-          ? {
-              ...r,
-              [scenario === 'best' ? 'bestRate' : 'worstRate']: round2(
-                Number(scenario === 'best' ? r.bestRate : r.worstRate)
-              ),
-            }
+          ? (() => {
+              const currentValue =
+                scenario === 'best' ? r.bestRate : r.worstRate;
+              const formattedValue =
+                currentValue === '' || currentValue === '.'
+                  ? ''
+                  : round2(Number(currentValue));
+
+              return {
+                ...r,
+                [scenario === 'best' ? 'bestRate' : 'worstRate']:
+                  formattedValue,
+                [scenario === 'best' ? 'bestActive' : 'worstActive']:
+                  formattedValue !== '',
+              };
+            })()
           : r
       )
     );
@@ -220,7 +260,21 @@ export function InterestRatePanel({
   function toggleActive(year: number, month: number) {
     setRates((prev) =>
       prev.map((r) =>
-        r.year === year && r.month === month ? { ...r, active: !r.active } : r
+        r.year === year && r.month === month
+          ? {
+              ...r,
+              bestActive: !(r.bestActive || r.worstActive),
+              worstActive: !(r.bestActive || r.worstActive),
+              bestRate:
+                r.bestActive || r.worstActive || r.bestRate !== ''
+                  ? r.bestRate
+                  : 0,
+              worstRate:
+                r.bestActive || r.worstActive || r.worstRate !== ''
+                  ? r.worstRate
+                  : 0,
+            }
+          : r
       )
     );
   }
@@ -269,17 +323,19 @@ export function InterestRatePanel({
                   <div />
                   {monthColumns.map((rate, index) => {
                     const month = index + 1;
+                    const isMonthActive =
+                      Boolean(rate?.bestActive) || Boolean(rate?.worstActive);
 
                     return rate ? (
                       <button
                         key={month}
                         type="button"
                         title={`${month}월 ${
-                          rate.active ? '활성' : '비활성'
+                          isMonthActive ? '활성' : '비활성'
                         }`}
                         onClick={() => toggleActive(year, month)}
                         className={`h-7 rounded border text-center font-medium transition-all hover:-translate-y-0.5 hover:border-[color:var(--setup-primary,var(--primary))]/35 ${
-                          rate.active
+                          isMonthActive
                             ? activeMonthButtonClass
                             : inactiveMonthButtonClass
                         }`}
@@ -306,19 +362,18 @@ export function InterestRatePanel({
                         key={`${year}-${month}-best`}
                         inputMode="decimal"
                         type="text"
-                        value={String(rate.bestRate)}
+                        value={rate.bestActive ? String(rate.bestRate) : ''}
                         aria-label={`${year}년 ${month}월 최상 금리`}
                         onChange={(e) =>
                           updateRate(year, month, 'best', e.target.value)
                         }
                         onBlur={() => formatOnBlur(year, month, 'best')}
                         className={`h-7 px-1 text-center text-[0.625rem] cursor-text ${
-                          rate.active
+                          rate.bestActive
                             ? activeRateInputClass
                             : inactiveRateInputClass
                         }`}
-                        placeholder="0.00"
-                        disabled={!rate.active}
+                        placeholder="이월"
                       />
                     ) : (
                       <div key={`${year}-${month}-best`} aria-hidden="true" />
@@ -336,19 +391,18 @@ export function InterestRatePanel({
                         key={`${year}-${month}-worst`}
                         inputMode="decimal"
                         type="text"
-                        value={String(rate.worstRate)}
+                        value={rate.worstActive ? String(rate.worstRate) : ''}
                         aria-label={`${year}년 ${month}월 최하 금리`}
                         onChange={(e) =>
                           updateRate(year, month, 'worst', e.target.value)
                         }
                         onBlur={() => formatOnBlur(year, month, 'worst')}
                         className={`h-7 px-1 text-center text-[0.625rem] cursor-text ${
-                          rate.active
+                          rate.worstActive
                             ? activeRateInputClass
                             : inactiveRateInputClass
                         }`}
-                        placeholder="0.00"
-                        disabled={!rate.active}
+                        placeholder="이월"
                       />
                     ) : (
                       <div key={`${year}-${month}-worst`} aria-hidden="true" />
