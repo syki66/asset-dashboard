@@ -181,6 +181,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [allDashboardData, setAllDashboardData] = useState<DashboardProps[]>([]);
+  const [isCurrencyCalculating, setIsCurrencyCalculating] = useState(false);
   const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
   // 계좌 선택 순서가 달라도 같은 조합이면 같은 캐시를 쓰도록 정렬한 키를 만듭니다.
   const selectedAccountKey = useMemo(
@@ -201,6 +202,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     if (cachedDashboardData) {
       setAllDashboardData(cachedDashboardData);
+      setIsCurrencyCalculating(false);
       return;
     }
 
@@ -209,6 +211,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!isCancelled) {
           dashboardDataCacheRef.current.set(cacheKey, []);
           setAllDashboardData([]);
+          setIsCurrencyCalculating(false);
         }
         return;
       }
@@ -227,6 +230,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         // 계산 결과를 저장해두면 같은 계좌/통화 조합을 다시 선택할 때 즉시 재사용할 수 있습니다.
         dashboardDataCacheRef.current.set(cacheKey, convertedDashboardData);
         setAllDashboardData(convertedDashboardData);
+        setIsCurrencyCalculating(false);
       }
     }, 0);
 
@@ -291,6 +295,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dateButtonStyle = {
     '--date-button-hover': `var(--${activeCategory}-theme)`,
   } as CSSProperties;
+  const handleCurrencyChange = (nextCurrency: 'krw' | 'usd') => {
+    if (nextCurrency === currency) return;
+
+    setIsCurrencyCalculating(true);
+    setCurrency(nextCurrency);
+  };
 
   return (
     <div className={cn('min-h-screen flex', pageBgClass)}>
@@ -313,7 +323,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               <div className='flex flex-col lg:flex-row items-end lg:items-stretch gap-4 shrink-0'>
                 {/* Global Options Card */}
-                <div className='flex flex-col justify-center gap-2 p-2 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-md shadow-md shrink-0 w-fit'>
+                <div className='relative flex flex-col justify-center gap-2 overflow-hidden rounded-2xl border border-white/10 bg-card/40 p-2 shadow-md backdrop-blur-md shrink-0 w-fit'>
+                  {isCurrencyCalculating && (
+                    <div className='absolute inset-0 z-10 flex items-center justify-center gap-2 bg-background/45 backdrop-blur-md'>
+                      <div
+                        className='h-5 w-5 animate-spin rounded-full border-2 border-t-transparent'
+                        style={{
+                          borderColor: `var(--${activeCategory}-theme)`,
+                          borderTopColor: 'transparent',
+                        }}
+                      />
+                      <span
+                        className='text-xs font-semibold'
+                        style={{ color: `var(--${activeCategory}-theme)` }}
+                      >
+                        계산 중
+                      </span>
+                    </div>
+                  )}
                   <div className='flex flex-wrap items-center gap-2'>
                     <Tabs
                       value={tax}
@@ -371,7 +398,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <div className='flex items-center gap-2'>
                     <Tabs
                       value={currency}
-                      onValueChange={(v) => setCurrency(v as 'krw' | 'usd')}
+                      onValueChange={(v) =>
+                        handleCurrencyChange(v as 'krw' | 'usd')
+                      }
                       className='w-[92px] shrink-0'
                     >
                       <TabsList
