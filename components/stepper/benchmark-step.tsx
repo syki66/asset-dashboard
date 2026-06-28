@@ -18,7 +18,11 @@ const upcomingBenchmarks = [
   'KOSDAQ',
 ];
 
-export const BenchmarkStep = () => {
+interface BenchmarkStepProps {
+  startYear?: number;
+}
+
+export const BenchmarkStep = ({ startYear }: BenchmarkStepProps) => {
   return (
     <div className='space-y-4'>
       <div className='space-y-4 rounded-2xl border border-white/20 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--setup-primary,var(--primary))_8%,transparent),color-mix(in_oklch,var(--setup-secondary,var(--primary))_6%,transparent))] p-4 shadow-sm backdrop-blur-md'>
@@ -35,7 +39,7 @@ export const BenchmarkStep = () => {
             최상/최하 입력칸을 비우면 해당 시나리오만 직전 월 금리를 사용합니다.
           </p>
         </div>
-        <InterestRatePanel />
+        <InterestRatePanel startYear={startYear} />
       </div>
       <div className='rounded-xl border border-dashed border-[color:var(--setup-secondary,var(--primary))]/30 bg-[color-mix(in_oklch,var(--setup-secondary,var(--primary))_6%,transparent)] p-4 shadow-sm backdrop-blur-md'>
         <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>

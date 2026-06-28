@@ -54,6 +54,7 @@ const readFile = async (file: File) => {
 export default function Page() {
   const [activeStep, setActiveStep] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [benchmarkStartYear, setBenchmarkStartYear] = useState<number>();
   const currentStep = steps[activeStep];
   const setupThemeStyle = {
     '--setup-primary': 'oklch(0.62 0.24 255)',
@@ -107,6 +108,50 @@ export default function Page() {
   });
   const isNextDisabled =
     isLoading || (activeStep === 0 && uploadedFiles.length === 0);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadEarliestTransactionYear = async () => {
+      if (uploadedFiles.length === 0) {
+        setBenchmarkStartYear(undefined);
+        return;
+      }
+
+      // 업로드된 CSV의 실제 거래 시작 연도부터 금리 입력을 보여주기 위해
+      // 파일 내용을 미리 파싱해 가장 오래된 거래 연도를 계산합니다.
+      const transactionsByFile = await Promise.all(
+        uploadedFiles.map(async (file) => {
+          const fileContent = await readFile(file);
+          const shsecJson = shsecCsvToJson(fileContent);
+          return createShsecTransactions(shsecJson);
+        }),
+      );
+      const transactionYears = transactionsByFile
+        .flat()
+        .map((transaction) => new Date(transaction.date).getFullYear())
+        .filter((year) => Number.isFinite(year));
+
+      if (!isCancelled) {
+        // 거래 연도를 찾지 못하면 InterestRatePanel의 기본 시작 연도를 사용합니다.
+        setBenchmarkStartYear(
+          transactionYears.length > 0
+            ? Math.min(...transactionYears)
+            : undefined,
+        );
+      }
+    };
+
+    loadEarliestTransactionYear().catch(() => {
+      if (!isCancelled) {
+        setBenchmarkStartYear(undefined);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [uploadedFiles]);
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
@@ -232,7 +277,7 @@ export default function Page() {
                     포트폴리오 성과와 비교할 기준을 설정합니다.
                   </p>
                 </div>
-                <BenchmarkStep />
+                <BenchmarkStep startYear={benchmarkStartYear} />
               </div>
             )}
           </div>
