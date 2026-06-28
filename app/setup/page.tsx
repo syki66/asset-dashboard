@@ -32,8 +32,8 @@ const steps = [
   },
   {
     id: 'step-2',
-    label: '날짜 범위 설정',
-    description: 'Date Range',
+    label: '계좌 조회일 설정',
+    description: 'Account Date',
   },
   {
     id: 'step-3',
@@ -217,7 +217,7 @@ export default function Page() {
                 <div>
                   <h3 className='text-xl font-bold'>조회할 날짜 선택</h3>
                   <p className='mt-1 text-sm text-muted-foreground'>
-                    계좌 데이터 기준일을 선택합니다.
+                    선택한 날짜의 계좌 상태를 기준으로 대시보드를 조회합니다.
                   </p>
                 </div>
                 <DateStep />
@@ -229,7 +229,7 @@ export default function Page() {
                 <div>
                   <h3 className='text-xl font-bold'>벤치마크 설정</h3>
                   <p className='mt-1 text-sm text-muted-foreground'>
-                    예금 금리 시나리오를 설정해 포트폴리오 성과와 비교합니다.
+                    포트폴리오 성과와 비교할 기준을 설정합니다.
                   </p>
                 </div>
                 <BenchmarkStep />
@@ -243,7 +243,7 @@ export default function Page() {
             variant='outline'
             onClick={handlePrevious}
             disabled={activeStep === 0}
-            className='cursor-pointer rounded-xl border-white/30 bg-white/[0.14] shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-md disabled:cursor-not-allowed'
+            className='cursor-pointer rounded-xl border-white/30 bg-white/[0.14] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/25 hover:text-foreground hover:shadow-md disabled:cursor-not-allowed'
           >
             <ArrowLeft className='mr-2 h-4 w-4' />
             이전

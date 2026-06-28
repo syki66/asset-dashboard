@@ -2,16 +2,29 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useInterestRateStore } from '@/store/account';
 
-type MonthRate = { year: number; month: number; rate: number; active: boolean };
+type MonthRate = {
+  year: number;
+  month: number;
+  bestRate: number;
+  worstRate: number;
+  active: boolean;
+};
 
 interface InterestRatePanelProps {
   startYear?: number;
   className?: string;
 }
+
+const activeMonthButtonClass =
+  'border-[color:var(--setup-primary,var(--primary))]/25 bg-[color-mix(in_oklch,var(--setup-primary,var(--primary))_12%,transparent)] text-foreground shadow-sm';
+const inactiveMonthButtonClass =
+  'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50';
+const activeRateInputClass =
+  'border-white/15 bg-white/[0.08] text-foreground shadow-sm backdrop-blur-md focus-visible:ring-[color:var(--setup-primary,var(--primary))]/35';
+const inactiveRateInputClass =
+  'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50';
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
@@ -24,7 +37,7 @@ function getMonthRange(
 ) {
   const months: { year: number; month: number }[] = [];
 
-  // Generate from latest to earliest
+  // 최신 월부터 과거 월 순서로 만들어 최근 금리 입력을 먼저 보여줍니다.
   for (let year = endYear; year >= startYear; year--) {
     const maxMonth = year === endYear ? endMonth : 12;
     const minMonth = year === startYear ? 1 : 1;
@@ -37,45 +50,36 @@ function getMonthRange(
   return months;
 }
 
-function defaultRateForMonth(year: number, month: number): number {
-  const rate = useInterestRateStore
-    .getState()
-    .bestInterestRates.find(
-      (r) =>
-        new Date(r.date).getFullYear() === year &&
-        new Date(r.date).getMonth() + 1 === month
-    );
+function defaultRateForMonth(
+  year: number,
+  month: number,
+  scenario: 'best' | 'worst'
+): number {
+  // store에 저장된 월별 최상/최하 금리를 읽어 입력값의 초기값으로 사용합니다.
+  const { bestInterestRates, worstInterestRates } =
+    useInterestRateStore.getState();
+  const rates = scenario === 'best' ? bestInterestRates : worstInterestRates;
+  const rate = rates.find(
+    (r) =>
+      new Date(r.date).getFullYear() === year &&
+      new Date(r.date).getMonth() + 1 === month
+  );
   return rate ? rate.interestRate : 0;
 }
 
 function makeDefaults(months: { year: number; month: number }[]): MonthRate[] {
   return months.map(({ year, month }) => {
-    const rate = defaultRateForMonth(year, month);
+    // 같은 월에 대해 최상/최하 시나리오를 한 카드에서 함께 입력합니다.
+    const bestRate = defaultRateForMonth(year, month, 'best');
+    const worstRate = defaultRateForMonth(year, month, 'worst');
     return {
       year,
       month,
-      rate,
-      active: rate !== 0, // 금리가 0이면 비활성화
+      bestRate,
+      worstRate,
+      active: bestRate !== 0 || worstRate !== 0, // 금리가 모두 0이면 비활성화
     };
   });
-}
-
-function formatMonthLabel(month: number): string {
-  const monthNames = [
-    '1월',
-    '2월',
-    '3월',
-    '4월',
-    '5월',
-    '6월',
-    '7월',
-    '8월',
-    '9월',
-    '10월',
-    '11월',
-    '12월',
-  ];
-  return monthNames[month - 1];
 }
 
 function groupByYear(rates: MonthRate[]): Record<number, MonthRate[]> {
@@ -88,7 +92,7 @@ function groupByYear(rates: MonthRate[]): Record<number, MonthRate[]> {
     grouped[rate.year].push(rate);
   }
 
-  // Sort months within each year (earliest first)
+  // 펼쳐진 연도 안에서는 1월부터 12월 순서로 읽히게 정렬합니다.
   for (const year in grouped) {
     grouped[Number(year)].sort((a, b) => a.month - b.month);
   }
@@ -97,22 +101,26 @@ function groupByYear(rates: MonthRate[]): Record<number, MonthRate[]> {
 }
 
 function getYearStats(yearData: MonthRate[]) {
-  if (!yearData || yearData.length === 0)
-    return { avg: 0, min: 0, max: 0, activeCount: 0 };
+  if (!yearData || yearData.length === 0) {
+    return { bestAvg: 0, worstAvg: 0, activeCount: 0 };
+  }
 
   const activeData = yearData.filter((d) => d.active);
-  if (activeData.length === 0)
-    return { avg: 0, min: 0, max: 0, activeCount: 0 };
+  if (activeData.length === 0) {
+    return { bestAvg: 0, worstAvg: 0, activeCount: 0 };
+  }
 
-  const rates = activeData.map((d) => d.rate);
-  const avg = rates.reduce((sum, rate) => sum + rate, 0) / rates.length;
-  const min = Math.min(...rates);
-  const max = Math.max(...rates);
+  // 연도 요약에는 최상/최하 평균만 보여 복잡도를 줄입니다.
+  const bestAvg =
+    activeData.reduce((sum, rate) => sum + rate.bestRate, 0) /
+    activeData.length;
+  const worstAvg =
+    activeData.reduce((sum, rate) => sum + rate.worstRate, 0) /
+    activeData.length;
 
   return {
-    avg: round2(avg),
-    min: round2(min),
-    max: round2(max),
+    bestAvg: round2(bestAvg),
+    worstAvg: round2(worstAvg),
     activeCount: activeData.length,
   };
 }
@@ -124,10 +132,12 @@ export function InterestRatePanel({
   const months = useMemo(() => getMonthRange(startYear), [startYear]);
   const [rates, setRates] = useState<MonthRate[]>(() => makeDefaults(months));
   const [loading, setLoading] = useState(true);
-  const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set());
 
   const setBestInterestRates = useInterestRateStore(
     (state) => state.setBestInterestRates
+  );
+  const setWorstInterestRates = useInterestRateStore(
+    (state) => state.setWorstInterestRates
   );
 
   const groupedRates = useMemo(() => groupByYear(rates), [rates]);
@@ -140,25 +150,39 @@ export function InterestRatePanel({
   );
 
   useEffect(() => {
+    // startYear가 바뀌면 월 목록이 다시 만들어지므로 store 기준 초기값을 다시 채웁니다.
     setRates(makeDefaults(months));
     setLoading(false);
   }, [months]);
 
-  // 최상 금리가 변경될 때마다
+  // 월별 최상/최하 금리가 변경될 때마다 벤치마크 계산용 store에 반영합니다.
   useEffect(() => {
-    const formattedRates = rates
+    const bestRates = rates
       .filter(({ active }) => active)
-      .map(({ year, month, rate }) => ({
+      .map(({ year, month, bestRate }) => ({
         date: `${year}-${month.toString().padStart(2, '0')}-01`,
-        interestRate: rate,
+        interestRate: bestRate,
       }));
-    setBestInterestRates(formattedRates);
-  }, [rates, setBestInterestRates]);
+    const worstRates = rates
+      .filter(({ active }) => active)
+      .map(({ year, month, worstRate }) => ({
+        date: `${year}-${month.toString().padStart(2, '0')}-01`,
+        interestRate: worstRate,
+      }));
+    setBestInterestRates(bestRates);
+    setWorstInterestRates(worstRates);
+  }, [rates, setBestInterestRates, setWorstInterestRates]);
 
-  function updateRate(year: number, month: number, value: string) {
-    const next = value.replace(',', '.'); // support comma decimal
+  function updateRate(
+    year: number,
+    month: number,
+    scenario: 'best' | 'worst',
+    value: string
+  ) {
+    // 쉼표 소수점 입력도 허용해서 3,5처럼 입력해도 3.5로 처리합니다.
+    const next = value.replace(',', '.');
     if (!/^[-+]?\d*\.?\d*$/.test(next)) {
-      // ignore invalid keystrokes, keep controlled value unchanged
+      // 숫자/부호/소수점 외 입력은 무시해 controlled input 값을 유지합니다.
       return;
     }
     setRates((prev) =>
@@ -166,7 +190,7 @@ export function InterestRatePanel({
         r.year === year && r.month === month
           ? {
               ...r,
-              rate:
+              [scenario === 'best' ? 'bestRate' : 'worstRate']:
                 next === '' || next === '-' || next === '+' ? 0 : Number(next),
             }
           : r
@@ -174,11 +198,20 @@ export function InterestRatePanel({
     );
   }
 
-  function formatOnBlur(year: number, month: number) {
+  function formatOnBlur(
+    year: number,
+    month: number,
+    scenario: 'best' | 'worst'
+  ) {
     setRates((prev) =>
       prev.map((r) =>
         r.year === year && r.month === month
-          ? { ...r, rate: round2(Number(r.rate)) }
+          ? {
+              ...r,
+              [scenario === 'best' ? 'bestRate' : 'worstRate']: round2(
+                Number(scenario === 'best' ? r.bestRate : r.worstRate)
+              ),
+            }
           : r
       )
     );
@@ -192,172 +225,137 @@ export function InterestRatePanel({
     );
   }
 
-  function toggleYear(year: number) {
-    setCollapsedYears((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(year)) {
-        newSet.delete(year);
-      } else {
-        newSet.add(year);
-      }
-      return newSet;
-    });
-  }
-
-  function toggleAllYears() {
-    if (collapsedYears.size === years.length) {
-      // All collapsed, expand all
-      setCollapsedYears(new Set());
-    } else {
-      // Some or none collapsed, collapse all
-      setCollapsedYears(new Set(years));
-    }
-  }
-
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">최상 월별 금리</h3>
-            <p className="text-sm text-muted-foreground">
-              데이터를 불러오는 중...
-            </p>
-          </div>
-        </div>
-        <div className="h-32 animate-pulse rounded-md bg-muted" />
+        <div className="h-32 animate-pulse rounded-xl border border-white/10 bg-white/[0.05]" />
       </div>
     );
   }
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">최상 월별 금리</h3>
-          <p className="text-sm text-muted-foreground">
-            단위: % (카드 클릭으로 활성화/비활성화)
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleAllYears}
-          className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer group bg-transparent"
-        >
-          <div className="transition-transform duration-200 group-hover:scale-110">
-            {collapsedYears.size === years.length ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
-          </div>
-          {collapsedYears.size === years.length ? '모두 펼치기' : '모두 접기'}
-        </Button>
-      </div>
-
       {/* Content */}
       <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-2">
         {years.map((year) => {
-          const isCollapsed = collapsedYears.has(year);
           const yearData = groupedRates[year] || [];
           const stats = getYearStats(yearData);
+          const monthColumns = Array.from({ length: 12 }, (_, index) => {
+            const month = index + 1;
+            return yearData.find((rate) => rate.month === month) ?? null;
+          });
 
           return (
-            <div key={year} className="space-y-3">
+            <div
+              key={year}
+              className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-sm backdrop-blur-md"
+            >
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => toggleYear(year)}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-muted/30 rounded-md px-2 py-1 transition-colors group"
-                >
-                  <div className="transition-transform duration-200 group-hover:scale-110">
-                    {isCollapsed ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronUp className="h-4 w-4" />
-                    )}
-                  </div>
-                  <h4 className="text-base font-medium text-foreground">
-                    {year}년
-                  </h4>
-                </button>
-                <div className="flex-1 h-px bg-border"></div>
-                {isCollapsed && stats.activeCount > 0 && (
+                <h4 className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-base font-semibold text-[color:var(--setup-primary,var(--primary))]">
+                  {year}년
+                </h4>
+                <div className="h-px flex-1 bg-white/15"></div>
+                {stats.activeCount > 0 && (
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span>활성 {stats.activeCount}개월</span>
-                    <span>평균 {stats.avg}%</span>
-                    <span>최저 {stats.min}%</span>
-                    <span>최고 {stats.max}%</span>
+                    <span>최상 평균 {stats.bestAvg}%</span>
+                    <span>최하 평균 {stats.worstAvg}%</span>
                   </div>
                 )}
               </div>
 
-              {isCollapsed && (
-                <div className="ml-6 p-3 bg-muted/30 rounded-lg">
-                  <div className="grid grid-cols-6 sm:grid-cols-12 gap-1">
-                    {yearData.map(({ month, rate, active }) => (
-                      <div
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
+                <div className="grid grid-cols-[2.75rem_repeat(12,minmax(0,1fr))] gap-1.5 text-[0.6875rem]">
+                  <div />
+                  {monthColumns.map((rate, index) => {
+                    const month = index + 1;
+
+                    return rate ? (
+                      <button
                         key={month}
-                        className={`text-center p-1 rounded text-xs cursor-pointer transition-all duration-200 ${
-                          active
-                            ? 'bg-primary/10 border border-primary/20 text-foreground'
-                            : 'bg-muted/50 text-muted-foreground opacity-50'
-                        }`}
-                        title={`${month}월: ${rate}% ${
-                          active ? '(활성)' : '(비활성)'
+                        type="button"
+                        title={`${month}월 ${
+                          rate.active ? '활성' : '비활성'
                         }`}
                         onClick={() => toggleActive(year, month)}
+                        className={`h-7 rounded border text-center font-medium transition-all hover:-translate-y-0.5 hover:border-[color:var(--setup-primary,var(--primary))]/35 ${
+                          rate.active
+                            ? activeMonthButtonClass
+                            : inactiveMonthButtonClass
+                        }`}
                       >
-                        <div className="mb-1">{month}</div>
-                        <div className="font-mono text-xs">{rate}%</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                        {month}월
+                      </button>
+                    ) : (
+                      <div
+                        key={month}
+                        className="h-7 rounded border border-transparent"
+                        aria-hidden="true"
+                      />
+                    );
+                  })}
 
-              {!isCollapsed && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {yearData.map(({ year, month, rate, active }) => (
-                    <div
-                      key={`${year}-${month}`}
-                      className={`rounded-lg border p-3 space-y-2 cursor-pointer transition-all duration-200 ${
-                        active
-                          ? 'bg-card border-primary/20 shadow-xs'
-                          : 'bg-muted/50 border-muted text-muted-foreground opacity-60'
-                      }`}
-                      onClick={() => toggleActive(year, month)}
-                    >
-                      <div className="text-xs font-medium text-center">
-                        {formatMonthLabel(month)}
-                        {!active && (
-                          <span className="ml-1 text-xs">(비활성)</span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        <Input
-                          inputMode="decimal"
-                          type="text"
-                          value={String(rate)}
-                          aria-label={`${year}년 ${month}월 최상 금리`}
-                          onChange={(e) =>
-                            updateRate(year, month, e.target.value)
-                          }
-                          onBlur={() => formatOnBlur(year, month)}
-                          onClick={(e) => e.stopPropagation()}
-                          className={`h-8 text-center text-sm cursor-text ${
-                            active ? '' : 'bg-muted/50'
-                          }`}
-                          placeholder="0.00"
-                          disabled={!active}
-                        />
-                        <span className="text-xs">%</span>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="flex h-7 items-center justify-end pr-1 font-medium text-muted-foreground">
+                    최상
+                  </div>
+                  {monthColumns.map((rate, index) => {
+                    const month = index + 1;
+
+                    return rate ? (
+                      <Input
+                        key={`${year}-${month}-best`}
+                        inputMode="decimal"
+                        type="text"
+                        value={String(rate.bestRate)}
+                        aria-label={`${year}년 ${month}월 최상 금리`}
+                        onChange={(e) =>
+                          updateRate(year, month, 'best', e.target.value)
+                        }
+                        onBlur={() => formatOnBlur(year, month, 'best')}
+                        className={`h-7 px-1 text-center text-[0.625rem] cursor-text ${
+                          rate.active
+                            ? activeRateInputClass
+                            : inactiveRateInputClass
+                        }`}
+                        placeholder="0.00"
+                        disabled={!rate.active}
+                      />
+                    ) : (
+                      <div key={`${year}-${month}-best`} aria-hidden="true" />
+                    );
+                  })}
+
+                  <div className="flex h-7 items-center justify-end pr-1 font-medium text-muted-foreground">
+                    최하
+                  </div>
+                  {monthColumns.map((rate, index) => {
+                    const month = index + 1;
+
+                    return rate ? (
+                      <Input
+                        key={`${year}-${month}-worst`}
+                        inputMode="decimal"
+                        type="text"
+                        value={String(rate.worstRate)}
+                        aria-label={`${year}년 ${month}월 최하 금리`}
+                        onChange={(e) =>
+                          updateRate(year, month, 'worst', e.target.value)
+                        }
+                        onBlur={() => formatOnBlur(year, month, 'worst')}
+                        className={`h-7 px-1 text-center text-[0.625rem] cursor-text ${
+                          rate.active
+                            ? activeRateInputClass
+                            : inactiveRateInputClass
+                        }`}
+                        placeholder="0.00"
+                        disabled={!rate.active}
+                      />
+                    ) : (
+                      <div key={`${year}-${month}-worst`} aria-hidden="true" />
+                    );
+                  })}
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
