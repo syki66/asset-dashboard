@@ -327,7 +327,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className='w-72 shrink-0' />
       <div className={cn('flex-1 p-4 pl-0')}>
         <div className='glass-card rounded-2xl w-full p-8 flex flex-col'>
-          <header className='lg:sticky lg:top-4 lg:z-40 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-card/65 lg:px-6 lg:py-3 lg:shadow-lg lg:backdrop-blur-xl'>
+          <header className='lg:sticky lg:top-4 lg:z-40 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-card/20 lg:px-6 lg:py-3 lg:shadow-lg lg:backdrop-blur-xl'>
             <div className='flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6'>
               <div>
                 <h1 className={cn('text-4xl font-bold mb-2', textThemeClass)}>
@@ -338,7 +338,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               <div className='flex flex-col lg:flex-row items-end lg:items-stretch gap-4 shrink-0'>
                 {/* Global Options Card */}
-                <div className='relative flex flex-col justify-center gap-2 overflow-hidden rounded-2xl border border-white/10 bg-card/40 p-2 shadow-md backdrop-blur-md shrink-0 w-fit'>
+                <div className='relative flex flex-col justify-center gap-2 overflow-hidden rounded-2xl border border-white/10 bg-card/10 p-2 shadow-md backdrop-blur-md shrink-0 w-fit'>
                   {isCurrencyCalculating && (
                     <div className='absolute inset-0 z-10 flex items-center justify-center gap-2 bg-background/45 backdrop-blur-md'>
                       <div
@@ -364,7 +364,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                       <TabsList
                         style={activeTabStyle}
-                        className='h-7 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                        className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
                       >
                         <TabsTrigger
                           value='pre'
@@ -390,7 +390,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                       <TabsList
                         style={activeTabStyle}
-                        className='h-7 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                        className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
                       >
                         <TabsTrigger
                           value='expanded'
@@ -420,7 +420,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                       <TabsList
                         style={activeTabStyle}
-                        className='h-7 w-full grid grid-cols-2 bg-white/10 border border-white/15 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                        className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
                       >
                         <TabsTrigger
                           value='krw'
@@ -449,7 +449,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 {/* Status Card */}
-                <div className='flex flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-md shadow-md p-4 text-sm shrink-0 min-w-[200px]'>
+                <div className='flex flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/10 backdrop-blur-md shadow-md p-4 text-sm shrink-0 min-w-[200px]'>
                   <div className='flex items-center gap-2'>
                     <RefreshCw
                       className={cn(
@@ -484,7 +484,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           size='sm'
                           style={dateButtonStyle}
                           className={cn(
-                            'h-6 cursor-pointer rounded-md border border-white/20 bg-white/15 px-2 py-0 text-xs font-medium text-foreground shadow-sm transition-all hover:bg-[var(--date-button-hover)] hover:text-white hover:shadow-md focus-visible:ring-2',
+                            'h-6 cursor-pointer rounded-md border border-white/15 bg-white/[0.06] px-2 py-0 text-xs font-medium text-foreground shadow-sm transition-all hover:bg-[var(--date-button-hover)] hover:text-white hover:shadow-md focus-visible:ring-2',
                           )}
                         >
                           <span>{formatDateKr(dashboardData.date)}</span>

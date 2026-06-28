@@ -13,9 +13,9 @@
     oklch(0.75 0.28 20)
   );
   --foreground: oklch(0.35 0.05 220);
-  --card: oklch(0.98 0.01 200 / 0.3);
+  --card: oklch(0.98 0.01 200 / 0.045);
   --card-foreground: oklch(0.35 0.05 220);
-  --popover: oklch(0.98 0.01 200 / 0.9);
+  --popover: oklch(0.98 0.01 200 / 0.14);
   --popover-foreground: oklch(0.35 0.05 220);
   --primary: oklch(0.45 0.15 200);
   --primary-foreground: oklch(0.98 0.01 200);
@@ -27,7 +27,7 @@
   --accent-foreground: oklch(0.98 0.01 200);
   --destructive: oklch(0.6 0.2 15);
   --destructive-foreground: oklch(0.98 0.01 200);
-  --border: oklch(0.85 0.02 200 / 0.3);
+  --border: oklch(0.85 0.02 200 / 0.12);
   --input: oklch(0.98 0.01 200);
   --ring: oklch(0.45 0.15 200 / 0.3);
 
@@ -60,13 +60,13 @@
 
   /* Radius & Sidebar */
   --radius: 1rem;
-  --sidebar: oklch(0.98 0.01 200 / 0.2);
+  --sidebar: oklch(0.98 0.01 200 / 0.045);
   --sidebar-foreground: oklch(0.35 0.05 220);
   --sidebar-primary: oklch(0.45 0.15 200);
   --sidebar-primary-foreground: oklch(0.98 0.01 200);
   --sidebar-accent: oklch(0.65 0.2 25);
   --sidebar-accent-foreground: oklch(0.98 0.01 200);
-  --sidebar-border: oklch(0.85 0.02 200 / 0.2);
+  --sidebar-border: oklch(0.85 0.02 200 / 0.08);
   --sidebar-ring: oklch(0.45 0.15 200 / 0.3);
 }
 
@@ -156,17 +156,17 @@
 @layer components {
   /* Glassmorphism Effects */
   .glass-card {
-    background: var(--color-card);
+    background: var(--card);
     backdrop-filter: blur(1.25rem);
-    border: 1px solid var(--color-border);
-    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.07);
   }
 
   .glass-sidebar {
-    background: var(--color-sidebar);
+    background: var(--sidebar);
     backdrop-filter: blur(1.25rem);
-    border-right: 1px solid var(--color-sidebar-border);
-    box-shadow: 0.25rem 0 1.5rem rgba(0, 0, 0, 0.05);
+    border-right: 1px solid var(--sidebar-border);
+    box-shadow: 0.25rem 0 1.5rem rgb(0 0 0 / 0.04);
   }
 
   .glassmorphism-tooltip {
