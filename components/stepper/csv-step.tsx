@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Check, FileUp, Upload, X, FilePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface CsvStepProps {
   uploadedFiles: File[];
@@ -81,70 +82,77 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className='space-y-4'>
         <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center ${
+          className={cn(
+            'rounded-2xl border border-dashed p-8 text-center shadow-sm backdrop-blur-md transition-all duration-200',
             isDragging
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/25'
-          }`}
+              ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))]/5 shadow-[color:var(--setup-primary,var(--primary))]/10'
+              : 'border-white/15 bg-transparent hover:border-[color:var(--setup-primary,var(--primary))]/35 hover:bg-white/[0.03]',
+          )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <FileUp className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-2 text-lg font-semibold">
+          <div className='mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] shadow-sm'>
+            <FileUp className='h-7 w-7 text-[color:var(--setup-primary,var(--primary))]' />
+          </div>
+          <h3 className='mt-4 text-lg font-bold'>
             파일을 끌어다 놓거나 클릭하여 업로드
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className='mt-1 text-sm text-muted-foreground'>
             신한투자증권의 CSV 파일만 지원됩니다
           </p>
           <input
-            id="file-upload"
-            type="file"
-            className="hidden"
-            accept=".csv"
+            id='file-upload'
+            type='file'
+            className='hidden'
+            accept='.csv'
             onChange={handleFileChange}
             multiple
           />
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => document.getElementById('file-upload')?.click()}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            파일 선택
-          </Button>
+          <div className='mt-5 flex flex-wrap items-center justify-center gap-2'>
+            <Button
+              variant='outline'
+              className='cursor-pointer rounded-xl border-white/15 bg-white/[0.04] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.1] hover:text-foreground hover:shadow-md'
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              <Upload className='mr-2 h-4 w-4' />
+              파일 선택
+            </Button>
 
-          <Button
-            variant="secondary"
-            className="mt-2 ml-2"
-            onClick={loadDummyCsv}
-          >
-            <FilePlus className="mr-2 h-4 w-4" />
-            더미 CSV 불러오기
-          </Button>
+            <Button
+              variant='secondary'
+              className='cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md'
+              onClick={loadDummyCsv}
+            >
+              <FilePlus className='mr-2 h-4 w-4' />
+              더미 CSV 불러오기
+            </Button>
+          </div>
         </div>
 
         {uploadedFiles.length > 0 && (
-          <div className="space-y-2 mt-4">
-            <h4 className="font-medium">업로드된 파일</h4>
+          <div className='mt-4 space-y-2 rounded-2xl border border-white/15 bg-transparent p-4 shadow-sm backdrop-blur-md'>
+            <h4 className='text-sm font-bold'>업로드된 파일</h4>
             {uploadedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between bg-muted p-2 rounded-md"
+                className='flex items-center justify-between rounded-xl border border-white/15 bg-white/[0.04] p-2.5 shadow-sm'
               >
-                <div className="flex items-center space-x-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">{file.name}</span>
+                <div className='flex min-w-0 items-center gap-2'>
+                  <Check className='h-4 w-4 shrink-0 text-green-500' />
+                  <span className='truncate text-sm font-medium'>
+                    {file.name}
+                  </span>
                 </div>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
+                  variant='ghost'
+                  size='icon'
+                  className='h-7 w-7 cursor-pointer rounded-lg'
                   onClick={() => removeFile(index)}
                 >
-                  <X className="h-4 w-4" />
+                  <X className='h-4 w-4' />
                 </Button>
               </div>
             ))}

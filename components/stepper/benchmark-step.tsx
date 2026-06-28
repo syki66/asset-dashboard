@@ -15,7 +15,7 @@ export const BenchmarkStep = () => {
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
 
   return (
-    <>
+    <div className='space-y-4 rounded-2xl border border-white/25 bg-white/[0.05] p-4 shadow-sm backdrop-blur-md'>
       <CheckboxGroup
         options={stockIndicators}
         onChange={(selected) => {
@@ -24,6 +24,6 @@ export const BenchmarkStep = () => {
         // defaultSelected={['deposit']}
       />
       {selectedIndicators.includes('deposit') && <InterestRatePanel />}
-    </>
+    </div>
   );
 };

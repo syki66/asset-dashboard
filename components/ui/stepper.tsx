@@ -23,7 +23,7 @@ export function Stepper({
 }: StepperProps) {
   return (
     <div className={cn('w-full', className)}>
-      <div className="flex items-center justify-center">
+      <div className='flex items-start justify-center'>
         {steps.map((step, index) => {
           const isCompleted = index < activeStep;
           const isCurrent = index === activeStep;
@@ -32,39 +32,41 @@ export function Stepper({
 
           return (
             <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center">
+              <div className='flex min-w-[112px] flex-col items-center'>
                 <button
-                  type="button"
+                  type='button'
                   className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors',
+                    'flex h-11 w-11 items-center justify-center rounded-full border text-sm font-bold shadow-sm backdrop-blur-sm transition-all duration-200',
                     isCompleted
-                      ? 'border-primary bg-primary text-primary-foreground'
+                      ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))] text-white shadow-[color:var(--setup-primary,var(--primary))]/20'
                       : isCurrent
-                      ? 'border-primary bg-background text-primary'
-                      : 'border-muted-foreground/20 bg-background text-muted-foreground',
-                    isClickable ? 'cursor-pointer' : 'cursor-default'
+                        ? 'border-[color:var(--setup-primary,var(--primary))]/60 bg-[color:var(--setup-primary,var(--primary))]/10 text-[color:var(--setup-primary,var(--primary))] shadow-[color:var(--setup-primary,var(--primary))]/10'
+                        : 'border-white/20 bg-white/[0.08] text-muted-foreground',
+                    isClickable
+                      ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md'
+                      : 'cursor-default',
                   )}
                   onClick={() => isClickable && onStepClick(index)}
                   disabled={!isClickable}
                   aria-current={isCurrent ? 'step' : undefined}
                 >
                   {isCompleted ? (
-                    <Check className="h-5 w-5" />
+                    <Check className='h-5 w-5' />
                   ) : (
                     <span>{index + 1}</span>
                   )}
                 </button>
-                <div className="mt-2 text-center">
+                <div className='mt-3 text-center'>
                   <div
                     className={cn(
-                      'text-sm font-medium',
-                      isCurrent ? 'text-foreground' : 'text-muted-foreground'
+                      'text-sm font-semibold',
+                      isCurrent ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
                     {step.label}
                   </div>
                   {step.description && (
-                    <div className="mt-1 text-xs text-muted-foreground">
+                    <div className='mt-1 text-xs text-muted-foreground'>
                       {step.description}
                     </div>
                   )}
@@ -73,8 +75,10 @@ export function Stepper({
               {index < steps.length - 1 && (
                 <div
                   className={cn(
-                    'mx-2 h-0.5 w-10 flex-1 rounded-full sm:mx-4 sm:w-20',
-                    index < activeStep ? 'bg-primary' : 'bg-muted-foreground/20'
+                    'mx-2 mt-5 h-0.5 w-10 flex-1 rounded-full sm:mx-4 sm:w-20',
+                    index < activeStep
+                      ? 'bg-[color:var(--setup-primary,var(--primary))]'
+                      : 'bg-white/[0.1]',
                   )}
                 />
               )}

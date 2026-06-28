@@ -180,18 +180,17 @@ export function CalendarPicker({
             'h-10 w-10 rounded-md text-sm font-medium transition-colors cursor-pointer',
             !isSelectable &&
               'cursor-not-allowed text-muted-foreground/35 opacity-45 hover:bg-transparent hover:text-muted-foreground/35',
-            !category && isSelectable && 'hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-300',
-            category && isSelectable && !isSelectedDay && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
+            isSelectable &&
+              !isSelectedDay &&
+              'hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]',
             'focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
             isCurrentDay &&
               isSelectable &&
               !isSelectedDay &&
-              'bg-accent/20 text-accent-foreground font-semibold',
+              'border border-[color:var(--calendar-theme)]/25 bg-[var(--calendar-hover)] text-[color:var(--calendar-theme)] font-semibold',
             isSelectedDay &&
               isSelectable &&
-              (!category
-                ? 'bg-primary text-primary-foreground font-semibold'
-                : 'bg-[var(--calendar-theme)] text-white font-semibold hover:bg-[var(--calendar-theme)] hover:text-white'),
+              'bg-[image:var(--calendar-selected-bg)] text-white font-semibold hover:text-white',
             isSelectable && !isCurrentDay && !isSelectedDay && 'text-foreground'
           )}
           aria-label={`${viewDate.getFullYear()}년 ${
@@ -206,13 +205,31 @@ export function CalendarPicker({
     return days;
   };
 
+  const calendarStyle = {
+    '--calendar-theme': category
+      ? `var(--${category}-theme)`
+      : 'var(--setup-primary,var(--primary))',
+    '--calendar-hover': category
+      ? `var(--${category}-hover-bg)`
+      : 'color-mix(in oklch, var(--setup-primary,var(--primary)) 8%, transparent)',
+    '--calendar-selected-bg': category
+      ? `linear-gradient(135deg, color-mix(in oklch, var(--${category}-theme) 86%, transparent), color-mix(in oklch, var(--${category}-theme) 62%, transparent))`
+      : 'linear-gradient(135deg, color-mix(in oklch, var(--setup-primary,var(--primary)) 86%, transparent), color-mix(in oklch, var(--setup-secondary,var(--primary)) 62%, transparent))',
+    backgroundColor: 'color-mix(in oklch, var(--card) 0%, transparent)',
+    borderColor: 'var(--border)',
+    boxShadow:
+      '0 0.25rem 0.375rem -0.0625rem rgb(0 0 0 / 0.1), 0 0.125rem 0.25rem -0.125rem rgb(0 0 0 / 0.1)',
+    backdropFilter: 'blur(0.5rem)',
+    WebkitBackdropFilter: 'blur(0.5rem)',
+  } as React.CSSProperties;
+
   return (
-    <Card 
-      className={cn('p-4 w-fit', className)}
-      style={category ? {
-        '--calendar-theme': `var(--${category}-theme)`,
-        '--calendar-hover': `var(--${category}-hover-bg)`
-      } as React.CSSProperties : undefined}
+    <Card
+      className={cn(
+        'p-4 w-fit',
+        className,
+      )}
+      style={calendarStyle}
     >
       <div className="space-y-4">
         {/* Header with navigation and today button */}
@@ -226,8 +243,8 @@ export function CalendarPicker({
               disabled={!canNavigatePrevYear}
               className={cn(
                 "h-7 w-7 cursor-pointer",
+                "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigatePrevYear && "cursor-not-allowed opacity-45",
-                category && canNavigatePrevYear && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]"
               )}
               aria-label="이전 연도"
             >
@@ -242,15 +259,20 @@ export function CalendarPicker({
               disabled={!canNavigatePrevMonth}
               className={cn(
                 "h-7 w-7 cursor-pointer",
+                "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigatePrevMonth && "cursor-not-allowed opacity-45",
-                category && canNavigatePrevMonth && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]"
               )}
               aria-label="이전 달"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <h2 className="text-base font-semibold text-foreground min-w-[6.25rem] text-center">
+            <h2
+              className={cn(
+                "text-base font-semibold min-w-[6.25rem] text-center",
+                "text-[color:var(--calendar-theme)]"
+              )}
+            >
               {viewDate.getFullYear()}년 {monthNames[viewDate.getMonth()]}
             </h2>
 
@@ -262,8 +284,8 @@ export function CalendarPicker({
               disabled={!canNavigateNextMonth}
               className={cn(
                 "h-7 w-7 cursor-pointer",
+                "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigateNextMonth && "cursor-not-allowed opacity-45",
-                category && canNavigateNextMonth && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]"
               )}
               aria-label="다음 달"
             >
@@ -278,8 +300,8 @@ export function CalendarPicker({
               disabled={!canNavigateNextYear}
               className={cn(
                 "h-7 w-7 cursor-pointer",
+                "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigateNextYear && "cursor-not-allowed opacity-45",
-                category && canNavigateNextYear && "hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]"
               )}
               aria-label="다음 연도"
             >
@@ -293,10 +315,8 @@ export function CalendarPicker({
             className={cn(
               "ml-1 h-7 px-2 text-xs font-medium cursor-pointer transition-opacity border-transparent",
               !isTodaySelectable && "cursor-not-allowed opacity-45",
-              category && "bg-[var(--calendar-theme)] hover:bg-[var(--calendar-theme)] text-white hover:opacity-90",
-              category && isTodaySelectable && 'bg-[var(--calendar-theme)]'
+              "bg-[image:var(--calendar-selected-bg)] text-white hover:opacity-90",
             )}
-            style={category && isTodaySelectable ? { backgroundColor: `var(--${category}-theme)` } : undefined}
             size="sm"
           >
             <Calendar className="h-4 w-4 mr-2" />

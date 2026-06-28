@@ -476,7 +476,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           <ChevronDown className='h-3.5 w-3.5 opacity-70' />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='end'>
+                      <PopoverContent
+                        className='w-auto border-white/10 !bg-transparent p-0 shadow-none'
+                        align='end'
+                        style={{
+                          background: 'transparent',
+                          boxShadow: 'none',
+                          backdropFilter: 'none',
+                          WebkitBackdropFilter: 'none',
+                        }}
+                      >
                         <CalendarPicker
                           category={activeCategory}
                           minDate={dashboardDateRange.minDate}
