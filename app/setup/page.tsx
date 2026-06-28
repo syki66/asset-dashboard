@@ -278,6 +278,21 @@ export default function Page() {
                 )}
           </Button>
         </CardFooter>
+        {isLoading && (
+          <div className='absolute inset-0 z-20 flex items-center justify-center bg-white/[0.18] backdrop-blur-md'>
+            <div className='rounded-2xl border border-white/25 bg-white/[0.28] px-6 py-5 text-center shadow-xl backdrop-blur-xl'>
+              <div className='mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--setup-primary)]/20 bg-[color:var(--setup-primary)]/10'>
+                <Loader2 className='h-5 w-5 animate-spin text-[color:var(--setup-primary)]' />
+              </div>
+              <p className='mt-3 text-sm font-semibold text-foreground'>
+                계좌 데이터를 계산하는 중입니다.
+              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                거래내역이 많으면 잠시 시간이 걸릴 수 있습니다.
+              </p>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

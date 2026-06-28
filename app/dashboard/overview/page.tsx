@@ -182,6 +182,7 @@ export default function Page() {
           cash={dashboardData.cash.total}
           themeColor={themeColor}
           isCompact={chartLayout === 'compact'}
+          selectedDate={dashboardData.date}
         />
       </div>
     </>
