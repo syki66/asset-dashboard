@@ -19,6 +19,8 @@ import { createAccountData } from '@/utils/converter';
 import { createBenchmarkData } from '@/utils/generator';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useSelectedAccountsStore } from '@/store/selectedAccounts';
+import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 
 const steps = [
   {
@@ -56,6 +58,10 @@ export default function Page() {
   const setTotalAccountData = useAccountStore(
     (state) => state.setTotalAccountData
   );
+  const setSelectedAccounts = useSelectedAccountsStore(
+    (state) => state.setSelectedAccounts,
+  );
+  const setDashboardData = useDashboardStore((state) => state.setDashboardData);
 
   const {
     data: totalAccountData,
@@ -112,16 +118,23 @@ export default function Page() {
 
   useEffect(() => {
     if (totalAccountData) {
+      setDashboardData(initialDashboardData);
       setTotalAccountData(totalAccountData);
+      setSelectedAccounts(totalAccountData.map((account) => account.name));
     }
-  }, [totalAccountData, setTotalAccountData]);
+  }, [
+    setDashboardData,
+    setSelectedAccounts,
+    setTotalAccountData,
+    totalAccountData,
+  ]);
 
   useEffect(() => {
     if (isSuccess) {
       toast.success('계좌 불러오기 성공', {
         description: '계좌 데이터를 성공적으로 불러왔습니다.',
       });
-      router.push('/dashboard/overview'); // 대시보드 메인 페이지로 이동
+      router.push('/dashboard/settings?redirect=overview');
     }
     if (isError) {
       toast.error('계좌 불러오기 실패', {

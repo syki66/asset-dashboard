@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Wallet,
   Calendar,
@@ -23,27 +23,74 @@ import {
 } from '@/components/ui/card';
 import { useAccountStore } from '@/store/account';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
+import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import { formatCurrency, formatDateKr, timeAgo } from '@/utils/format';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Page() {
   const themeColor = 'var(--settings-theme)';
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldRedirectToOverview = searchParams.get('redirect') === 'overview';
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
+  const dashboardData = useDashboardStore((state) => state.dashboardData);
   const { selectedAccounts, setSelectedAccounts } = useSelectedAccountsStore();
   // 계좌 클릭만으로 무거운 대시보드 계산이 돌지 않도록, 적용 전 선택값은 화면 안에서만 보관합니다.
   const [draftSelectedAccounts, setDraftSelectedAccounts] =
     useState<string[]>(selectedAccounts);
-  const [isApplyingSelection, setIsApplyingSelection] = useState(false);
+  const [isApplyingSelection, setIsApplyingSelection] = useState(
+    shouldRedirectToOverview,
+  );
+  const hasShownAutoCompleteToastRef = useRef(false);
 
   // 실제 적용된 계좌가 바뀌면 임시 선택값도 맞춰서 설정 화면의 체크 상태를 동기화합니다.
   useEffect(() => {
     setDraftSelectedAccounts(selectedAccounts);
   }, [selectedAccounts]);
 
+  useEffect(() => {
+    // setup 완료 후 settings로 들어온 경우, dashboardData가 초기값이면 아직 계좌 계산 전입니다.
+    const isDashboardCalculated =
+      dashboardData.date !== initialDashboardData.date;
+
+    // 계산이 끝나기 전까지는 설정 화면 위에 로딩 오버레이를 유지합니다.
+    if (shouldRedirectToOverview && !isDashboardCalculated) {
+      setIsApplyingSelection(true);
+    }
+
+    // layout에서 전체 계좌 기준 dashboardData 계산이 끝나면 완료 안내 후 개요로 이동합니다.
+    if (
+      shouldRedirectToOverview &&
+      isDashboardCalculated &&
+      selectedAccounts.length > 0
+    ) {
+      // React 개발 모드의 effect 재실행으로 완료 토스트가 중복 표시되지 않게 막습니다.
+      if (!hasShownAutoCompleteToastRef.current) {
+        hasShownAutoCompleteToastRef.current = true;
+        toast.success('계좌 연산 완료', {
+          description: '전체 계좌 기준으로 대시보드 계산을 완료했습니다.',
+        });
+      }
+
+      // 완료 토스트와 로딩 상태가 잠깐 보이도록 이동 전에 짧은 여유를 둡니다.
+      const timeoutId = window.setTimeout(() => {
+        router.replace('/dashboard/overview');
+      }, 700);
+
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, [
+    dashboardData.date,
+    router,
+    selectedAccounts.length,
+    shouldRedirectToOverview,
+  ]);
+
   // 전역 선택값이 반영된 뒤에도 차트 재계산/렌더링 시간을 조금 확보하고, 완료 안내를 표시합니다.
   useEffect(() => {
-    if (!isApplyingSelection) return;
+    if (!isApplyingSelection || shouldRedirectToOverview) return;
 
     const timeoutId = window.setTimeout(() => {
       setIsApplyingSelection(false);
@@ -53,7 +100,7 @@ export default function Page() {
     }, 700);
 
     return () => window.clearTimeout(timeoutId);
-  }, [selectedAccounts, isApplyingSelection]);
+  }, [isApplyingSelection, selectedAccounts, shouldRedirectToOverview]);
 
   // 오버레이를 먼저 렌더링한 뒤 선택값을 적용해서, 긴 계산이 시작되기 전에 로딩 화면이 보이게 합니다.
   const runWithLoading = (updateSelection: () => void) => {
