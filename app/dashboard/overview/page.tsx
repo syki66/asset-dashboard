@@ -2,11 +2,11 @@
 
 import { AssetChart, PortfolioAllocationChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
-import { DollarSign, Trophy, TrendingUp, PiggyBank, Maximize2, Minimize2 } from 'lucide-react';
+import { DollarSign, Trophy, TrendingUp, PiggyBank } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
 import { useChartLayoutStore, useCurrencyStore, useTaxStore } from '@/store/options';
 import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
-import { Button } from '@/components/ui/button';
+import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 
 export default function Page() {
   const themeColor = 'var(--overview-theme)';
@@ -110,38 +110,13 @@ export default function Page() {
       </div>
       <div className='mt-8 flex items-center justify-between'>
         <h2 className='text-xl font-bold'>포트폴리오 요약</h2>
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={() => setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')}
-          className='flex items-center gap-2 hover:opacity-80 transition-all'
-          style={
-            chartLayout === 'expanded'
-              ? {
-                  color: themeColor,
-                  borderColor: themeColor,
-                  backgroundColor: 'var(--card)',
-                  backdropFilter: 'blur(1.25rem)',
-                }
-              : {
-                  color: '#fff',
-                  borderColor: themeColor,
-                  backgroundColor: themeColor,
-                }
+        <ChartLayoutToggleButton
+          layout={chartLayout}
+          themeColor={themeColor}
+          onToggle={() =>
+            setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')
           }
-        >
-          {chartLayout === 'expanded' ? (
-            <>
-              <Minimize2 className='w-4 h-4' />
-              모아보기
-            </>
-          ) : (
-            <>
-              <Maximize2 className='w-4 h-4' />
-              펼쳐보기
-            </>
-          )}
-        </Button>
+        />
       </div>
       <div
         className={`mt-4 grid gap-4 ${

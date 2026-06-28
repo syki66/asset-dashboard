@@ -3,15 +3,13 @@
 import { useEffect, useState } from 'react';
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
-import { Button } from '@/components/ui/button';
+import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 import { cn } from '@/lib/utils';
 import { useDashboardStore } from '@/store/dashboard';
 import { useChartLayoutStore, useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
 import {
   Activity,
-  Maximize2,
-  Minimize2,
   ShieldAlert,
   TrendingDown,
 } from 'lucide-react';
@@ -31,20 +29,6 @@ export default function Page() {
   useEffect(() => {
     setRollingChartLayout(chartLayout);
   }, [chartLayout]);
-
-  const chartLayoutButtonStyle =
-    rollingChartLayout === 'expanded'
-      ? {
-          color: themeColor,
-          borderColor: themeColor,
-          backgroundColor: 'var(--card)',
-          backdropFilter: 'blur(1.25rem)',
-        }
-      : {
-          color: '#fff',
-          borderColor: themeColor,
-          backgroundColor: themeColor,
-        };
 
   return (
     <>
@@ -143,29 +127,15 @@ export default function Page() {
       </div>
       <div className='mt-8 flex items-center justify-between'>
         <h2 className='text-xl font-bold'>90거래일 롤링 지표</h2>
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={() =>
+        <ChartLayoutToggleButton
+          layout={rollingChartLayout}
+          themeColor={themeColor}
+          onToggle={() =>
             setRollingChartLayout(
               rollingChartLayout === 'compact' ? 'expanded' : 'compact',
             )
           }
-          className='flex items-center gap-2 transition-all hover:opacity-80'
-          style={chartLayoutButtonStyle}
-        >
-          {rollingChartLayout === 'expanded' ? (
-            <>
-              <Minimize2 className='h-4 w-4' />
-              모아보기
-            </>
-          ) : (
-            <>
-              <Maximize2 className='h-4 w-4' />
-              펼쳐보기
-            </>
-          )}
-        </Button>
+        />
       </div>
       <div
         className={cn(

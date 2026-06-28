@@ -326,13 +326,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       >
                         <TabsTrigger
                           value='pre'
-                          className='h-5 rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
+                          className='h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
                         >
                           세전
                         </TabsTrigger>
                         <TabsTrigger
                           value='post'
-                          className='h-5 rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
+                          className='h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
                         >
                           세후
                         </TabsTrigger>
@@ -352,14 +352,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       >
                         <TabsTrigger
                           value='expanded'
-                          className='h-5 rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
+                          className='h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
                           title='펼쳐보기'
                         >
                           <Maximize2 className='h-4 w-4' />
                         </TabsTrigger>
                         <TabsTrigger
                           value='compact'
-                          className='h-5 rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
+                          className='h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
                           title='모아보기'
                         >
                           <LayoutGrid className='h-4 w-4' />
@@ -380,13 +380,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       >
                         <TabsTrigger
                           value='krw'
-                          className='h-5 rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
+                          className='h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
                         >
                           ₩
                         </TabsTrigger>
                         <TabsTrigger
                           value='usd'
-                          className='h-5 rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
+                          className='h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
                         >
                           $
                         </TabsTrigger>

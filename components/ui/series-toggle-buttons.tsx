@@ -34,11 +34,11 @@ export function SeriesToggleButtons({
           variant="outline"
           size="sm"
           className={cn(
-            'flex h-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200 ease-in-out',
+            'flex h-8 cursor-pointer items-center justify-center rounded-full border bg-background/40 shadow-sm backdrop-blur-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-lg active:translate-y-0 active:shadow-sm',
             {
-              'bg-transparent text-muted-foreground border-dashed hover:text-muted-foreground':
+              'border-dashed text-muted-foreground hover:border-white/30 hover:text-muted-foreground':
                 !activeSeries.includes(s.id),
-              'shadow-md': activeSeries.includes(s.id),
+              'shadow-md hover:shadow-xl': activeSeries.includes(s.id),
             }
           )}
           onClick={() => onToggle(s.id)}

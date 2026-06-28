@@ -2,11 +2,10 @@
 
 import { PortfolioAllocationChart } from '@/components/chart';
 import { HoldingsView } from '@/components/dashboard/holdings-view';
-import { Button } from '@/components/ui/button';
+import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 import { cn } from '@/lib/utils';
 import { useDashboardStore } from '@/store/dashboard';
 import { useChartLayoutStore } from '@/store/options';
-import { Maximize2, Minimize2 } from 'lucide-react';
 
 export default function Page() {
   const themeColor = 'var(--portfolio-theme)';
@@ -18,40 +17,13 @@ export default function Page() {
     <>
       <div className='flex items-center justify-between'>
         <h2 className='text-xl font-bold'>포트폴리오 차트</h2>
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={() =>
+        <ChartLayoutToggleButton
+          layout={chartLayout}
+          themeColor={themeColor}
+          onToggle={() =>
             setChartLayout(chartLayout === 'compact' ? 'expanded' : 'compact')
           }
-          className='flex items-center gap-2 hover:opacity-80 transition-all'
-          style={
-            chartLayout === 'expanded'
-              ? {
-                  color: themeColor,
-                  borderColor: themeColor,
-                  backgroundColor: 'var(--card)',
-                  backdropFilter: 'blur(1.25rem)',
-                }
-              : {
-                  color: '#fff',
-                  borderColor: themeColor,
-                  backgroundColor: themeColor,
-                }
-          }
-        >
-          {chartLayout === 'expanded' ? (
-            <>
-              <Minimize2 className='w-4 h-4' />
-              모아보기
-            </>
-          ) : (
-            <>
-              <Maximize2 className='w-4 h-4' />
-              펼쳐보기
-            </>
-          )}
-        </Button>
+        />
       </div>
       <div
         className={cn(

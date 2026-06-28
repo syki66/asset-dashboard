@@ -14,12 +14,10 @@ import { formatCurrency } from '@/utils/format';
 import {
   ChartLine,
   Landmark,
-  Maximize2,
-  Minimize2,
   TrendingUpDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 import {
   EXCHANGE_FEE_RATE,
   EXCHANGE_SPREAD_RATE,
@@ -95,42 +93,15 @@ export default function Page() {
     date: `${yearProfit.year}-01-01`,
     value: yearProfit.profit,
   }));
-  const getChartLayoutButtonStyle = (layout: ChartLayout) =>
-    layout === 'expanded'
-      ? {
-          color: themeColor,
-          borderColor: themeColor,
-          backgroundColor: 'var(--card)',
-          backdropFilter: 'blur(1.25rem)',
-        }
-      : {
-          color: '#fff',
-          borderColor: themeColor,
-          backgroundColor: themeColor,
-        };
   const renderChartLayoutButton = (
     layout: ChartLayout,
     setLayout: (layout: ChartLayout) => void,
   ) => (
-    <Button
-      variant='outline'
-      size='sm'
-      onClick={() => setLayout(layout === 'compact' ? 'expanded' : 'compact')}
-      className='flex items-center gap-2 hover:opacity-80 transition-all'
-      style={getChartLayoutButtonStyle(layout)}
-    >
-      {layout === 'expanded' ? (
-        <>
-          <Minimize2 className='w-4 h-4' />
-          모아보기
-        </>
-      ) : (
-        <>
-          <Maximize2 className='w-4 h-4' />
-          펼쳐보기
-        </>
-      )}
-    </Button>
+    <ChartLayoutToggleButton
+      layout={layout}
+      themeColor={themeColor}
+      onToggle={() => setLayout(layout === 'compact' ? 'expanded' : 'compact')}
+    />
   );
 
   const beforeTaxData = [
