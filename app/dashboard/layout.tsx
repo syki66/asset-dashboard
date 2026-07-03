@@ -35,7 +35,7 @@ import {
   Maximize2,
   ChevronDown,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import {
@@ -149,6 +149,12 @@ const categories = [
   },
 ];
 
+const dashboardRoutes = new Set([
+  '/dashboard',
+  '/dashboard/',
+  ...categories.map((category) => category.href),
+]);
+
 // A helper to find the matching title and description
 const getPageDetails = (pathname: string) => {
   const currentCategory = categories.find((c) => pathname.startsWith(c.href));
@@ -194,6 +200,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const { selectedAccounts } = useSelectedAccountsStore();
   const pathname = usePathname();
+  const router = useRouter();
+  const isSetupComplete = totalAccountData.length > 0;
+  const isValidDashboardRoute = dashboardRoutes.has(pathname);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(() =>
     formatDateKey(dashboardDate),
@@ -206,6 +215,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     () => [...selectedAccounts].sort().join('|'),
     [selectedAccounts],
   );
+
+  useEffect(() => {
+    if (!isSetupComplete || !isValidDashboardRoute) {
+      router.replace('/setup');
+    }
+  }, [isSetupComplete, isValidDashboardRoute, router]);
 
   // 원본 계좌 데이터가 새로 업로드되거나 교체되면 이전 계산 결과는 더 이상 유효하지 않습니다.
   useEffect(() => {
@@ -316,6 +331,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setIsCurrencyCalculating(true);
     setCurrency(nextCurrency);
   };
+
+  if (!isSetupComplete || !isValidDashboardRoute) {
+    return null;
+  }
 
   return (
     <div className={cn('min-h-screen flex', pageBgClass)}>
