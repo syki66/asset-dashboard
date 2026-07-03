@@ -32,6 +32,53 @@ interface PortfolioAllocationChartProps {
   selectedDate?: string;
 }
 
+type HoldingWeight = {
+  ticker: string;
+  name: string;
+  weight: number;
+};
+
+type SectorWeight = {
+  name: string;
+  weight: number;
+};
+
+const holdingsCache = new Map<string, Promise<HoldingWeight[]>>();
+const sectorsCache = new Map<string, Promise<SectorWeight[]>>();
+
+const fetchCachedJson = <T,>(cache: Map<string, Promise<T>>, url: string) => {
+  const cached = cache.get(url);
+  if (cached) return cached;
+
+  const request = fetch(url)
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}`);
+      }
+
+      return response.json() as Promise<T>;
+    })
+    .catch((error) => {
+      cache.delete(url);
+      throw error;
+    });
+
+  cache.set(url, request);
+  return request;
+};
+
+const fetchHoldings = (symbol: string) =>
+  fetchCachedJson<HoldingWeight[]>(
+    holdingsCache,
+    `/api/holdings/${symbol.toUpperCase()}`,
+  );
+
+const fetchSectors = (symbol: string) =>
+  fetchCachedJson<SectorWeight[]>(
+    sectorsCache,
+    `/api/sectors/${symbol.toUpperCase()}`,
+  );
+
 const COLORS = [
   '#6366f1', // 인디고
   '#f59e0b', // 앰버
@@ -100,6 +147,8 @@ export function PortfolioAllocationChart({
     });
 
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchAndProcessData = async () => {
       setIsLoading(true);
       setIsHistoricalRebalancePeriod(false);
@@ -137,24 +186,21 @@ export function PortfolioAllocationChart({
 
           if (symbol === 'VTI' || symbol === 'QQQM') {
             try {
-              const response = await fetch(`/api/sectors/${symbol}`);
-              if (response.ok) {
-                const sectors = await response.json();
+              const sectors = await fetchSectors(symbol);
 
-                if (!shouldUseFallback && sectors.length > 0) {
-                  sectors.forEach((sector: any) => {
-                    const translatedSectorName = translateSectorName(
-                      sector.name,
-                    );
-                    const sectorValue = stockValue * (sector.weight / 100);
-                    const existing = stockMap.get(translatedSectorName);
-                    stockMap.set(translatedSectorName, {
-                      value: (existing?.value ?? 0) + sectorValue,
-                      fullName: existing?.fullName ?? sector.name,
-                    });
+              if (!shouldUseFallback && sectors.length > 0) {
+                sectors.forEach((sector) => {
+                  const translatedSectorName = translateSectorName(
+                    sector.name,
+                  );
+                  const sectorValue = stockValue * (sector.weight / 100);
+                  const existing = stockMap.get(translatedSectorName);
+                  stockMap.set(translatedSectorName, {
+                    value: (existing?.value ?? 0) + sectorValue,
+                    fullName: existing?.fullName ?? sector.name,
                   });
-                  continue;
-                }
+                });
+                continue;
               }
             } catch (error) {
               console.error(
@@ -176,17 +222,13 @@ export function PortfolioAllocationChart({
               continue;
             }
 
-            const response = await fetch(`/api/holdings/${stock.symbol}`);
-            if (response.ok) {
-              const holdings = await response.json();
-              // holdings: { ticker, name, weight }[]
+            const holdings = await fetchHoldings(stock.symbol);
 
-              holdings.forEach((holding: any) => {
-                const holdingValue = stockValue * (holding.weight / 100);
-                addStockMapItem(holding.ticker, holdingValue, holding.name);
-              });
-              continue; // Skip adding the ETF itself
-            }
+            holdings.forEach((holding) => {
+              const holdingValue = stockValue * (holding.weight / 100);
+              addStockMapItem(holding.ticker, holdingValue, holding.name);
+            });
+            continue; // Skip adding the ETF itself
           } catch (error) {
             console.error(
               `Failed to fetch holdings for ${stock.symbol}`,
@@ -218,7 +260,9 @@ export function PortfolioAllocationChart({
         combinedData.push(cashItem);
       }
 
-      setChartData(combinedData.sort((a, b) => b.value - a.value));
+      if (!isCancelled) {
+        setChartData(combinedData.sort((a, b) => b.value - a.value));
+      }
     };
 
     fetchAndProcessData()
@@ -226,8 +270,14 @@ export function PortfolioAllocationChart({
         console.error('Portfolio allocation fetch failed', error);
       })
       .finally(() => {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [stocks, cash, allocationMode, selectedDate]);
 
   const totalValue = useMemo(() => {
