@@ -56,6 +56,7 @@ export type StockTradeHistoryProps = {
   type: 'buy' | 'sell';
   fxRate: number;
   pricesBySymbol: Record<string, number[]>; // 종목별 거래 가격 배열
+  namesBySymbol?: Record<string, string>; // 종목별 표시명
 };
 
 export type StockTradeHistoryChartProps = {
@@ -63,6 +64,7 @@ export type StockTradeHistoryChartProps = {
   type: 'buy' | 'sell'; // 종목 매매 타입 추가
   quantityBySymbol: Record<string, number>; // 종목별 거래 수량 합계
   priceBySymbol: Record<string, number>; // 종목별 거래 가격 합계
+  namesBySymbol?: Record<string, string>; // 종목별 차트 표시명
 };
 
 export type Currency = 'krw' | 'usd';

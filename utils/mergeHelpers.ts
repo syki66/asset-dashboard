@@ -82,6 +82,10 @@ export const mergeStockTradeHistory = (
         existingTrade.pricesBySymbol[symbol] =
           existingTrade.pricesBySymbol[symbol].concat(prices);
       });
+      existingTrade.namesBySymbol = {
+        ...existingTrade.namesBySymbol,
+        ...trade.namesBySymbol,
+      };
     } else {
       // 없으면 새로 추가
       tradeHistoryArr.push(structuredClone(trade));

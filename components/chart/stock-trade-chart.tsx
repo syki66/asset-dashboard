@@ -176,6 +176,23 @@ export function StockTradeChart({
     ).sort((a, b) => a.localeCompare(b));
   }, [data, selectedPeriod]);
 
+  const stockDisplayNames = useMemo(
+    () =>
+      data.reduce(
+        (acc, item) => {
+          Object.entries(item.namesBySymbol ?? {}).forEach(([symbol, name]) => {
+            acc[symbol] = name;
+          });
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
+    [data],
+  );
+
+  const getStockDisplayName = (stock: string) =>
+    stockDisplayNames[stock] ?? stock;
+
   const [selectedStocks, setSelectedStocks] = useState<string[]>(allStocks);
 
   useEffect(() => {
@@ -265,10 +282,10 @@ export function StockTradeChart({
     () =>
       filteredStocks.map((stock) => ({
         id: stock,
-        name: stock,
+        name: getStockDisplayName(stock),
         color: stockColors[stock],
       })),
-    [filteredStocks, stockColors],
+    [filteredStocks, stockColors, stockDisplayNames],
   );
 
   const toggleStock = (stock: string) => {
@@ -314,7 +331,11 @@ export function StockTradeChart({
                       className='w-2.5 h-2.5 rounded-full'
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className={`font-medium ${textColorClass}`}>{entry.dataKey.replace(/\(매수\)|\(매도\)/g, '')}</span>
+                    <span className={`font-medium ${textColorClass}`}>
+                      {getStockDisplayName(
+                        entry.dataKey.replace(/\(매수\)|\(매도\)/g, ''),
+                      )}
+                    </span>
                   </div>
                   <span className={`font-semibold ml-4 ${textColorClass}`}>
                     {formatTradeValue(entry.value)}

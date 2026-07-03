@@ -974,6 +974,12 @@ export const convertToDashboardData = (
           ),
         ]),
       ),
+      namesBySymbol: Object.fromEntries(
+        Object.keys(trade.pricesBySymbol).map((symbol) => [
+          symbol,
+          trade.namesBySymbol?.[symbol] ?? symbol,
+        ]),
+      ),
     }));
 
     const usdStockTradeHistory = account.usd.stockTradeHistory.map((trade) => ({
@@ -993,6 +999,12 @@ export const convertToDashboardData = (
               currency === 'usd' ? acc + price : acc + price * trade.fxRate,
             0,
           ),
+        ]),
+      ),
+      namesBySymbol: Object.fromEntries(
+        Object.keys(trade.pricesBySymbol).map((symbol) => [
+          symbol,
+          symbol,
         ]),
       ),
     }));
@@ -1275,6 +1287,9 @@ export const createAccountData = async (
                   transaction.price,
                 ),
               },
+              namesBySymbol: {
+                [stockInfo?.symbol]: stockInfo?.shortName ?? stockInfo?.symbol,
+              },
             });
 
             if (!stockToBuy) {
@@ -1316,6 +1331,10 @@ export const createAccountData = async (
                 [stockToSell?.symbol!]: Array(transaction.quantity).fill(
                   transaction.price,
                 ),
+              },
+              namesBySymbol: {
+                [stockToSell?.symbol!]:
+                  stockToSell?.shortName ?? stockToSell?.symbol ?? '',
               },
             });
 
