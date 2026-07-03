@@ -1,8 +1,9 @@
 import { TermsProps, StockHistoryProps, TransactionProps } from '@/types';
 import { generateDateObjects, timestampToDate } from './format';
 import { getStockInfo } from './converter';
-import { DEFAULT_FX_RATE, KR_DIVIDEND_TAX_RATE } from '@/constants/keywords';
+import { DEFAULT_FX_RATE } from '@/constants/keywords';
 import { useInterestRateStore } from '@/store/account';
+import { useFeeSettingsStore } from '@/store/fee-settings';
 
 // 벤치마크 데이터 생성
 export const createBenchmarkData = async (
@@ -181,6 +182,7 @@ const getCurrentRate = (date: string, rateType: 'best' | 'worst' = 'best') => {
 
 export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
   let remainingWithdrawal = amount;
+  const { krDividendTaxRate } = useFeeSettingsStore.getState().feeSettings;
 
   // 출금이 발생하면 가장 가까운 과거 예금 상품을 찾아서 해당 상품의 principal -> interest(세후) 순으로 차감 (withdrawal이 0이 될때까지 반복)
   while (remainingWithdrawal > 0) {
@@ -194,7 +196,7 @@ export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
     if (!findTerm) break;
 
     const available =
-      findTerm.principal + findTerm.interest * (1 - KR_DIVIDEND_TAX_RATE); // 출금 가능 금액 (원금 + 세후 이자)
+      findTerm.principal + findTerm.interest * (1 - krDividendTaxRate); // 출금 가능 금액 (원금 + 세후 이자)
 
     // 출금액이 출금 가능 금액보다 크면 해당 상품 삭제
     if (available <= remainingWithdrawal) {
@@ -206,7 +208,7 @@ export const processWithdrawal = (termsArray: TermsProps[], amount: number) => {
         // 원금보다 크다면 원금 제거하고 세후 이자에서 차감
         remainingWithdrawal -= findTerm.principal; // 원금만큼 출금액 차감
         findTerm.principal = 0; // 원금 차감
-        findTerm.interest -= remainingWithdrawal / (1 - KR_DIVIDEND_TAX_RATE); // 세전 이자 기준으로 차감 [세전 이자 = 출금액 / (1 - 15.4%)]
+        findTerm.interest -= remainingWithdrawal / (1 - krDividendTaxRate); // 세전 이자 기준으로 차감 [세전 이자 = 출금액 / (1 - 15.4%)]
       } else {
         // 원금보다 작다면 원금만큼 차감
         findTerm.principal -= remainingWithdrawal; // 원금 차감
@@ -225,6 +227,7 @@ const processTermsValue = (
 ) => {
   let currentValue = 0; // 현재 평가금액
   let netCurrentValue = 0; // 순평가금액
+  const { krDividendTaxRate } = useFeeSettingsStore.getState().feeSettings;
 
   termsArray.forEach((term) => {
     // 1. 이자 먼저 지급
@@ -232,15 +235,13 @@ const processTermsValue = (
 
     // 2. 평가금, 세후 평가금 계산
     currentValue += term.principal + term.interest;
-    netCurrentValue +=
-      term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE);
+    netCurrentValue += term.principal + term.interest * (1 - krDividendTaxRate);
 
     // 3. 만기일이 지난 상품은 재예치
     if (term.maturityDate <= flowDate) {
       term.startDate = flowDate;
       term.maturityDate = addOneYear(flowDate);
-      term.principal =
-        term.principal + term.interest * (1 - KR_DIVIDEND_TAX_RATE); // 원금에 세후 이자 합산해서 재예치
+      term.principal = term.principal + term.interest * (1 - krDividendTaxRate); // 원금에 세후 이자 합산해서 재예치
       term.interest = 0; // 이자 초기화
       term.interestRate = getCurrentRate(flowDate, rateType);
     }

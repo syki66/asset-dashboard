@@ -26,20 +26,7 @@ import { calculateXIRR, CashFlow } from './xirr';
 import { annualizeTwr, calculateTwrFactor } from './twr';
 import axios from 'axios';
 import { toast } from 'sonner';
-import {
-  USD_KRW_SYMBOL,
-  DEFAULT_FX_RATE,
-  US_BROKER_FEE_RATE,
-  US_SEC_FEE_RATE,
-  US_CAPITAL_GAINS_TAX_RATE,
-  KR_BROKER_FEE_RATE,
-  KR_REGULATORY_FEE_RATE,
-  KR_TRANSFER_TAX_RATE,
-  US_DIVIDEND_TAX_RATE,
-  KR_DIVIDEND_TAX_RATE,
-  EXCHANGE_SPREAD_RATE,
-  EXCHANGE_FEE_RATE,
-} from '@/constants/keywords';
+import { USD_KRW_SYMBOL, DEFAULT_FX_RATE } from '@/constants/keywords';
 import { getAverage } from './math';
 import { differenceInCalendarDays } from 'date-fns';
 import {
@@ -54,6 +41,7 @@ import {
   toRoundedRiskMetric,
 } from './risk';
 import { useInterestRateStore } from '@/store/account';
+import { useFeeSettingsStore } from '@/store/fee-settings';
 
 // 대시보드 표시용 데이터로 가공하는 함수
 export const convertToDashboardData = (
@@ -100,11 +88,6 @@ export const convertToDashboardData = (
   const benchmarkWorstNetProfitChartData: ChartProps[] = [];
   let stockTradeHistoryChartData: StockTradeHistoryChartProps[] = [];
 
-  const getDividendTaxRate = (
-    dividendSource: 'domestic' | 'foreign' | undefined,
-  ) =>
-    dividendSource === 'foreign' ? US_DIVIDEND_TAX_RATE : KR_DIVIDEND_TAX_RATE;
-
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
   let peakValue = 0; // 평가자산 최고점
@@ -139,6 +122,23 @@ export const convertToDashboardData = (
   const rollingRiskWindow = 90;
   const { bestInterestRates, worstInterestRates } =
     useInterestRateStore.getState();
+  const { feeSettings } = useFeeSettingsStore.getState();
+  const {
+    exchangeSpreadRate,
+    exchangeFeeRate,
+    krBrokerFeeRate,
+    krRegulatoryFeeRate,
+    krTransferTaxRate,
+    usBrokerFeeRate,
+    usCapitalGainsTaxRate,
+    usSecFeeRate,
+    usDividendTaxRate,
+    krDividendTaxRate,
+  } = feeSettings;
+
+  const getDividendTaxRate = (
+    dividendSource: 'domestic' | 'foreign' | undefined,
+  ) => (dividendSource === 'foreign' ? usDividendTaxRate : krDividendTaxRate);
 
   // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
   const dashboardData = accountData.map((account: AccountProps) => {
@@ -175,7 +175,7 @@ export const convertToDashboardData = (
               stock.price * account.fxRate - item.price * item.fxRate;
             const fee =
               (stock.price * account.fxRate + item.price * item.fxRate) *
-              (US_BROKER_FEE_RATE + US_SEC_FEE_RATE);
+              (usBrokerFeeRate + usSecFeeRate);
             return profit - fee;
           })
           .reduce((a, b) => a + b, 0),
@@ -185,39 +185,39 @@ export const convertToDashboardData = (
     // 세금 및 제비용
     const krBrokerFee =
       currency === 'usd'
-        ? (krwStockValue / account.fxRate) * KR_BROKER_FEE_RATE
-        : krwStockValue * KR_BROKER_FEE_RATE; // 국내 주식 증권사 수수료
+        ? (krwStockValue / account.fxRate) * krBrokerFeeRate
+        : krwStockValue * krBrokerFeeRate; // 국내 주식 증권사 수수료
     const krRegulatoryFee =
       currency === 'usd'
-        ? (krwStockValue / account.fxRate) * KR_REGULATORY_FEE_RATE
-        : krwStockValue * KR_REGULATORY_FEE_RATE; // 국내 유관기관수수료
+        ? (krwStockValue / account.fxRate) * krRegulatoryFeeRate
+        : krwStockValue * krRegulatoryFeeRate; // 국내 유관기관수수료
     const krTransferTax =
       currency === 'usd'
-        ? (krwStockValue / account.fxRate) * KR_TRANSFER_TAX_RATE
-        : krwStockValue * KR_TRANSFER_TAX_RATE; // 국내 주식 증권거래세
+        ? (krwStockValue / account.fxRate) * krTransferTaxRate
+        : krwStockValue * krTransferTaxRate; // 국내 주식 증권거래세
 
     const usBrokerFee =
       currency === 'usd'
-        ? usdStockValue * US_BROKER_FEE_RATE
-        : usdStockValue * account.fxRate * US_BROKER_FEE_RATE; // 미국 주식 증권사 수수료
+        ? usdStockValue * usBrokerFeeRate
+        : usdStockValue * account.fxRate * usBrokerFeeRate; // 미국 주식 증권사 수수료
     const usSecFee =
       currency === 'usd'
-        ? usdStockValue * US_SEC_FEE_RATE
-        : usdStockValue * account.fxRate * US_SEC_FEE_RATE; // 미국 SEC Fee
+        ? usdStockValue * usSecFeeRate
+        : usdStockValue * account.fxRate * usSecFeeRate; // 미국 SEC Fee
     const usFxFee =
       currency === 'usd'
         ? (usdStockValue + account.usd.cash) *
-          EXCHANGE_FEE_RATE *
-          EXCHANGE_SPREAD_RATE
+          exchangeFeeRate *
+          exchangeSpreadRate
         : (usdStockValue + account.usd.cash) *
           account.fxRate *
-          EXCHANGE_FEE_RATE *
-          EXCHANGE_SPREAD_RATE; // 미국 주식 환전 수수료
+          exchangeFeeRate *
+          exchangeSpreadRate; // 미국 주식 환전 수수료
     const usTax =
-      usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE > 0
+      usEstimatedProfit * usCapitalGainsTaxRate > 0
         ? currency === 'usd'
-          ? (usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE) / account.fxRate // usEstimatedProfit이 원화로 계산됨
-          : usEstimatedProfit * US_CAPITAL_GAINS_TAX_RATE
+          ? (usEstimatedProfit * usCapitalGainsTaxRate) / account.fxRate // usEstimatedProfit이 원화로 계산됨
+          : usEstimatedProfit * usCapitalGainsTaxRate
         : 0; // 미국 주식 양도소득세 (마이너스일 경우 0원 처리)
 
     const totalTaxFee =

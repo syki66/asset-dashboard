@@ -10,7 +10,7 @@ export const KR_TRANSFER_TAX_RATE = 0.15 * 0.01; // 증권거래세
 
 export const US_BROKER_FEE_RATE = 0.05 * 0.01; // 증권사 수수료 0.05%
 export const US_CAPITAL_GAINS_TAX_RATE = 22 * 0.01; // 미국주식 양도소득세
-export const US_SEC_FEE_RATE = 0.00278 * 0.01; // 미국 SEC Fee
+export const US_SEC_FEE_RATE = 0.00206 * 0.01; // 미국 SEC Fee
 
 export const US_DIVIDEND_TAX_RATE = 15 * 0.01; // 미국 원천징수 배당소득세 15%
 export const KR_DIVIDEND_TAX_RATE = 15.4 * 0.01; // 한국 배당소득세 15.4%

@@ -18,16 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
-import {
-  EXCHANGE_FEE_RATE,
-  EXCHANGE_SPREAD_RATE,
-  KR_BROKER_FEE_RATE,
-  KR_REGULATORY_FEE_RATE,
-  KR_TRANSFER_TAX_RATE,
-  US_BROKER_FEE_RATE,
-  US_CAPITAL_GAINS_TAX_RATE,
-  US_SEC_FEE_RATE,
-} from '@/constants/keywords';
+import { useFeeSettingsStore } from '@/store/fee-settings';
 
 type ChartLayout = 'expanded' | 'compact';
 
@@ -37,6 +28,7 @@ export default function Page() {
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
   const chartLayout = useChartLayoutStore((state) => state.chartLayout);
+  const feeSettings = useFeeSettingsStore((state) => state.feeSettings);
   const [detailChartLayout, setDetailChartLayout] =
     useState<ChartLayout>(chartLayout);
   const [returnChartLayout, setReturnChartLayout] =
@@ -71,16 +63,17 @@ export default function Page() {
   const excessReturnInfo =
     '벤치마크 수익금에서 내 포트폴리오 수익금을 뺀 값입니다. 양수면 벤치마크가 더 높고, 음수면 내 포트폴리오가 더 높습니다.';
   const formatRate = (rate: number) => `${Number((rate * 100).toFixed(6))}%`;
-  const fxFeeRate = EXCHANGE_FEE_RATE * EXCHANGE_SPREAD_RATE;
-  const fxDiscountRate = 1 - EXCHANGE_FEE_RATE;
+  const fxFeeRate =
+    feeSettings.exchangeFeeRate * feeSettings.exchangeSpreadRate;
+  const fxDiscountRate = 1 - feeSettings.exchangeFeeRate;
   const costInfo = {
-    usTax: `해외주식 양도차익에 적용하는 세금입니다. 양도차익이 양수일 때 ${formatRate(US_CAPITAL_GAINS_TAX_RATE)}를 적용합니다.`,
-    usFxFee: `달러 자산을 원화로 환산할 때 반영하는 추정 환전 비용입니다. 환스프레드 ${formatRate(EXCHANGE_SPREAD_RATE)}에 환전우대 ${formatRate(fxDiscountRate)}를 적용해 ${formatRate(fxFeeRate)}를 반영합니다.`,
-    usBrokerFee: `해외주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(US_BROKER_FEE_RATE)}를 적용합니다.`,
-    usSecFee: `미국 주식 매도 시 부과되는 SEC 수수료입니다. 평가금액에 ${formatRate(US_SEC_FEE_RATE)}를 적용합니다.`,
-    krTransferTax: `국내주식 매도 시 부과되는 증권거래세입니다. 평가금액에 ${formatRate(KR_TRANSFER_TAX_RATE)}를 적용합니다.`,
-    krBrokerFee: `국내주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(KR_BROKER_FEE_RATE)}를 적용합니다.`,
-    krRegulatoryFee: `국내주식 매도 시 발생하는 유관기관제비용입니다. 평가금액에 ${formatRate(KR_REGULATORY_FEE_RATE)}를 적용합니다.`,
+    usTax: `해외주식 양도차익에 적용하는 세금입니다. 양도차익이 양수일 때 ${formatRate(feeSettings.usCapitalGainsTaxRate)}를 적용합니다.`,
+    usFxFee: `달러 자산을 원화로 환산할 때 반영하는 추정 환전 비용입니다. 환스프레드 ${formatRate(feeSettings.exchangeSpreadRate)}에 환전우대 ${formatRate(fxDiscountRate)}를 적용해 ${formatRate(fxFeeRate)}를 반영합니다.`,
+    usBrokerFee: `해외주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(feeSettings.usBrokerFeeRate)}를 적용합니다.`,
+    usSecFee: `미국 주식 매도 시 부과되는 SEC 수수료입니다. 평가금액에 ${formatRate(feeSettings.usSecFeeRate)}를 적용합니다.`,
+    krTransferTax: `국내주식 매도 시 부과되는 증권거래세입니다. 평가금액에 ${formatRate(feeSettings.krTransferTaxRate)}를 적용합니다.`,
+    krBrokerFee: `국내주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(feeSettings.krBrokerFeeRate)}를 적용합니다.`,
+    krRegulatoryFee: `국내주식 매도 시 발생하는 유관기관제비용입니다. 평가금액에 ${formatRate(feeSettings.krRegulatoryFeeRate)}를 적용합니다.`,
   };
   const bestYear = showAfterTax ? performance.netBestYear : performance.bestYear;
   const worstYear = showAfterTax

@@ -11,7 +11,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
-import { CsvStep, DateStep, BenchmarkStep } from '@/components/stepper';
+import {
+  CsvStep,
+  DateStep,
+  BenchmarkStep,
+  FeeSettingsStep,
+} from '@/components/stepper';
+import { useFeeSettingsStore } from '@/store/fee-settings';
 import { useAccountStore } from '@/store/account';
 import { useQuery } from '@tanstack/react-query';
 import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
@@ -21,7 +27,13 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
 import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  RotateCcw,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const steps = [
@@ -37,6 +49,11 @@ const steps = [
   },
   {
     id: 'step-3',
+    label: '비용 설정',
+    description: 'Fees & Taxes',
+  },
+  {
+    id: 'step-4',
     label: '비교 지표 설정',
     description: 'Set Benchmark',
   },
@@ -72,6 +89,9 @@ export default function Page() {
     (state) => state.setSelectedAccounts,
   );
   const setDashboardData = useDashboardStore((state) => state.setDashboardData);
+  const resetFeeSettings = useFeeSettingsStore(
+    (state) => state.resetFeeSettings,
+  );
 
   const {
     data: totalAccountData,
@@ -270,6 +290,30 @@ export default function Page() {
             )}
 
             {activeStep === 2 && (
+              <div className='space-y-5'>
+                <div className='flex items-start justify-between gap-4'>
+                  <div>
+                    <h3 className='text-xl font-bold'>수수료와 세금 설정</h3>
+                    <p className='mt-1 text-sm text-muted-foreground'>
+                      세후 평가금액과 비용 추정에 사용할 기본값을 조정합니다.
+                    </p>
+                  </div>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={resetFeeSettings}
+                    className='shrink-0 cursor-pointer rounded-xl border-white/15 bg-white/[0.04] text-foreground hover:bg-white/[0.1] hover:text-foreground'
+                  >
+                    <RotateCcw className='h-3.5 w-3.5' />
+                    기본값
+                  </Button>
+                </div>
+                <FeeSettingsStep />
+              </div>
+            )}
+
+            {activeStep === 3 && (
               <div className='space-y-5'>
                 <div>
                   <h3 className='text-xl font-bold'>벤치마크 설정</h3>
