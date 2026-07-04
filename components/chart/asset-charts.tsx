@@ -987,7 +987,6 @@ export function AssetChart({
                   type="category"
                   ticks={calculateXAxisTicks}
                   interval={0}
-                  padding={{ left: 10, right: 10 }}
                 />
                 <YAxis
                   axisLine={false}

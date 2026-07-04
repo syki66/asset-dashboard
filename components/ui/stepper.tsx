@@ -23,7 +23,7 @@ export function Stepper({
 }: StepperProps) {
   return (
     <div className={cn('w-full', className)}>
-      <div className='flex items-start justify-center'>
+      <div className='flex items-start'>
         {steps.map((step, index) => {
           const isCompleted = index < activeStep;
           const isCurrent = index === activeStep;
@@ -32,7 +32,7 @@ export function Stepper({
 
           return (
             <React.Fragment key={step.id}>
-              <div className='flex min-w-[112px] flex-col items-center'>
+              <div className='flex min-w-0 flex-1 flex-col items-center'>
                 <button
                   type='button'
                   className={cn(
@@ -59,14 +59,14 @@ export function Stepper({
                 <div className='mt-3 text-center'>
                   <div
                     className={cn(
-                      'text-sm font-semibold',
+                      'text-sm font-semibold leading-snug',
                       isCurrent ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
                     {step.label}
                   </div>
                   {step.description && (
-                    <div className='mt-1 text-xs text-muted-foreground'>
+                    <div className='mt-1 text-xs leading-snug text-muted-foreground'>
                       {step.description}
                     </div>
                   )}
@@ -75,10 +75,10 @@ export function Stepper({
               {index < steps.length - 1 && (
                 <div
                   className={cn(
-                    'mx-2 mt-5 h-0.5 w-10 flex-1 rounded-full sm:mx-4 sm:w-20',
+                    'mx-2 mt-5 h-0.5 flex-[0.8] rounded-full sm:mx-3',
                     index < activeStep
                       ? 'bg-[color:var(--setup-primary,var(--primary))]'
-                      : 'bg-white/[0.1]',
+                      : 'bg-slate-400/35',
                   )}
                 />
               )}
