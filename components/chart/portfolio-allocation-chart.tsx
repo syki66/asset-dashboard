@@ -536,17 +536,12 @@ export function PortfolioAllocationChart({
                     2,
                   );
 
-                  // Determine color
                   const threshold = totalValue * 0.005;
                   const isLarge = item.value >= threshold;
-                  let color = '#94a3b8'; // Default gray for 'Others'
-
-                  if (isLarge) {
-                    // Find index in pieChartData (excluding 'Others')
-                    // Since pieChartData starts with largeItems sorted same as chartData,
-                    // the index in chartData is the same as in pieChartData for large items.
-                    color = COLORS[index % COLORS.length];
-                  }
+                  const color =
+                    allocationMode === 'sectors' || isLarge
+                      ? COLORS[index % COLORS.length]
+                      : '#94a3b8';
 
                   return (
                     <div

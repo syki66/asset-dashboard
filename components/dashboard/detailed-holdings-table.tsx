@@ -79,11 +79,11 @@ export function DetailedHoldingsTable({ stocks, themeColor }: DetailedHoldingsTa
               </TableCell>
               <TableCell className="text-right">{amountWithUnit(formattedCurrentValue)}</TableCell>
               <TableCell className="text-right">{amountWithUnit(formattedPurchaseAmount)}</TableCell>
-              <TableCell className={`text-right ${gainLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <TableCell className={`text-right ${gainLoss >= 0 ? 'text-rose-500' : 'text-sky-500'}`}>
                 {gainLoss >= 0 ? '+' : ''}
                 {amountWithUnit(formattedGainLoss)}
               </TableCell>
-              <TableCell className={`text-right ${returnRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <TableCell className={`text-right ${returnRate >= 0 ? 'text-rose-500' : 'text-sky-500'}`}>
                 {returnRate >= 0 ? '+' : ''}
                 {returnRate.toFixed(2)}%
               </TableCell>

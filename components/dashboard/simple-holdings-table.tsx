@@ -10,7 +10,7 @@ import {
 import { StockProps } from '@/types';
 import { useCurrencyStore } from '@/store/options';
 import { getAverage } from '@/utils/math';
-import { DollarSign } from 'lucide-react'; // Placeholder icon
+import { DollarSign } from 'lucide-react';
 
 interface SimpleHoldingsTableProps {
   stocks: StockProps[];
@@ -38,6 +38,7 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
       </TableHeader>
       <TableBody style={{ '--row-hover-bg': hoverBgVar } as React.CSSProperties}>
         {stocks.map((stock) => {
+          const isKoreanStock = stock.code?.startsWith('A');
           const avgPrice = getAverage(stock.balance.map((item) => item.price));
           const currentValue = stock.price * stock.balance.length;
           const profit = currentValue - (avgPrice * stock.balance.length);
@@ -51,7 +52,18 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
               key={stock.symbol}
               className="transition-colors hover:bg-[var(--row-hover-bg)]"
             >
-              <TableCell><DollarSign className="h-4 w-4" style={{ color: themeColor }} /></TableCell>
+              <TableCell>
+                {isKoreanStock ? (
+                  <span
+                    className="inline-flex h-4 w-4 items-center justify-center text-sm font-bold leading-none"
+                    style={{ color: themeColor }}
+                  >
+                    ₩
+                  </span>
+                ) : (
+                  <DollarSign className="h-4 w-4" style={{ color: themeColor }} />
+                )}
+              </TableCell>
               <TableCell>
                 <div className="font-medium">{stock.shortName}</div>
                 <div className="text-sm text-muted-foreground">{formattedQuantity} 주</div>
@@ -63,7 +75,7 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
                     {currencyUnit}
                   </span>
                 </div>
-                <div className={`text-sm ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-sm ${profit >= 0 ? 'text-rose-500' : 'text-sky-500'}`}>
                   {profit >= 0 ? '+' : ''}{formattedProfit}
                   <span className="text-xs font-normal ml-1">{currencyUnit}</span>
                   {' '}({returnRate >= 0 ? '+' : ''}{returnRate.toFixed(2)}%)

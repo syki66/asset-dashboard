@@ -358,18 +358,18 @@ export function StockTradeChart({
           </p>
           <hr className='border-border my-1' />
 
-          {renderSection('매수', buyItems, 'text-red-500')}
+          {renderSection('매수', buyItems, 'text-rose-500')}
 
           {buyItems.length > 0 && sellItems.length > 0 && (
             <div className='h-px bg-border/50 my-2 w-full mx-auto' />
           )}
 
-          {renderSection('매도', sellItems, 'text-blue-500')}
+          {renderSection('매도', sellItems, 'text-sky-500')}
 
           <hr className='border-border my-2' />
           <div className='flex items-center justify-between font-bold text-sm text-foreground'>
             <span>합계</span>
-            <span className={netTotal > 0 ? 'text-red-500' : netTotal < 0 ? 'text-blue-500' : ''}>
+            <span className={netTotal > 0 ? 'text-rose-500' : netTotal < 0 ? 'text-sky-500' : ''}>
               {netTotal > 0 ? '+' : ''}{formatTradeValue(netTotal)}
             </span>
           </div>
@@ -606,19 +606,19 @@ export function StockTradeChart({
         <div className='mt-6 grid grid-cols-3 gap-4 border-t border-border/50 pt-4'>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>총 매수</span>
-            <span className='text-lg font-bold text-red-500'>
+            <span className='text-lg font-bold text-rose-500'>
               {formatTradeValue(totalBuy)}
             </span>
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>총 매도</span>
-            <span className='text-lg font-bold text-blue-500'>
+            <span className='text-lg font-bold text-sky-500'>
               {formatTradeValue(totalSell)}
             </span>
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>합계</span>
-            <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-red-500' : totalBuy + totalSell < 0 ? 'text-blue-500' : 'text-foreground'}`}>
+            <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-rose-500' : totalBuy + totalSell < 0 ? 'text-sky-500' : 'text-foreground'}`}>
               {totalBuy + totalSell > 0 ? '+' : ''}{formatTradeValue(totalBuy + totalSell)}
             </span>
           </div>

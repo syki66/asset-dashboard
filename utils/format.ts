@@ -122,7 +122,7 @@ export function formatCurrency(
   }
 }
 
-// 수익률에 따라 text-red-600 또는 text-blue-600 클래스를 반환
+// 수익률에 따라 차분한 수익/손실 색상 클래스를 반환
 export function getReturnRateColorClass(returnRate: number): string {
-  return returnRate >= 0 ? 'text-red-600' : 'text-blue-600';
+  return returnRate >= 0 ? 'text-rose-500' : 'text-sky-500';
 }
