@@ -178,6 +178,9 @@ export function PortfolioAllocationChart({
         const isInvesco =
           stock.longName?.includes('Invesco') ||
           stock.shortName?.includes('Invesco');
+        const isKoreanStock = stock.code?.startsWith('A');
+        const stockDisplayName =
+          isKoreanStock && stock.shortName ? stock.shortName : stock.symbol;
 
         const stockValue = stock.balance.length * stock.price;
 
@@ -238,7 +241,13 @@ export function PortfolioAllocationChart({
         }
 
         // Regular stock or failed fetch
-        addStockMapItem(stock.symbol, stockValue, stock.shortName);
+        addStockMapItem(
+          stockDisplayName,
+          stockValue,
+          isKoreanStock
+            ? stock.longName || stock.symbol
+            : stock.shortName || stock.longName || stock.symbol,
+        );
       }
 
       const stockItems = Array.from(stockMap.entries()).map(
