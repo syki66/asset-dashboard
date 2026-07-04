@@ -14,6 +14,7 @@ import { Stepper } from '@/components/ui/stepper';
 import {
   CsvStep,
   DateStep,
+  PrincipalAdjustmentStep,
   BenchmarkStep,
   FeeSettingsStep,
 } from '@/components/stepper';
@@ -35,6 +36,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { PrincipalAdjustment } from '@/types';
 
 const steps = [
   {
@@ -49,11 +51,16 @@ const steps = [
   },
   {
     id: 'step-3',
+    label: '원금 보정',
+    description: 'Principal',
+  },
+  {
+    id: 'step-4',
     label: '비용 설정',
     description: 'Fees & Taxes',
   },
   {
-    id: 'step-4',
+    id: 'step-5',
     label: '비교 지표 설정',
     description: 'Set Benchmark',
   },
@@ -68,9 +75,15 @@ const readFile = async (file: File) => {
   });
 };
 
+const getFileKey = (file: File) =>
+  `${file.name}-${file.size}-${file.lastModified}`;
+
 export default function Page() {
   const [activeStep, setActiveStep] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [principalAdjustments, setPrincipalAdjustments] = useState<
+    Record<string, PrincipalAdjustment>
+  >({});
   const [benchmarkStartYear, setBenchmarkStartYear] = useState<number>();
   const currentStep = steps[activeStep];
   const setupThemeStyle = {
@@ -107,7 +120,13 @@ export default function Page() {
           const fileContent = await readFile(file); // 파일 내용 읽기
           const shsecJson = shsecCsvToJson(fileContent); // 신한증권 csv 데이터를 json으로 변환
           const transactions = createShsecTransactions(shsecJson); // 신한증권 json 데이터를 거래내역으로 변환
-          const accountData = await createAccountData(transactions); // 거래내역을 계좌정보로 변환
+          // startDate와 endDate는 기본값(첫 거래일~오늘)을 사용하고, 파일별 원금 보정값만 전달합니다.
+          const accountData = await createAccountData(
+            transactions,
+            undefined,
+            undefined,
+            principalAdjustments[getFileKey(file)],
+          ); // 거래내역을 계좌정보로 변환
           const benchmarkBestData = await createBenchmarkData(transactions, 'best');
           const benchmarkWorstData = await createBenchmarkData(
             transactions,
@@ -171,6 +190,43 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
+  }, [uploadedFiles]);
+
+  const setPrincipalAdjustment = (
+    fileKey: string,
+    currency: keyof PrincipalAdjustment,
+    value: number,
+  ) => {
+    // 파일별 원금 보정값을 통화 단위별로 갱신합니다.
+    setPrincipalAdjustments((current) => ({
+      ...current,
+      [fileKey]: {
+        krw: current[fileKey]?.krw ?? 0,
+        usd: current[fileKey]?.usd ?? 0,
+        [currency]: value,
+      },
+    }));
+  };
+
+  const resetPrincipalAdjustment = (fileKey: string) => {
+    // 해당 파일의 원금 보정값만 0으로 되돌립니다.
+    setPrincipalAdjustments((current) => ({
+      ...current,
+      [fileKey]: { krw: 0, usd: 0 },
+    }));
+  };
+
+  useEffect(() => {
+    const uploadedFileKeys = new Set(uploadedFiles.map(getFileKey));
+
+    // 업로드 목록에서 제거된 파일의 원금 보정값은 함께 정리합니다.
+    setPrincipalAdjustments((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(([fileKey]) =>
+          uploadedFileKeys.has(fileKey),
+        ),
+      ),
+    );
   }, [uploadedFiles]);
 
   const handleNext = () => {
@@ -291,6 +347,25 @@ export default function Page() {
 
             {activeStep === 2 && (
               <div className='space-y-5'>
+                <div>
+                  <h3 className='text-xl font-bold'>원금 보정</h3>
+                  <p className='mt-1 text-sm text-muted-foreground'>
+                    입출금 내역만으로 계산된 원금과 실제 원금이 다를 때
+                    보정합니다.
+                  </p>
+                </div>
+                <PrincipalAdjustmentStep
+                  uploadedFiles={uploadedFiles}
+                  principalAdjustments={principalAdjustments}
+                  getFileKey={getFileKey}
+                  setPrincipalAdjustment={setPrincipalAdjustment}
+                  resetPrincipalAdjustment={resetPrincipalAdjustment}
+                />
+              </div>
+            )}
+
+            {activeStep === 3 && (
+              <div className='space-y-5'>
                 <div className='flex items-start justify-between gap-4'>
                   <div>
                     <h3 className='text-xl font-bold'>수수료와 세금 설정</h3>
@@ -313,7 +388,7 @@ export default function Page() {
               </div>
             )}
 
-            {activeStep === 3 && (
+            {activeStep === 4 && (
               <div className='space-y-5'>
                 <div>
                   <h3 className='text-xl font-bold'>벤치마크 설정</h3>

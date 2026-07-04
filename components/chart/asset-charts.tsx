@@ -110,7 +110,6 @@ interface AssetHistoryChartProps {
   fillBetween?: [string, string]; // [bottomKey, topKey]
   calendarCategory?: string;
   seriesToggleGroups?: SeriesToggleGroup[];
-  enableSymLogScale?: boolean;
   displayAsNegative?: boolean;
 }
 
@@ -127,7 +126,6 @@ export function AssetChart({
   fillBetween,
   calendarCategory,
   seriesToggleGroups = [],
-  enableSymLogScale = false,
   displayAsNegative = false,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
@@ -355,7 +353,7 @@ export function AssetChart({
       return typeof value === 'number' && value <= 0;
     }),
   );
-  const usesSymLogScale = enableSymLogScale && useLogScale && hasNonPositiveValue;
+  const usesSymLogScale = useLogScale && hasNonPositiveValue;
   const usesPercentUnit = seriesWithColors.some(
     (series) => series.unit === 'percent',
   );

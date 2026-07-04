@@ -437,7 +437,6 @@ export default function Page() {
             themeColor={themeColor}
             chartType='line'
             calendarCategory='performance'
-            enableSymLogScale
             fillBetween={
               showAfterTax
                 ? ['benchmarkWorstNetProfit', 'benchmarkBestNetProfit']

@@ -69,6 +69,11 @@ export type StockTradeHistoryChartProps = {
 
 export type Currency = 'krw' | 'usd';
 
+export type PrincipalAdjustment = {
+  krw: number;
+  usd: number;
+};
+
 export type StockHistoryProps = {
   date: string;
   preSplitClose: number;

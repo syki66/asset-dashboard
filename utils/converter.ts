@@ -10,6 +10,7 @@ import {
   StockTradeHistoryChartProps,
   MergeAccountDataInput,
   StockTradeHistoryProps,
+  type PrincipalAdjustment,
 } from '@/types';
 import {
   dateToTimestamp,
@@ -1194,16 +1195,69 @@ const updateStockPrice = (
   if (!stockInfo) return;
 
   // 해당 날짜의 가격이 있는지 확인
-  const currentPrice = stockInfo.prices.find((price) => price.date === date);
+  const isValidPrice = (price: { preSplitClose: number }) =>
+    Number.isFinite(price.preSplitClose) && price.preSplitClose > 0;
+
+  const currentPrice = stockInfo.prices.find(
+    (price) => price.date === date && isValidPrice(price),
+  );
   if (currentPrice) {
     stock.price = currentPrice.preSplitClose;
   } else {
     // 찾지 못하면, 과거 데이터 중 가장 최근 데이터를 가져옵니다.
     const pastPrices = stockInfo.prices
-      .filter((price) => price.date < date)
+      .filter((price) => price.date < date && isValidPrice(price))
       .sort((a, b) => b.date.localeCompare(a.date));
     stock.price = pastPrices[0]?.preSplitClose ?? stock.price;
   }
+};
+
+// 보정액 하나를 첫 거래일 기준의 deposit/withdrawal 거래로 변환합니다.
+const createPrincipalAdjustmentTransaction = (
+  baseTransaction: TransactionProps,
+  currency: Currency,
+  amount: number,
+): TransactionProps | null => {
+  if (amount === 0) return null;
+
+  return {
+    date: baseTransaction.date,
+    type: amount > 0 ? 'deposit' : 'withdrawal',
+    currency,
+    ISIN: '',
+    quantity: 1,
+    price: Math.abs(amount),
+    krwCash: baseTransaction.krwCash,
+    usdCash: baseTransaction.usdCash,
+  };
+};
+
+// 원금 보정값을 첫 거래일의 가상 입출금 거래로 추가해 기존 원금 계산 로직을 그대로 사용합니다.
+const addPrincipalAdjustmentTransactions = (
+  transactions: TransactionProps[],
+  principalAdjustment?: PrincipalAdjustment,
+) => {
+  const baseTransaction = transactions[0];
+  if (!baseTransaction || !principalAdjustment) return transactions;
+
+  const adjustmentTransactions = [
+    createPrincipalAdjustmentTransaction(
+      baseTransaction,
+      'krw',
+      principalAdjustment.krw || 0,
+    ),
+    createPrincipalAdjustmentTransaction(
+      baseTransaction,
+      'usd',
+      principalAdjustment.usd || 0,
+    ),
+  ].filter((transaction): transaction is TransactionProps =>
+    Boolean(transaction),
+  );
+
+  if (adjustmentTransactions.length === 0) return transactions;
+
+  return [...adjustmentTransactions, ...transactions];
 };
 
 // 날짜별 계좌정보 데이터 데이터 생성 (계좌정보와 그래프 표시용)
@@ -1211,6 +1265,7 @@ export const createAccountData = async (
   transactions: TransactionProps[],
   startDate?: string,
   endDate?: string,
+  principalAdjustment?: PrincipalAdjustment,
 ) => {
   // 계좌 병합 시 계좌들의 날짜값들이 안 맞으면 값이 틀어짐. 병합할때 부족분을 더미로 넣는다면 환율과 주가정보 등 최신정보 반영이 불가능함. 따라서 여기서 당일 날짜로 받고 endDate를 줄이고 싶다면 데이터를 잘라서 쓰는게 맞을듯
   const today = timestampToDate(Math.floor(new Date().getTime() / 1000));
@@ -1228,18 +1283,23 @@ export const createAccountData = async (
   const filteredTransactions = transactions.filter(
     (transaction) => new Date(transaction.date) >= new Date(startDate),
   );
+  const adjustedTransactions = addPrincipalAdjustmentTransactions(
+    filteredTransactions,
+    principalAdjustment,
+  );
 
   // 주식 종목 코드 데이터 가져오기 (중복제거 및 빈값 제거)
   const stockCodes = [
-    ...new Set(filteredTransactions.map((transaction) => transaction.ISIN)),
+    ...new Set(adjustedTransactions.map((transaction) => transaction.ISIN)),
   ].filter((code) => code !== '');
 
   const { stockData } = await getStockInfo(startDate, today, stockCodes); // 주식 정보 및 히스토리 데이터 가져오기
-  const fxRates = stockData.find(
-    (stock) => stock.code === USD_KRW_SYMBOL,
-  )?.prices;
+  const fxRates =
+    stockData.find(
+      (stock) => stock.code === USD_KRW_SYMBOL,
+    )?.prices ?? [];
 
-  const accountData = filteredTransactions
+  const accountData = adjustedTransactions
     .reduce(
       (acc, transaction) => {
         const account = structuredClone(acc[acc.length - 1]); // 직전 데이터 복사
