@@ -105,24 +105,28 @@ export function getLatestDate(date1: string, date2: string): string {
 // 금액을 통화 형식으로 변환
 export function formatCurrency(
   amount: number,
-  currency: 'usd' | 'krw'
+  currency: 'usd' | 'krw',
+  options?: {
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  },
 ): string {
   if (currency === 'usd') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      maximumFractionDigits: 0,
+      minimumFractionDigits: options?.minimumFractionDigits ?? 0,
+      maximumFractionDigits: options?.maximumFractionDigits ?? 0,
     }).format(amount);
   } else {
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return `${new Intl.NumberFormat('ko-KR', {
+      minimumFractionDigits: options?.minimumFractionDigits ?? 0,
+      maximumFractionDigits: options?.maximumFractionDigits ?? 0,
+    }).format(amount)}원`;
   }
 }
 
 // 수익률에 따라 차분한 수익/손실 색상 클래스를 반환
 export function getReturnRateColorClass(returnRate: number): string {
-  return returnRate >= 0 ? 'text-rose-500' : 'text-sky-500';
+  return returnRate >= 0 ? 'text-rose-500' : 'text-blue-600';
 }

@@ -67,6 +67,21 @@ export function DividendChart({
   const [timeRange, setTimeRange] = useState<TimeRange>(defaultTimeRange);
   const { currency } = useCurrencyStore();
   const hoverColor = themeColor.replace('-theme)', '-hover-bg)');
+  const formatCurrencyValue = (value: number, compact = false) => {
+    if (currency === 'usd') {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        notation: compact ? 'compact' : 'standard',
+        maximumFractionDigits: compact ? 1 : 0,
+      }).format(value);
+    }
+
+    return `${new Intl.NumberFormat('ko-KR', {
+      notation: compact ? 'compact' : 'standard',
+      maximumFractionDigits: compact ? 1 : 0,
+    }).format(value)}원`;
+  };
 
   const { chartData, aggregationPeriod } = useMemo(() => {
     if (!data || data.length === 0)
@@ -210,11 +225,7 @@ export function DividendChart({
                 <span>{valueLabel}</span>
               </div>
               <span className='font-semibold ml-4'>
-                {new Intl.NumberFormat('ko-KR', {
-                  style: 'currency',
-                  currency: currency.toUpperCase(),
-                  maximumFractionDigits: 0,
-                }).format(data.value)}
+                {formatCurrencyValue(data.value)}
               </span>
             </div>
           </div>
@@ -286,11 +297,7 @@ export function DividendChart({
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(value) =>
-                    new Intl.NumberFormat('ko-KR', {
-                      style: 'currency',
-                      currency: currency.toUpperCase(),
-                      notation: 'compact',
-                    }).format(value as number)
+                    formatCurrencyValue(value as number, true)
                   }
                 />
                 <Tooltip

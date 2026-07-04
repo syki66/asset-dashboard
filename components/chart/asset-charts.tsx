@@ -377,11 +377,17 @@ export function AssetChart({
       return displayValue.toFixed(2);
     }
 
-    return new Intl.NumberFormat(currency === 'usd' ? 'en-US' : 'ko-KR', {
-      style: 'currency',
-      currency: currency === 'usd' ? 'USD' : 'KRW',
+    if (currency === 'usd') {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+      }).format(displayValue);
+    }
+
+    return `${new Intl.NumberFormat('ko-KR', {
       maximumFractionDigits: 0,
-    }).format(displayValue);
+    }).format(displayValue)}원`;
   };
 
   const formatYAxisTick = (value: number) => {
@@ -395,13 +401,21 @@ export function AssetChart({
       return displayValue.toFixed(2);
     }
 
-    return new Intl.NumberFormat(currency === 'usd' ? 'en-US' : 'ko-KR', {
-      style: 'currency',
-      currency: currency === 'usd' ? 'USD' : 'KRW',
+    if (currency === 'usd') {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        notation: 'compact',
+        compactDisplay: 'short',
+        maximumFractionDigits: 1,
+      }).format(displayValue);
+    }
+
+    return `${new Intl.NumberFormat('ko-KR', {
       notation: 'compact',
       compactDisplay: 'short',
       maximumFractionDigits: 1,
-    }).format(displayValue);
+    }).format(displayValue)}원`;
   };
 
   // 차트 도메인 계산

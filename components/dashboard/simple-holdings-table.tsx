@@ -20,7 +20,7 @@ interface SimpleHoldingsTableProps {
 export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableProps) {
   const hoverBgVar = themeColor.replace('-theme)', '-hover-bg)');
   const currency = useCurrencyStore((state) => state.currency);
-  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
+  const currencyUnit = currency === 'usd' ? 'USD' : '원';
   const formatAmount = (value: number) =>
     value.toLocaleString(undefined, {
       minimumFractionDigits: currency === 'usd' ? 2 : 0,
@@ -71,13 +71,23 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
               <TableCell className="text-right">
                 <div className="font-medium">
                   {formattedCurrentValue}
-                  <span className="text-xs font-normal text-muted-foreground ml-1">
+                  <span
+                    className={`text-xs font-normal text-muted-foreground ${
+                      currency === 'usd' ? 'ml-1' : ''
+                    }`}
+                  >
                     {currencyUnit}
                   </span>
                 </div>
-                <div className={`text-sm ${profit >= 0 ? 'text-rose-500' : 'text-sky-500'}`}>
+                <div className={`text-sm ${profit >= 0 ? 'text-rose-500' : 'text-blue-600'}`}>
                   {profit >= 0 ? '+' : ''}{formattedProfit}
-                  <span className="text-xs font-normal ml-1">{currencyUnit}</span>
+                  <span
+                    className={`text-xs font-normal ${
+                      currency === 'usd' ? 'ml-1' : ''
+                    }`}
+                  >
+                    {currencyUnit}
+                  </span>
                   {' '}({returnRate >= 0 ? '+' : ''}{returnRate.toFixed(2)}%)
                 </div>
               </TableCell>

@@ -139,11 +139,10 @@ export function PortfolioAllocationChart({
     string | null
   >(null);
   const currency = useCurrencyStore((state) => state.currency);
-  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
+  const currencyUnit = currency === 'usd' ? 'USD' : '원';
   const formatAmount = (value: number) =>
     value.toLocaleString(undefined, {
-      minimumFractionDigits: currency === 'usd' ? 2 : 0,
-      maximumFractionDigits: currency === 'usd' ? 2 : 0,
+      maximumFractionDigits: 0,
     });
 
   useEffect(() => {
@@ -428,7 +427,11 @@ export function PortfolioAllocationChart({
               <span>평가금액</span>
               <span className='font-semibold' style={{ color }}>
                 {formatAmount(data.value)}
-                <span className='ml-1 text-xs font-normal text-muted-foreground'>
+                <span
+                  className={`text-xs font-normal text-muted-foreground ${
+                    currency === 'usd' ? 'ml-1' : ''
+                  }`}
+                >
                   {currencyUnit}
                 </span>
               </span>
@@ -569,7 +572,11 @@ export function PortfolioAllocationChart({
                       <div className='text-right'>
                         <p className='font-bold tabular-nums'>
                           {formatAmount(item.value)}
-                          <span className='text-xs font-normal text-muted-foreground ml-1'>
+                          <span
+                            className={`text-xs font-normal text-muted-foreground ${
+                              currency === 'usd' ? 'ml-1' : ''
+                            }`}
+                          >
                             {currencyUnit}
                           </span>
                         </p>

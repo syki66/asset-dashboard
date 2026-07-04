@@ -66,6 +66,13 @@ export default function Page() {
   const fxFeeRate =
     feeSettings.exchangeFeeRate * feeSettings.exchangeSpreadRate;
   const fxDiscountRate = 1 - feeSettings.exchangeFeeRate;
+  const costCurrencyOptions =
+    currency === 'usd'
+      ? {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }
+      : undefined;
   const costInfo = {
     usTax: `해외주식 양도차익에 적용하는 세금입니다. 양도차익이 양수일 때 ${formatRate(feeSettings.usCapitalGainsTaxRate)}를 적용합니다.`,
     usFxFee: `달러 자산을 원화로 환산할 때 반영하는 추정 환전 비용입니다. 환스프레드 ${formatRate(feeSettings.exchangeSpreadRate)}에 환전우대 ${formatRate(fxDiscountRate)}를 적용해 ${formatRate(fxFeeRate)}를 반영합니다.`,
@@ -241,42 +248,76 @@ export default function Page() {
           contentItems={[
             {
               label: '해외주식 양도소득세',
-              value: formatCurrency(costs.usTax, currency),
+              value: formatCurrency(
+                costs.usTax,
+                currency,
+                costs.usTax === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.usTax,
             },
             {
               label: '환전 수수료',
-              value: formatCurrency(costs.usFxFee, currency),
+              value: formatCurrency(
+                costs.usFxFee,
+                currency,
+                costs.usFxFee === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.usFxFee,
             },
             {
               label: '해외주식 매도 수수료',
-              value: formatCurrency(costs.usBrokerFee, currency),
+              value: formatCurrency(
+                costs.usBrokerFee,
+                currency,
+                costs.usBrokerFee === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.usBrokerFee,
             },
             {
               label: '미국 SEC 수수료',
-              value: formatCurrency(costs.usSecFee, currency),
+              value: formatCurrency(
+                costs.usSecFee,
+                currency,
+                costs.usSecFee === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.usSecFee,
             },
             {
               label: '국내 증권거래세',
-              value: formatCurrency(costs.krTransferTax, currency),
+              value: formatCurrency(
+                costs.krTransferTax,
+                currency,
+                costs.krTransferTax === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.krTransferTax,
             },
             {
               label: '국내주식 매도 수수료',
-              value: formatCurrency(costs.krBrokerFee, currency),
+              value: formatCurrency(
+                costs.krBrokerFee,
+                currency,
+                costs.krBrokerFee === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.krBrokerFee,
             },
             {
               label: '국내 유관기관제비용',
-              value: formatCurrency(costs.krRegulatoryFee, currency),
+              value: formatCurrency(
+                costs.krRegulatoryFee,
+                currency,
+                costs.krRegulatoryFee === 0 ? undefined : costCurrencyOptions,
+              ),
               info: costInfo.krRegulatoryFee,
             },
             {
               label: '합산',
-              value: formatCurrency(dashboardData.costs.totalCost, currency),
+              value: formatCurrency(
+                dashboardData.costs.totalCost,
+                currency,
+                dashboardData.costs.totalCost === 0
+                  ? undefined
+                  : costCurrencyOptions,
+              ),
               hasDivider: true,
             },
           ]}

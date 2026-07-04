@@ -19,7 +19,7 @@ interface DetailedHoldingsTableProps {
 export function DetailedHoldingsTable({ stocks, themeColor }: DetailedHoldingsTableProps) {
   const hoverBgVar = themeColor.replace('-theme)', '-hover-bg)');
   const currency = useCurrencyStore((state) => state.currency);
-  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
+  const currencyUnit = currency === 'usd' ? 'USD' : '원';
   const formatAmount = (value: number) =>
     value.toLocaleString(undefined, {
       minimumFractionDigits: currency === 'usd' ? 2 : 0,
@@ -61,7 +61,11 @@ export function DetailedHoldingsTable({ stocks, themeColor }: DetailedHoldingsTa
           const amountWithUnit = (value: string) => (
             <>
               {value}
-              <span className="text-xs font-normal text-muted-foreground ml-1">
+              <span
+                className={`text-xs font-normal text-muted-foreground ${
+                  currency === 'usd' ? 'ml-1' : ''
+                }`}
+              >
                 {currencyUnit}
               </span>
             </>
@@ -79,11 +83,11 @@ export function DetailedHoldingsTable({ stocks, themeColor }: DetailedHoldingsTa
               </TableCell>
               <TableCell className="text-right">{amountWithUnit(formattedCurrentValue)}</TableCell>
               <TableCell className="text-right">{amountWithUnit(formattedPurchaseAmount)}</TableCell>
-              <TableCell className={`text-right ${gainLoss >= 0 ? 'text-rose-500' : 'text-sky-500'}`}>
+              <TableCell className={`text-right ${gainLoss >= 0 ? 'text-rose-500' : 'text-blue-600'}`}>
                 {gainLoss >= 0 ? '+' : ''}
                 {amountWithUnit(formattedGainLoss)}
               </TableCell>
-              <TableCell className={`text-right ${returnRate >= 0 ? 'text-rose-500' : 'text-sky-500'}`}>
+              <TableCell className={`text-right ${returnRate >= 0 ? 'text-rose-500' : 'text-blue-600'}`}>
                 {returnRate >= 0 ? '+' : ''}
                 {returnRate.toFixed(2)}%
               </TableCell>

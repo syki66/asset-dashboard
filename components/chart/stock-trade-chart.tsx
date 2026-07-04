@@ -139,18 +139,25 @@ export function StockTradeChart({
   const [aggregationMode, setAggregationMode] = useState<AggregationMode>('daily');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
   const currency = useCurrencyStore((state) => state.currency);
-  const currencyUnit = currency === 'usd' ? 'USD' : 'KRW';
   const formatTradeValue = (value: number) => {
     if (viewMode === 'quantity') {
       return `${Math.round(value).toLocaleString()}주`;
     }
 
+    if (currency === 'usd') {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
     const formattedValue = value.toLocaleString(undefined, {
-      minimumFractionDigits: currency === 'usd' ? 2 : 0,
-      maximumFractionDigits: currency === 'usd' ? 2 : 0,
+      maximumFractionDigits: 0,
     });
 
-    return `${formattedValue}${currencyUnit}`;
+    return `${formattedValue}원`;
   };
 
   const allStocks = useMemo(
@@ -364,12 +371,12 @@ export function StockTradeChart({
             <div className='h-px bg-border/50 my-2 w-full mx-auto' />
           )}
 
-          {renderSection('매도', sellItems, 'text-sky-500')}
+          {renderSection('매도', sellItems, 'text-blue-600')}
 
           <hr className='border-border my-2' />
           <div className='flex items-center justify-between font-bold text-sm text-foreground'>
             <span>합계</span>
-            <span className={netTotal > 0 ? 'text-rose-500' : netTotal < 0 ? 'text-sky-500' : ''}>
+            <span className={netTotal > 0 ? 'text-rose-500' : netTotal < 0 ? 'text-blue-600' : ''}>
               {netTotal > 0 ? '+' : ''}{formatTradeValue(netTotal)}
             </span>
           </div>
@@ -406,13 +413,21 @@ export function StockTradeChart({
           maximumFractionDigits: 0,
         }).format(value) + '주';
     } else {
-      return (value: number) =>
-        new Intl.NumberFormat(currency === 'usd' ? 'en-US' : 'ko-KR', {
+      return (value: number) => {
+        if (currency === 'usd') {
+          return new Intl.NumberFormat('en-US', {
+            notation: 'compact',
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 2,
+          }).format(value);
+        }
+
+        return `${new Intl.NumberFormat('ko-KR', {
           notation: 'compact',
-          style: 'currency',
-          currency: currency === 'usd' ? 'USD' : 'KRW',
-          maximumFractionDigits: currency === 'usd' ? 2 : 0,
-        }).format(value);
+          maximumFractionDigits: 0,
+        }).format(value)}원`;
+      };
     }
   };
 
@@ -612,13 +627,13 @@ export function StockTradeChart({
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>총 매도</span>
-            <span className='text-lg font-bold text-sky-500'>
+            <span className='text-lg font-bold text-blue-600'>
               {formatTradeValue(totalSell)}
             </span>
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-sm font-medium text-muted-foreground'>합계</span>
-            <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-rose-500' : totalBuy + totalSell < 0 ? 'text-sky-500' : 'text-foreground'}`}>
+            <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-rose-500' : totalBuy + totalSell < 0 ? 'text-blue-600' : 'text-foreground'}`}>
               {totalBuy + totalSell > 0 ? '+' : ''}{formatTradeValue(totalBuy + totalSell)}
             </span>
           </div>
