@@ -32,6 +32,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrencyStore } from '@/store/options';
 import { cn } from '@/lib/utils';
+import { formatCompactCurrency } from '@/utils/format';
 
 interface DividendData {
   date: string;
@@ -69,17 +70,23 @@ export function DividendChart({
   const hoverColor = themeColor.replace('-theme)', '-hover-bg)');
   const formatCurrencyValue = (value: number, compact = false) => {
     if (currency === 'usd') {
+      if (compact) {
+        return formatCompactCurrency(value, currency);
+      }
+
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-        notation: compact ? 'compact' : 'standard',
-        maximumFractionDigits: compact ? 1 : 0,
+        maximumFractionDigits: 0,
       }).format(value);
     }
 
+    if (compact) {
+      return formatCompactCurrency(value, currency);
+    }
+
     return `${new Intl.NumberFormat('ko-KR', {
-      notation: compact ? 'compact' : 'standard',
-      maximumFractionDigits: compact ? 1 : 0,
+      maximumFractionDigits: 0,
     }).format(value)}원`;
   };
 

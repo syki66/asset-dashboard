@@ -26,6 +26,7 @@ import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 import { StockTradeHistoryChartProps } from '@/types';
 import { cn } from '@/lib/utils';
 import { useCurrencyStore } from '@/store/options';
+import { formatCompactCurrency } from '@/utils/format';
 
 interface AggregatedTradeData {
   date: string;
@@ -415,18 +416,10 @@ export function StockTradeChart({
     } else {
       return (value: number) => {
         if (currency === 'usd') {
-          return new Intl.NumberFormat('en-US', {
-            notation: 'compact',
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 2,
-          }).format(value);
+          return formatCompactCurrency(value, currency);
         }
 
-        return `${new Intl.NumberFormat('ko-KR', {
-          notation: 'compact',
-          maximumFractionDigits: 0,
-        }).format(value)}원`;
+        return formatCompactCurrency(value, currency);
       };
     }
   };

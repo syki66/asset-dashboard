@@ -126,6 +126,44 @@ export function formatCurrency(
   }
 }
 
+const formatCompactNumber = (value: number, maximumFractionDigits = 1) =>
+  new Intl.NumberFormat('ko-KR', {
+    maximumFractionDigits,
+  }).format(value);
+
+// 차트 Y축용 축약 금액. 원화는 폭을 줄이기 위해 1천만/2.5억처럼 직접 표기합니다.
+export function formatCompactCurrency(
+  amount: number,
+  currency: 'usd' | 'krw',
+): string {
+  if (currency === 'usd') {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      notation: 'compact',
+      compactDisplay: 'short',
+      maximumFractionDigits: 1,
+    }).format(amount);
+  }
+
+  const sign = amount < 0 ? '-' : '';
+  const absoluteAmount = Math.abs(amount);
+
+  if (absoluteAmount >= 100000000) {
+    return `${sign}${formatCompactNumber(absoluteAmount / 100000000)}억`;
+  }
+
+  if (absoluteAmount >= 10000000) {
+    return `${sign}${formatCompactNumber(absoluteAmount / 10000000)}천만`;
+  }
+
+  if (absoluteAmount >= 10000) {
+    return `${sign}${formatCompactNumber(absoluteAmount / 10000)}만`;
+  }
+
+  return `${sign}${formatCompactNumber(absoluteAmount, 0)}원`;
+}
+
 // 수익률에 따라 차분한 수익/손실 색상 클래스를 반환
 export function getReturnRateColorClass(returnRate: number): string {
   return returnRate >= 0 ? 'text-rose-500' : 'text-blue-600';

@@ -53,6 +53,7 @@ import {
 } from '../ui/series-toggle-buttons';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarPicker } from '../ui/calendar-picker';
+import { formatCompactCurrency } from '@/utils/format';
 
 // 차트 시리즈 타입 정의
 interface AssetDataPoint {
@@ -400,20 +401,10 @@ export function AssetChart({
     }
 
     if (currency === 'usd') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        notation: 'compact',
-        compactDisplay: 'short',
-        maximumFractionDigits: 1,
-      }).format(displayValue);
+      return formatCompactCurrency(displayValue, currency);
     }
 
-    return `${new Intl.NumberFormat('ko-KR', {
-      notation: 'compact',
-      compactDisplay: 'short',
-      maximumFractionDigits: 1,
-    }).format(displayValue)}원`;
+    return formatCompactCurrency(displayValue, currency);
   };
 
   // 차트 도메인 계산
