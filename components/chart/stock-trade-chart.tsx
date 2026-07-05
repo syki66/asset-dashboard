@@ -611,24 +611,45 @@ export function StockTradeChart({
           className='mt-4'
         />
         {/* 총 값 Display */}
-        <div className='mt-6 grid grid-cols-3 gap-4 border-t border-border/50 pt-4'>
-          <div className='flex flex-col gap-1'>
-            <span className='text-sm font-medium text-muted-foreground'>총 매수</span>
-            <span className='text-lg font-bold text-rose-500'>
-              {formatTradeValue(totalBuy)}
-            </span>
+        <div className='mt-6 grid grid-cols-1 gap-3 border-t border-white/10 pt-4 sm:grid-cols-3'>
+          <div className='rounded-xl border border-white/15 bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
+            <div className='flex flex-col gap-1'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                총 매수
+              </span>
+              <span className='text-lg font-bold text-rose-500'>
+                {formatTradeValue(totalBuy)}
+              </span>
+            </div>
           </div>
-          <div className='flex flex-col gap-1'>
-            <span className='text-sm font-medium text-muted-foreground'>총 매도</span>
-            <span className='text-lg font-bold text-blue-600'>
-              {formatTradeValue(totalSell)}
-            </span>
+          <div className='rounded-xl border border-white/15 bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
+            <div className='flex flex-col gap-1'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                총 매도
+              </span>
+              <span className='text-lg font-bold text-blue-600'>
+                {formatTradeValue(totalSell)}
+              </span>
+            </div>
           </div>
-          <div className='flex flex-col gap-1'>
-            <span className='text-sm font-medium text-muted-foreground'>합계</span>
-            <span className={`text-lg font-bold ${totalBuy + totalSell > 0 ? 'text-rose-500' : totalBuy + totalSell < 0 ? 'text-blue-600' : 'text-foreground'}`}>
-              {totalBuy + totalSell > 0 ? '+' : ''}{formatTradeValue(totalBuy + totalSell)}
-            </span>
+          <div className='rounded-xl border border-white/15 bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
+            <div className='flex flex-col gap-1'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                합계
+              </span>
+              <span
+                className={`text-lg font-bold ${
+                  totalBuy + totalSell > 0
+                    ? 'text-rose-500'
+                    : totalBuy + totalSell < 0
+                      ? 'text-blue-600'
+                      : 'text-foreground'
+                }`}
+              >
+                {totalBuy + totalSell > 0 ? '+' : ''}
+                {formatTradeValue(totalBuy + totalSell)}
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>
