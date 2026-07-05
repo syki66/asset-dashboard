@@ -27,7 +27,7 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
       const file = new File([blob], fileName, { type: 'text/csv' });
       handleFiles([file]);
       setCsvIndex((prev) => prev + 1);
-    } catch (err) {
+    } catch {
       toast.error('더미 CSV 로드 실패');
     }
   };

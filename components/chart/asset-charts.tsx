@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Area,
   AreaChart,
@@ -25,13 +25,7 @@ import {
 } from 'date-fns';
 import { scaleSymlog } from 'd3-scale';
 import { ko } from 'date-fns/locale';
-import {
-  CalendarDays,
-  DollarSign,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react';
+import { CalendarDays, TrendingUp } from 'lucide-react';
 
 import {
   Card,
@@ -43,14 +37,10 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
 import { inflationRates } from '@/constants/keywords';
 import { useCurrencyStore } from '@/store/options';
 import { Button } from '../ui/button';
-import {
-  SeriesToggleButtons,
-  SeriesInfo,
-} from '../ui/series-toggle-buttons';
+import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarPicker } from '../ui/calendar-picker';
 import { formatCompactCurrency } from '@/utils/format';
@@ -66,6 +56,22 @@ interface ProcessedAssetDataPoint extends AssetDataPoint {
   adjustedValue: number;
   displayValue: number;
 }
+
+type ChartDataPoint = {
+  date: string;
+  fillArea?: [number, number];
+} & Record<string, string | number | [number, number] | undefined>;
+
+type TooltipPayloadItem = {
+  name: string;
+  value: number;
+};
+
+type ChartTooltipProps = {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+};
 
 interface AssetSeries {
   id: string;
@@ -140,15 +146,19 @@ export function AssetChart({
   const currency = useCurrencyStore((state) => state.currency);
 
   // 시리즈에 색상 할당
-  const seriesWithColors = series.map((s, index) => ({
-    ...s,
-    color: s.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
-  }));
+  const seriesWithColors = useMemo(
+    () =>
+      series.map((s, index) => ({
+        ...s,
+        color: s.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+      })),
+    [series],
+  );
 
   // 컴포넌트 마운트 시 모든 시리즈 활성화
   useEffect(() => {
     setActiveSeries(seriesWithColors.map((s) => s.id));
-  }, [series]);
+  }, [seriesWithColors]);
 
   // 인플레이션 조정 함수
   const adjustValueForInflation = (value: number, dateStr: string) => {
@@ -250,7 +260,7 @@ export function AssetChart({
 
     // 가장 최근 날짜 찾기
     const latestDate = new Date(
-      Math.max(...data.map((item) => item.parsedDate.getTime()))
+      Math.max(...data.map((item) => item.parsedDate.getTime())),
     );
 
     let cutoffDate;
@@ -297,7 +307,7 @@ export function AssetChart({
 
   // 활성화된 시리즈만 필터링
   const activeSeriesData = filteredSeriesData.filter((series) =>
-    activeSeries.includes(series.id)
+    activeSeries.includes(series.id),
   );
 
   // 차트 데이터 준비 - 모든 시리즈의 데이터를 날짜별로 병합
@@ -318,12 +328,12 @@ export function AssetChart({
 
     // 각 날짜별로 모든 시리즈의 값을 포함하는 객체 생성
     return sortedDates.map((date) => {
-      const dataPoint: any = { date };
+      const dataPoint: ChartDataPoint = { date };
 
       // 각 시리즈의 값 추가
       activeSeriesData.forEach((series) => {
         const seriesDataPoint = series.filteredData.find(
-          (item) => item.date === date
+          (item) => item.date === date,
         );
         if (seriesDataPoint) {
           dataPoint[series.id] = seriesDataPoint.displayValue;
@@ -390,7 +400,9 @@ export function AssetChart({
   };
 
   const formatYAxisTick = (value: number) => {
-    const displayValue = displayAsNegative ? -Math.abs(Number(value)) : Number(value);
+    const displayValue = displayAsNegative
+      ? -Math.abs(Number(value))
+      : Number(value);
 
     if (usesPercentUnit) {
       return `${displayValue.toFixed(1)}%`;
@@ -471,7 +483,9 @@ export function AssetChart({
     : '';
 
   // X축 포맷터 - 시간 범위에 따라 다른 형식 사용
-  const getXAxisTickFormatter = (): ((dateStr: string) => string) => {
+  const getXAxisTickFormatter = useCallback((): ((
+    dateStr: string,
+  ) => string) => {
     switch (timeRange) {
       case '1w':
         return (dateStr) => format(parseISO(dateStr), 'M/d', { locale: ko });
@@ -488,7 +502,7 @@ export function AssetChart({
       default:
         return (dateStr) => format(parseISO(dateStr), 'yyyy', { locale: ko });
     }
-  };
+  }, [timeRange]);
 
   const formatPickerDate = (date?: Date) =>
     date ? format(date, 'yyyy.MM.dd', { locale: ko }) : '날짜 선택';
@@ -569,7 +583,9 @@ export function AssetChart({
   const activeToggleSeries = [
     ...activeSeries.filter((id) => !groupedSeriesIds.has(id)),
     ...seriesToggleGroups
-      .filter((group) => group.seriesIds.every((id) => activeSeries.includes(id)))
+      .filter((group) =>
+        group.seriesIds.every((id) => activeSeries.includes(id)),
+      )
       .map((group) => group.id),
   ];
   const handleToggleButtonClick = (id: string) => {
@@ -596,8 +612,9 @@ export function AssetChart({
     };
     const findFirstDataOnOrAfter = (targetDate: Date) => {
       const targetTime = targetDate.getTime();
-      return chartData.find((item) => parseISO(item.date).getTime() >= targetTime)
-        ?.date;
+      return chartData.find(
+        (item) => parseISO(item.date).getTime() >= targetTime,
+      )?.date;
     };
     const findExactDateTick = (targetDate: Date) => {
       const targetDateString = format(targetDate, 'yyyy-MM-dd');
@@ -652,14 +669,13 @@ export function AssetChart({
             : startOfYear(firstDate);
 
       while (cursor <= lastDate) {
-        const nextDate =
-          strictExactDate
-            ? findExactDateTick(cursor)
-            : interval === 'year'
+        const nextDate = strictExactDate
+          ? findExactDateTick(cursor)
+          : interval === 'year'
             ? findPeriodStartTick(cursor, 'year', strictPeriodStart)
             : interval === 'month'
               ? findPeriodStartTick(cursor, 'month', strictPeriodStart)
-            : findFirstDataOnOrAfter(cursor);
+              : findFirstDataOnOrAfter(cursor);
 
         if (nextDate) {
           const formattedTick = getXAxisTickFormatter()(nextDate);
@@ -753,24 +769,22 @@ export function AssetChart({
       default:
         return buildCalendarTicks('month', 1);
     }
-  }, [chartData, timeRange]);
+  }, [chartData, getXAxisTickFormatter, timeRange]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
     if (active && payload && payload.length) {
       const formattedLabel = label
         ? format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })
         : '';
 
       return (
-        <div
-          className="glassmorphism-tooltip"
-        >
-          <p className="text-center font-bold text-base mb-2">
+        <div className='glassmorphism-tooltip'>
+          <p className='text-center font-bold text-base mb-2'>
             {formattedLabel}
           </p>
-          <hr className="border-border my-1" />
-          <div className="space-y-1 mt-2">
-            {payload.map((pld: any, index: number) => {
+          <hr className='border-border my-1' />
+          <div className='space-y-1 mt-2'>
+            {payload.map((pld, index) => {
               if (pld.name === 'fillArea') return null;
 
               const series = seriesWithColors.find((s) => s.id === pld.name);
@@ -780,16 +794,16 @@ export function AssetChart({
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between text-sm"
+                  className='flex items-center justify-between text-sm'
                 >
-                  <div className="flex items-center">
+                  <div className='flex items-center'>
                     <div
-                      className="w-2.5 h-2.5 rounded-full mr-2"
+                      className='w-2.5 h-2.5 rounded-full mr-2'
                       style={{ backgroundColor: seriesColor }}
                     />
                     <span>{seriesName}</span>
                   </div>
-                  <span className="font-semibold ml-4">
+                  <span className='font-semibold ml-4'>
                     {formatChartValue(pld.value as number, series?.unit)}
                   </span>
                 </div>
@@ -806,20 +820,20 @@ export function AssetChart({
   // 시리즈가 없을 경우 안내 메시지 표시
   if (series.length === 0) {
     return (
-      <Card className="w-full glass-card">
+      <Card className='w-full glass-card'>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className='text-lg flex items-center gap-2'>
             {Icon ? (
-              <Icon style={{ color: themeColor }} className="h-5 w-5" />
+              <Icon style={{ color: themeColor }} className='h-5 w-5' />
             ) : (
-              <TrendingUp style={{ color: themeColor }} className="h-5 w-5" />
+              <TrendingUp style={{ color: themeColor }} className='h-5 w-5' />
             )}
             {title}
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[18.75rem]">
-          <p className="text-muted-foreground">
+        <CardContent className='flex items-center justify-center h-[18.75rem]'>
+          <p className='text-muted-foreground'>
             데이터가 없습니다. 자산 데이터를 추가해주세요.
           </p>
         </CardContent>
@@ -828,46 +842,49 @@ export function AssetChart({
   }
 
   return (
-    <Card className="w-full h-full glass-card flex flex-col">
+    <Card className='w-full h-full glass-card flex flex-col'>
       <CardHeader>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-4">
-            <CardTitle className="text-lg flex items-center gap-2">
+        <div className='flex flex-col gap-1'>
+          <div className='flex items-center justify-between gap-4'>
+            <CardTitle className='text-lg flex items-center gap-2'>
               {Icon ? (
-                <Icon style={{ color: themeColor }} className="h-5 w-5" />
+                <Icon style={{ color: themeColor }} className='h-5 w-5' />
               ) : (
-                <TrendingUp style={{ color: themeColor }} className="h-5 w-5" />
+                <TrendingUp style={{ color: themeColor }} className='h-5 w-5' />
               )}
               {title}
             </CardTitle>
-            <div className="flex shrink-0 items-center gap-4">
+            <div className='flex shrink-0 items-center gap-4'>
               {(showLogScaleToggle === undefined || showLogScaleToggle) && (
-                <div className="flex items-center space-x-2">
+                <div className='flex items-center space-x-2'>
                   <Switch
-                    id="log-scale"
+                    id='log-scale'
                     checked={useLogScale}
                     onCheckedChange={setUseLogScale}
                     style={{ '--switch-bg': themeColor } as React.CSSProperties}
                   />
-                  <Label htmlFor="log-scale" className="text-sm font-medium">
+                  <Label htmlFor='log-scale' className='text-sm font-medium'>
                     {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
                   </Label>
                 </div>
               )}
               {(showInflationAdjustToggle === undefined ||
                 showInflationAdjustToggle) && (
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="inflation-adjust"
-                      checked={adjustForInflation}
-                      onCheckedChange={setAdjustForInflation}
-                      style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                    />
-                    <Label htmlFor="inflation-adjust" className="text-sm font-medium">
-                      인플레이션 보정
-                    </Label>
-                  </div>
-                )}
+                <div className='flex items-center space-x-2'>
+                  <Switch
+                    id='inflation-adjust'
+                    checked={adjustForInflation}
+                    onCheckedChange={setAdjustForInflation}
+                    style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                  />
+                  <Label
+                    htmlFor='inflation-adjust'
+                    className='text-sm font-medium'
+                  >
+                    인플레이션 보정
+                  </Label>
+                </div>
+              )}
             </div>
           </div>
           {(description || logScaleDescription) && (
@@ -877,67 +894,97 @@ export function AssetChart({
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
-        <div className="mb-4 flex flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-2">
+      <CardContent className='flex flex-1 flex-col'>
+        <div className='mb-4 flex flex-col gap-4'>
+          <div className='flex flex-wrap items-center gap-2'>
             <Tabs
-              defaultValue="all"
+              defaultValue='all'
               value={timeRange}
               onValueChange={setTimeRange}
-              className="w-full"
+              className='w-full'
               style={
                 { '--active-tab-color': themeColor } as React.CSSProperties
               }
             >
-              <TabsList className="grid w-full grid-cols-10 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs">
-                <TabsTrigger value="1m" className="rounded-md text-xs font-semibold">
+              <TabsList className='grid w-full grid-cols-10 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
+                <TabsTrigger
+                  value='1m'
+                  className='rounded-md text-xs font-semibold'
+                >
                   1개월
                 </TabsTrigger>
-                <TabsTrigger value="3m" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='3m'
+                  className='rounded-md text-xs font-semibold'
+                >
                   3개월
                 </TabsTrigger>
-                <TabsTrigger value="6m" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='6m'
+                  className='rounded-md text-xs font-semibold'
+                >
                   6개월
                 </TabsTrigger>
-                <TabsTrigger value="ytd" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='ytd'
+                  className='rounded-md text-xs font-semibold'
+                >
                   YTD
                 </TabsTrigger>
-                <TabsTrigger value="1y" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='1y'
+                  className='rounded-md text-xs font-semibold'
+                >
                   1년
                 </TabsTrigger>
-                <TabsTrigger value="3y" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='3y'
+                  className='rounded-md text-xs font-semibold'
+                >
                   3년
                 </TabsTrigger>
-                <TabsTrigger value="5y" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='5y'
+                  className='rounded-md text-xs font-semibold'
+                >
                   5년
                 </TabsTrigger>
-                <TabsTrigger value="10y" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='10y'
+                  className='rounded-md text-xs font-semibold'
+                >
                   10년
                 </TabsTrigger>
-                <TabsTrigger value="all" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='all'
+                  className='rounded-md text-xs font-semibold'
+                >
                   전체
                 </TabsTrigger>
-                <TabsTrigger value="custom" className="rounded-md text-xs font-semibold">
+                <TabsTrigger
+                  value='custom'
+                  className='rounded-md text-xs font-semibold'
+                >
                   직접 설정
                 </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
           {timeRange === 'custom' && (
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className='flex flex-wrap items-center justify-end gap-2'>
               <Popover open={startPickerOpen} onOpenChange={setStartPickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]"
+                    variant='outline'
+                    size='sm'
+                    className='min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]'
                     style={calendarButtonStyle}
                   >
-                    <CalendarDays className="h-4 w-4" />
+                    <CalendarDays className='h-4 w-4' />
                     {formatPickerDate(customStartDate)}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-auto p-0">
+                <PopoverContent align='start' className='w-auto p-0'>
                   <CalendarPicker
                     selectedDate={customStartDate}
                     onDateSelect={handleCustomStartDateSelect}
@@ -947,20 +994,20 @@ export function AssetChart({
                   />
                 </PopoverContent>
               </Popover>
-              <span className="text-sm text-muted-foreground">-</span>
+              <span className='text-sm text-muted-foreground'>-</span>
               <Popover open={endPickerOpen} onOpenChange={setEndPickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]"
+                    variant='outline'
+                    size='sm'
+                    className='min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]'
                     style={calendarButtonStyle}
                   >
-                    <CalendarDays className="h-4 w-4" />
+                    <CalendarDays className='h-4 w-4' />
                     {formatPickerDate(customEndDate)}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-auto p-0">
+                <PopoverContent align='start' className='w-auto p-0'>
                   <CalendarPicker
                     selectedDate={customEndDate}
                     onDateSelect={handleCustomEndDateSelect}
@@ -974,17 +1021,17 @@ export function AssetChart({
           )}
         </div>
 
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className='h-80'>
+          <ResponsiveContainer width='100%' height='100%'>
             {chartType === 'area' ? (
               <AreaChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray='3 3' />
                 <XAxis
-                  dataKey="date"
+                  dataKey='date'
                   axisLine={false}
                   fontSize={12}
                   tickFormatter={getXAxisTickFormatter()}
-                  type="category"
+                  type='category'
                   ticks={calculateXAxisTicks}
                   interval={0}
                 />
@@ -1002,7 +1049,7 @@ export function AssetChart({
                 {activeSeriesData.map((series) => (
                   <Area
                     key={series.id}
-                    type="monotone"
+                    type='monotone'
                     dataKey={series.id}
                     name={series.id}
                     stroke={series.color}
@@ -1021,11 +1068,11 @@ export function AssetChart({
               </AreaChart>
             ) : (
               <ComposedChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray='3 3' />
                 <XAxis
-                  dataKey="date"
+                  dataKey='date'
                   tickFormatter={getXAxisTickFormatter()}
-                  type="category"
+                  type='category'
                   ticks={calculateXAxisTicks}
                   interval={0}
                   axisLine={false}
@@ -1044,15 +1091,15 @@ export function AssetChart({
                   activeSeries.includes(fillBetween[0]) &&
                   activeSeries.includes(fillBetween[1]) && (
                     <Area
-                      type="monotone"
-                      dataKey="fillArea"
-                      name="fillArea"
+                      type='monotone'
+                      dataKey='fillArea'
+                      name='fillArea'
                       fill={
                         activeSeriesData.find((s) => s.id === fillBetween[1])
                           ?.color || '#FF9800'
                       }
                       fillOpacity={0.15}
-                      stroke="none"
+                      stroke='none'
                       activeDot={false}
                       isAnimationActive={false}
                     />
@@ -1062,7 +1109,7 @@ export function AssetChart({
                 {activeSeriesData.map((series) => (
                   <Line
                     key={series.id}
-                    type="monotone"
+                    type='monotone'
                     dataKey={series.id}
                     name={series.id}
                     stroke={series.color}
@@ -1086,7 +1133,7 @@ export function AssetChart({
           series={toggleButtonSeries}
           activeSeries={activeToggleSeries}
           onToggle={handleToggleButtonClick}
-          className="mt-4"
+          className='mt-4'
         />
       </CardContent>
     </Card>

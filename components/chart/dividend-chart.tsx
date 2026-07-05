@@ -14,7 +14,6 @@ import {
   parseISO,
   format,
   subYears,
-  subMonths,
   startOfQuarter,
   startOfYear,
   formatISO,
@@ -31,7 +30,6 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrencyStore } from '@/store/options';
-import { cn } from '@/lib/utils';
 import { formatCompactCurrency } from '@/utils/format';
 
 interface DividendData {
@@ -53,6 +51,16 @@ interface DividendChartProps {
 
 type AggregationPeriod = 'monthly' | 'quarterly' | 'annual';
 type TimeRange = 'ytd' | '1y' | '3y' | '5y' | '10y' | 'max';
+type DividendTooltipPayloadItem = {
+  payload: {
+    value: number;
+  };
+};
+type DividendTooltipProps = {
+  active?: boolean;
+  payload?: DividendTooltipPayloadItem[];
+  label?: string;
+};
 
 export function DividendChart({
   data = [],
@@ -206,7 +214,7 @@ export function DividendChart({
     return period;
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: DividendTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const formattedLabel =

@@ -273,7 +273,7 @@ export default function Page() {
         description: '계좌 데이터를 불러오는 데 실패했습니다.',
       });
     }
-  }, [isSuccess, isError]);
+  }, [isSuccess, isError, router]);
 
   return (
     <div

@@ -5,6 +5,28 @@ type SectorWeight = {
   weight: number;
 };
 
+type InvescoSector = {
+  name?: string;
+  value?: number | string;
+};
+
+type InvescoSectorsResponse = {
+  holdingWeights?: InvescoSector[];
+};
+
+type VanguardSector = {
+  name?: string;
+  currYrPct?: number | string;
+};
+
+type VanguardSectorsResponse = {
+  sector?: {
+    long?: {
+      item?: VanguardSector[];
+    }[];
+  };
+};
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ symbol: string }> },
@@ -64,21 +86,21 @@ async function fetchSectors(url: string, symbol: string) {
   }
 }
 
-function formatInvescoSectors(data: any): SectorWeight[] {
+function formatInvescoSectors(data: InvescoSectorsResponse): SectorWeight[] {
   if (!Array.isArray(data.holdingWeights)) return [];
 
-  return data.holdingWeights.map((item: any) => ({
-    name: item.name,
+  return data.holdingWeights.map((item) => ({
+    name: item.name ?? '',
     weight: Number(item.value),
   }));
 }
 
-function formatVanguardSectors(data: any): SectorWeight[] {
+function formatVanguardSectors(data: VanguardSectorsResponse): SectorWeight[] {
   const sectors = data.sector?.long?.[0]?.item;
   if (!Array.isArray(sectors)) return [];
 
-  return sectors.map((item: any) => ({
-    name: item.name,
+  return sectors.map((item) => ({
+    name: item.name ?? '',
     weight: Number(item.currYrPct),
   }));
 }

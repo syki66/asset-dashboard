@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Bar,
   BarChart,
@@ -30,8 +30,45 @@ import { formatCompactCurrency } from '@/utils/format';
 
 interface AggregatedTradeData {
   date: string;
-  [key: string]: any;
+  [key: string]: string | number;
 }
+
+type TradePayload = AggregatedTradeData;
+
+type DynamicBarShapeProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  fill?: string;
+  fillOpacity?: number;
+  payload: TradePayload;
+  selectedStocks: string[];
+  stock: string;
+  position: 'top' | 'bottom';
+};
+
+type TooltipPayloadItem = {
+  color: string;
+  dataKey: string;
+  value: number;
+};
+
+type TradeTooltipProps = {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+};
+
+type BarShapeProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  fill?: string;
+  fillOpacity?: number;
+  payload: TradePayload;
+};
 
 interface StockTradeChartProps {
   data: StockTradeHistoryChartProps[];
@@ -65,8 +102,18 @@ const generateStockColor = (index: number): string => {
   return colors[index % colors.length];
 };
 
-const DynamicBarShape = (props: any) => {
-  const { x, y, width, height, fill, fillOpacity, payload, selectedStocks, stock, position } = props;
+const DynamicBarShape = ({
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
+  fill,
+  fillOpacity,
+  payload,
+  selectedStocks,
+  stock,
+  position,
+}: DynamicBarShapeProps) => {
   if (!width || !height) return null;
 
   let shouldRound = false;
@@ -198,8 +245,10 @@ export function StockTradeChart({
     [data],
   );
 
-  const getStockDisplayName = (stock: string) =>
-    stockDisplayNames[stock] ?? stock;
+  const getStockDisplayName = useCallback(
+    (stock: string) => stockDisplayNames[stock] ?? stock,
+    [stockDisplayNames],
+  );
 
   const [selectedStocks, setSelectedStocks] = useState<string[]>(allStocks);
 
@@ -219,13 +268,13 @@ export function StockTradeChart({
     [allStocks],
   );
 
-  const getAggregationKey = (date: string): string => {
+  const getAggregationKey = useCallback((date: string): string => {
     switch (aggregationMode) {
       case 'monthly': return date.substring(0, 7);   // YYYY-MM
       case 'yearly': return date.substring(0, 4);   // YYYY
       default: return date;                    // YYYY-MM-DD
     }
-  };
+  }, [aggregationMode]);
 
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -284,7 +333,14 @@ export function StockTradeChart({
         });
       })
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [data, selectedPeriod, selectedStocks, viewMode, aggregationMode]);
+  }, [
+    data,
+    selectedPeriod,
+    selectedStocks,
+    viewMode,
+    aggregationMode,
+    getAggregationKey,
+  ]);
 
   const stockSeries: SeriesInfo[] = useMemo(
     () =>
@@ -293,7 +349,7 @@ export function StockTradeChart({
         name: getStockDisplayName(stock),
         color: stockColors[stock],
       })),
-    [filteredStocks, stockColors, stockDisplayNames],
+    [filteredStocks, getStockDisplayName, stockColors],
   );
 
   const toggleStock = (stock: string) => {
@@ -304,35 +360,43 @@ export function StockTradeChart({
     );
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TradeTooltipProps) => {
     if (active && payload && payload.length) {
-      const filteredPayload = payload.filter((p: any) => p.value !== 0);
+      const filteredPayload = payload.filter((p) => p.value !== 0);
       if (filteredPayload.length === 0) return null;
 
-      const sortedPayload = [...filteredPayload].sort((a: any, b: any) =>
+      const sortedPayload = [...filteredPayload].sort((a, b) =>
         a.dataKey.localeCompare(b.dataKey),
       );
 
       const buyTotal = sortedPayload
-        .filter((e: any) => e.dataKey.endsWith('(매수)'))
-        .reduce((sum: number, e: any) => sum + e.value, 0);
+        .filter((e) => e.dataKey.endsWith('(매수)'))
+        .reduce((sum, e) => sum + e.value, 0);
 
       const sellTotal = sortedPayload
-        .filter((e: any) => e.dataKey.endsWith('(매도)'))
-        .reduce((sum: number, e: any) => sum + e.value, 0);
+        .filter((e) => e.dataKey.endsWith('(매도)'))
+        .reduce((sum, e) => sum + e.value, 0);
 
       const netTotal = buyTotal + sellTotal;
 
-      const buyItems = sortedPayload.filter((e: any) => e.dataKey.endsWith('(매수)'));
-      const sellItems = sortedPayload.filter((e: any) => e.dataKey.endsWith('(매도)'));
+      const buyItems = sortedPayload.filter((e) =>
+        e.dataKey.endsWith('(매수)'),
+      );
+      const sellItems = sortedPayload.filter((e) =>
+        e.dataKey.endsWith('(매도)'),
+      );
 
-      const renderSection = (title: string, items: any[], textColorClass: string) => {
+      const renderSection = (
+        title: string,
+        items: TooltipPayloadItem[],
+        textColorClass: string,
+      ) => {
         if (items.length === 0) return null;
         return (
           <div className='my-2'>
             <div className={`text-xs font-bold mb-1 ${textColorClass}`}>{title}</div>
             <div className='space-y-1.5'>
-              {items.map((entry: any, index: number) => (
+              {items.map((entry, index) => (
                 <div key={index} className='flex items-center justify-between text-sm'>
                   <div className='flex items-center gap-2'>
                     <div
@@ -559,14 +623,14 @@ export function StockTradeChart({
                     </pattern>
                   ))}
                 </defs>
-                {selectedStocks.map((stock, index) => (
+                {selectedStocks.map((stock) => (
                   <Bar
                     key={`${stock}-buy`}
                     dataKey={`${stock}(매수)`}
                     stackId='a'
                     fill={stockColors[stock]}
                     name={`${stock}(매수)`}
-                    shape={(props: any) => (
+                    shape={(props: BarShapeProps) => (
                       <DynamicBarShape
                         {...props}
                         selectedStocks={selectedStocks}
@@ -576,14 +640,14 @@ export function StockTradeChart({
                     )}
                   />
                 ))}
-                {selectedStocks.map((stock, index) => (
+                {selectedStocks.map((stock) => (
                   <Bar
                     key={`${stock}-sell`}
                     dataKey={`${stock}(매도)`}
                     stackId='a'
                     fill={`url(#pattern-${stock})`}
                     name={`${stock}(매도)`}
-                    shape={(props: any) => (
+                    shape={(props: BarShapeProps) => (
                       <DynamicBarShape
                         {...props}
                         selectedStocks={selectedStocks}

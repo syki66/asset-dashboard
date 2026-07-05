@@ -1,8 +1,40 @@
 import { StockHistoryProps } from '@/types';
 import { timestampToDate } from '@/utils/format';
 
+type YahooSplitEvent = {
+  date: number;
+  numerator: number;
+  denominator: number;
+};
+
+type YahooDividendEvent = {
+  amount: number;
+};
+
+type YahooHistoryData = {
+  chart: {
+    result: {
+      timestamp: number[];
+      indicators: {
+        quote: {
+          close: number[];
+        }[];
+        adjclose: {
+          adjclose: number[];
+        }[];
+      };
+      events?: {
+        splits?: Record<string, YahooSplitEvent>;
+        dividends?: Record<string, YahooDividendEvent>;
+      };
+    }[];
+  };
+};
+
 // 야후 금융 API로부터 데이터 변환
-export function transformYahooHistoryData(data: any): StockHistoryProps[] {
+export function transformYahooHistoryData(
+  data: YahooHistoryData,
+): StockHistoryProps[] {
   const { timestamp, indicators, events } = data.chart.result[0];
 
   const historyData = timestamp.map((timestamp: number, index: number) => {

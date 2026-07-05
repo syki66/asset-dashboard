@@ -121,6 +121,26 @@ const getCurrentRebalanceStartDate = () => {
   return `${year}-${String(rebalanceMonth).padStart(2, '0')}-01`;
 };
 
+type AllocationChartData = {
+  name: string;
+  value: number;
+  fullName?: string;
+  color?: string;
+};
+
+type AllocationTooltipPayloadItem = {
+  payload: AllocationChartData;
+};
+
+type AllocationTooltipProps = {
+  active?: boolean;
+  payload?: AllocationTooltipPayloadItem[];
+};
+
+type AllocationLegendEntry = {
+  payload?: AllocationChartData;
+};
+
 export function PortfolioAllocationChart({
   stocks,
   cash,
@@ -131,7 +151,7 @@ export function PortfolioAllocationChart({
   allocationMode = 'holdings',
   selectedDate,
 }: PortfolioAllocationChartProps) {
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<AllocationChartData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoricalRebalancePeriod, setIsHistoricalRebalancePeriod] =
     useState(false);
@@ -406,7 +426,7 @@ export function PortfolioAllocationChart({
     );
   }
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: AllocationTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const percentage = ((data.value / totalValue) * 100).toFixed(2);
@@ -514,8 +534,9 @@ export function PortfolioAllocationChart({
                     paddingTop: isCompact ? '8px' : '0',
                     lineHeight: '1.5',
                   }}
-                  formatter={(value, entry: any) => {
-                    const payload = entry.payload; // This is the 'payload' property I set in 'topItems'
+                  formatter={(value, entry: AllocationLegendEntry) => {
+                    const payload = entry.payload;
+                    if (!payload) return null;
                     const percentage = (
                       (payload.value / totalValue) *
                       100
