@@ -2,9 +2,9 @@
 
 신한투자증권의 계좌 거래내역 데이터(CSV)를 기반으로 파생 데이터를 생성하고, 이를 직관적인 대시보드와 차트로 시각화해 주는 웹 애플리케이션입니다.
 
-기존 증권사 앱(MTS, HTS)은 제공되는 정보가 제한적이고 UI가 직관적이지 않아 투자자가 원하는 핵심 지표를 파악하기 어렵습니다.
+기존 증권사 앱(MTS, HTS)은 제공되는 정보가 제한적이고 UI가 직관적이지 않아 투자자가 원하는 핵심 지표를 파악하기 어렵다는 문제를 해결하기 위해 제작되었습니다.
 
-투자 성과, 자산 현황, 배당 수익, 위험도, 포트폴리오 구성, 거래 히스토리 등을 한눈에 확인할 수 있도록 구현되었습니다.
+투자 성과, 자산 현황, 배당 수익, 위험도, 포트폴리오 구성, 거래 히스토리 등을 한눈에 확인할 수 있습니다.
 
 ![Asset Dashboard](./public/asset-dashboard.png)
 
@@ -145,7 +145,7 @@ _(⚠️ 체험용 더미 데이터도 제공하고 있어, CSV 파일 없이도
 ### 💻 설치 및 실행
 
 ```bash
-# 패키지 설치
+# 의존성 설치
 npm install
 
 # 로컬 개발 서버 실행
@@ -157,3 +157,164 @@ npm run dev
 - **Vercel · GitHub 연동 자동 배포**  
   GitHub 저장소와 Vercel을 연동하여 커밋 또는 푸시 시 자동으로 빌드 및 배포되도록 구성했습니다.
   별도의 배포 작업 없이 항상 최신 상태가 서비스에 반영됩니다.
+
+## 디렉토리 구조
+
+```txt
+asset-visualizer/
+├── app/
+│   ├── api/                    # 종목 검색, 가격 히스토리, ETF holdings/sectors API
+│   ├── dashboard/              # 대시보드 레이아웃과 분석 페이지
+│   │   ├── overview/           # 종합 대시보드
+│   │   ├── performance/        # 수익성 분석
+│   │   ├── dividends/          # 이자 및 배당
+│   │   ├── risk/               # 리스크 관리
+│   │   ├── portfolio/          # 포트폴리오 분석
+│   │   ├── transaction/        # 거래 내역
+│   │   └── settings/           # 계좌 선택 및 설정
+│   ├── setup/                  # CSV 업로드 및 초기 설정
+│   ├── globals.css             # 전역 스타일과 테마 변수
+│   ├── layout.tsx              # 루트 레이아웃
+│   └── page.tsx                # 초기 진입 페이지
+├── components/
+│   ├── chart/                  # 자산, 배당, 포트폴리오, 거래내역 차트
+│   ├── dashboard/              # 대시보드 카드, 비교표, 보유 종목 테이블
+│   ├── stepper/                # Setup 단계별 입력 컴포넌트
+│   └── ui/                     # 공통 UI 컴포넌트
+├── constants/
+│   └── keywords.ts             # 기본 환율, 세율, 수수료, 심볼, 인플레이션율
+├── store/                      # Zustand 전역 상태
+├── types/                      # 주요 타입 정의
+├── utils/
+│   ├── converter.ts            # 계좌 데이터 생성, 병합, 대시보드 데이터 변환
+│   ├── shsec-adapter.ts        # 신한 CSV 파싱 및 거래 정규화
+│   ├── generator.ts            # 예금 벤치마크 생성
+│   ├── mergeHelpers.ts         # 배당/종목/거래 이력 병합
+│   ├── risk.ts                 # 변동성, 샤프지수 계산
+│   ├── twr.ts                  # TWR 계산
+│   ├── xirr.ts                 # XIRR/MWR 계산
+│   └── year-performance.ts     # 연도별 성과 계산
+├── public/                     # 샘플 CSV, README 이미지 등 정적 파일
+├── jest.config.js              # Jest 설정
+├── package.json
+└── README.md
+```
+
+## 주요 데이터 흐름
+
+```mermaid
+flowchart TD
+  A[신한투자증권 CSV] --> B[shsecCsvToJson]
+  B --> C[createShsecTransactions]
+  C --> T[TransactionProps 거래 목록]
+
+  S[Setup 설정값] --> S1[원금 보정]
+  S --> S2[수수료/세금 설정]
+  S --> S3[금리 best/worst 설정]
+
+  T --> E[createAccountData]
+  S1 --> E
+  E --> F[계좌별 AccountProps 날짜 시계열]
+
+  T --> G[createBenchmarkData]
+  S3 --> G
+  G --> H[예금 벤치마크 날짜 시계열]
+
+  F --> I[useAccountStore.totalAccountData]
+  H --> I
+
+  I --> J[선택 계좌 필터링]
+  J --> K[mergeAccountData]
+  K --> L[convertToDashboardData]
+  S2 --> L
+
+  O1[표시 통화 USD/KRW 변경] --> R[대시보드 재계산 트리거]
+  O2[선택 계좌 변경] --> R
+  R --> J
+
+  L --> M[DashboardProps 날짜별 스냅샷 생성]
+  M --> N[선택 날짜 DashboardProps, 세전/세후 표시값 선택]
+  N --> O[대시보드 화면 렌더링 Overview/Performance/Dividends/Risk/Portfolio/Transaction]
+```
+
+## 주요 파일 및 함수
+
+| 파일                       | 함수 / 상태               | 역할                                                                                                                             |
+| -------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `utils/shsec-adapter.ts`   | `shsecCsvToJson`          | 신한 CSV 문자열을 JSON 배열로 변환합니다.                                                                                        |
+| `utils/shsec-adapter.ts`   | `createShsecTransactions` | 신한 거래 구분값을 앱 내부 거래 형식인 `TransactionProps[]`로 정규화합니다.                                                      |
+| `utils/converter.ts`       | `createAccountData`       | 거래 목록을 날짜별 계좌 스냅샷인 `AccountProps[]`로 변환합니다.                                                                  |
+| `utils/converter.ts`       | `mergeAccountData`        | 여러 계좌의 날짜별 데이터와 벤치마크 데이터를 하나의 계좌 데이터로 병합합니다.                                                   |
+| `utils/converter.ts`       | `convertToDashboardData`  | 병합된 계좌 데이터를 화면 표시용 `DashboardProps[]`로 변환하고 성과, 배당, 비용, 리스크, 차트 데이터를 계산합니다.               |
+| `utils/generator.ts`       | `createBenchmarkData`     | 실제 입출금 흐름을 예금 상품에 넣었다고 가정해 best/worst 벤치마크 데이터를 생성합니다.                                          |
+| `app/setup/page.tsx`       | `Page`                    | CSV 업로드부터 원금 보정, 수수료/세금, 금리 설정까지 처리하고 계좌 데이터를 생성합니다.                                          |
+| `app/dashboard/layout.tsx` | `DashboardLayout`         | 대시보드 공통 레이아웃을 구성하며, 선택 계좌와 통화 기준에 따라 데이터를 병합/변환하고 대시보드 전역 상태를 갱신합니다.          |
+| `app/dashboard/*`          | `DashboardLayout`, `Page` | 선택 계좌와 표시 옵션에 따라 대시보드 데이터를 계산하고, 개요·수익성·배당·리스크·포트폴리오·거래내역·설정 페이지를 렌더링합니다. |
+
+## 데이터 모델
+
+핵심 타입은 `types/index.d.ts`에 있습니다.
+
+```mermaid
+classDiagram
+  class TransactionProps {
+    date
+    type
+    currency
+    ISIN
+    quantity
+    price
+    krwCash
+    usdCash
+    dividendSource
+  }
+  class AccountProps {
+    date
+    lastUpdated
+    fxRate
+    krw
+    usd
+  }
+  class DashboardProps {
+    performance
+    dividends
+    cash
+    costs
+    stocks
+    benchmarkBest
+    benchmarkWorst
+    drawdown
+    charts
+  }
+  class MergeAccountDataInput {
+    name
+    accountData
+    benchmarkBestData
+    benchmarkWorstData
+  }
+  TransactionProps --> AccountProps
+  AccountProps --> MergeAccountDataInput
+  MergeAccountDataInput --> DashboardProps
+```
+
+### TransactionProps
+
+CSV에서 추출한 거래내역을 앱 내부에서 사용하기 위해 정규화한 단위 거래 데이터입니다. `deposit`, `withdrawal`, `buy`, `sell`, `dividend` 등의 거래 유형이 들어갑니다.
+
+`dividendSource`는 배당/이자 수익의 원천을 나타내며, 국내/해외 배당세율을 구분해 적용하는 데 사용됩니다.
+
+`krwCash`, `usdCash`는 해당 거래가 반영된 이후의 원화/달러 현금 잔고를 의미합니다. 이후 `createAccountData`에서 날짜별 계좌 상태를 만들 때 예수금 기준값으로 사용됩니다.
+
+### AccountProps
+
+날짜별 계좌 스냅샷입니다. `createAccountData`가 거래내역을 순서대로 처리하면서 각 날짜의 계좌 상태를 `AccountProps`로 저장합니다.
+
+`krw`와 `usd`는 각각 현금 잔고, 배당금 내역, 주식 거래내역, 주식 잔고를 원본 통화 기준으로 따로 저장합니다. 원금과 벤치마크는 입출금 시점의 환율을 기준으로 KRW/USD 양쪽 값을 함께 누적 계산해 저장합니다.
+
+`stocksProfit`은 해당 날짜 기준 보유 주식의 평가손익입니다. `createAccountData`에서 현재가와 평균매수가의 차이를 기반으로 미리 계산해두고, 이후 `convertToDashboardData`에서 선택 통화로 환산해 낙폭/리스크 차트 데이터에 사용합니다.
+
+이후 `convertToDashboardData`에서 사용자가 선택한 KRW/USD 표시 통화에 맞춰 한쪽 통화를 환율로 환산하고, 두 통화의 데이터를 합산해 Dashboard 값을 만듭니다.
+
+### DashboardProps
+
+화면 표시용 최종 데이터입니다. 성과, 배당, 비용, 리스크, 벤치마크, 차트 데이터가 모두 포함됩니다.
