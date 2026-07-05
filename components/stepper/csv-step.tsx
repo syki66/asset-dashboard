@@ -12,15 +12,7 @@ interface CsvStepProps {
 export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [csvIndex, setCsvIndex] = useState(0);
-  const csvFiles = [
-    'dummy-3y.csv',
-    'dummy-5y.csv',
-    'dummy-10y.csv',
-    'a.csv',
-    'b.csv',
-    'c.csv',
-    'd.csv',
-  ];
+  const csvFiles = ['dummy-3y.csv', 'dummy-5y.csv', 'dummy-10y.csv'];
 
   // 체험용 더미 CSV 데이터 불러오기 (순차적으로)
   const loadDummyCsv = async () => {
