@@ -217,12 +217,13 @@ export function DividendChart({
   const CustomTooltip = ({ active, payload, label }: DividendTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const labelText = label ?? '';
       const formattedLabel =
         aggregationPeriod === 'monthly'
-          ? format(parseISO(`${label}-01`), 'yyyy년 M월', { locale: ko })
+          ? format(parseISO(`${labelText}-01`), 'yyyy년 M월', { locale: ko })
           : aggregationPeriod === 'quarterly'
-            ? `${label.split('-')[0]}년 ${label.split('-')[1]}`
-            : `${label}년`;
+            ? `${labelText.split('-')[0]}년 ${labelText.split('-')[1]}`
+            : `${labelText}년`;
 
       return (
         <div className='glassmorphism-tooltip'>

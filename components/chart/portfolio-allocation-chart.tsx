@@ -137,10 +137,6 @@ type AllocationTooltipProps = {
   payload?: AllocationTooltipPayloadItem[];
 };
 
-type AllocationLegendEntry = {
-  payload?: AllocationChartData;
-};
-
 export function PortfolioAllocationChart({
   stocks,
   cash,
@@ -334,18 +330,12 @@ export function PortfolioAllocationChart({
     return largeItems;
   }, [allocationMode, chartData, totalValue]);
 
-  const legendPayload = useMemo(() => {
+  const legendItems = useMemo(() => {
     if (pieChartData.length === 0) return [];
 
-    const visibleLegendItems =
+    const visibleItems =
       allocationMode === 'sectors' ? pieChartData : pieChartData.slice(0, 7);
-    const topItems = visibleLegendItems.map((entry, index) => ({
-      value: entry.name,
-      type: 'square' as const,
-      id: entry.name,
-      color: COLORS[index % COLORS.length],
-      payload: entry, // Pass the full entry for the formatter
-    }));
+    const items = [...visibleItems];
 
     if (allocationMode !== 'sectors' && pieChartData.length > 7) {
       const remainingItems = pieChartData.slice(7);
@@ -353,23 +343,28 @@ export function PortfolioAllocationChart({
         (acc, curr) => acc + curr.value,
         0,
       );
-      const othersEntry = {
+
+      items.push({
         name: '기타',
         value: othersValue,
         fullName: '기타 및 하위 종목',
-      };
-
-      topItems.push({
-        value: '기타',
-        type: 'square' as const,
-        id: '기타',
-        color: '#94a3b8',
-        payload: othersEntry,
       });
     }
 
-    return topItems;
+    return items;
   }, [allocationMode, pieChartData]);
+
+  const legendPayload = useMemo(
+    () =>
+      legendItems.map((entry, index) => ({
+        value: entry.name,
+        type: 'square' as const,
+        id: entry.name,
+        color: entry.name === '기타' ? '#94a3b8' : COLORS[index % COLORS.length],
+      })),
+    [legendItems],
+  );
+
   const sectorFallbackInfo = useMemo(() => {
     if (!isHistoricalRebalancePeriod || !currentRebalanceStartDate) return null;
 
@@ -534,9 +529,13 @@ export function PortfolioAllocationChart({
                     paddingTop: isCompact ? '8px' : '0',
                     lineHeight: '1.5',
                   }}
-                  formatter={(value, entry: AllocationLegendEntry) => {
-                    const payload = entry.payload;
+                  formatter={(value) => {
+                    const payload = legendItems.find(
+                      (item) => item.name === String(value),
+                    );
+
                     if (!payload) return null;
+
                     const percentage = (
                       (payload.value / totalValue) *
                       100

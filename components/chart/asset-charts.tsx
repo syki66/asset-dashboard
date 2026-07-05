@@ -341,16 +341,14 @@ export function AssetChart({
       });
 
       // 두 라인 사이의 영역 채우기 데이터 추가
-      if (
-        fillBetween &&
-        dataPoint[fillBetween[0]] !== undefined &&
-        dataPoint[fillBetween[1]] !== undefined
-      ) {
-        // [min, max] 형태로 배열 저장. (정렬하지 않아도 recharts가 아래부터 위로 채움)
-        dataPoint['fillArea'] = [
-          dataPoint[fillBetween[0]],
-          dataPoint[fillBetween[1]],
-        ];
+      if (fillBetween) {
+        const bottomValue = dataPoint[fillBetween[0]];
+        const topValue = dataPoint[fillBetween[1]];
+
+        if (typeof bottomValue === 'number' && typeof topValue === 'number') {
+          // [min, max] 형태로 배열 저장. (정렬하지 않아도 recharts가 아래부터 위로 채움)
+          dataPoint['fillArea'] = [bottomValue, topValue];
+        }
       }
 
       return dataPoint;
@@ -429,9 +427,11 @@ export function AssetChart({
     chartData.forEach((dataPoint) => {
       // 각 시리즈의 값 확인
       activeSeriesData.forEach((series) => {
-        if (dataPoint[series.id] !== undefined) {
-          minValue = Math.min(minValue, dataPoint[series.id]);
-          maxValue = Math.max(maxValue, dataPoint[series.id]);
+        const value = dataPoint[series.id];
+
+        if (typeof value === 'number') {
+          minValue = Math.min(minValue, value);
+          maxValue = Math.max(maxValue, value);
         }
       });
     });

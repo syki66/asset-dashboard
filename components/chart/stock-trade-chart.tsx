@@ -306,13 +306,22 @@ export function StockTradeChart({
 
       const aggregatedItem = aggregatedByKey.get(key)!;
       selectedStocks.forEach((stock) => {
-        if (dataSource[stock]) {
+        const stockValue = dataSource[stock];
+
+        if (stockValue) {
           const buyKey = `${stock}(매수)`;
           const sellKey = `${stock}(매도)`;
+
           if (item.type === 'buy') {
-            aggregatedItem[buyKey] = (aggregatedItem[buyKey] || 0) + dataSource[stock];
+            const currentValue = aggregatedItem[buyKey];
+            aggregatedItem[buyKey] =
+              (typeof currentValue === 'number' ? currentValue : 0) +
+              stockValue;
           } else {
-            aggregatedItem[sellKey] = (aggregatedItem[sellKey] || 0) - dataSource[stock];
+            const currentValue = aggregatedItem[sellKey];
+            aggregatedItem[sellKey] =
+              (typeof currentValue === 'number' ? currentValue : 0) -
+              stockValue;
           }
         }
       });
@@ -329,7 +338,10 @@ export function StockTradeChart({
         return selectedStocks.some((stock) => {
           const buyKey = `${stock}(매수)`;
           const sellKey = `${stock}(매도)`;
-          return (item[buyKey] && item[buyKey] !== 0) || (item[sellKey] && item[sellKey] !== 0);
+          return (
+            (item[buyKey] && item[buyKey] !== 0) ||
+            (item[sellKey] && item[sellKey] !== 0)
+          );
         });
       })
       .sort((a, b) => a.date.localeCompare(b.date));
@@ -419,14 +431,20 @@ export function StockTradeChart({
         );
       };
 
+      const labelText = label ?? '';
+
       return (
         <div className='glassmorphism-tooltip min-w-[13.75rem]'>
           <p className='text-center font-bold text-base mb-2'>
             {aggregationMode === 'yearly'
-              ? `${label}년`
+              ? `${labelText}년`
               : aggregationMode === 'monthly'
-                ? `${label.substring(0, 4)}년 ${parseInt(label.substring(5, 7))}월`
-                : format(parseISO(label), 'yyyy년 M월 d일', { locale: ko })}
+                ? `${labelText.substring(0, 4)}년 ${parseInt(
+                    labelText.substring(5, 7),
+                  )}월`
+                : format(parseISO(labelText), 'yyyy년 M월 d일', {
+                    locale: ko,
+                  })}
           </p>
           <hr className='border-border my-1' />
 
@@ -630,9 +648,9 @@ export function StockTradeChart({
                     stackId='a'
                     fill={stockColors[stock]}
                     name={`${stock}(매수)`}
-                    shape={(props: BarShapeProps) => (
+                    shape={(props: unknown) => (
                       <DynamicBarShape
-                        {...props}
+                        {...(props as BarShapeProps)}
                         selectedStocks={selectedStocks}
                         stock={stock}
                         position='top'
@@ -647,9 +665,9 @@ export function StockTradeChart({
                     stackId='a'
                     fill={`url(#pattern-${stock})`}
                     name={`${stock}(매도)`}
-                    shape={(props: BarShapeProps) => (
+                    shape={(props: unknown) => (
                       <DynamicBarShape
-                        {...props}
+                        {...(props as BarShapeProps)}
                         selectedStocks={selectedStocks}
                         stock={stock}
                         position='bottom'
