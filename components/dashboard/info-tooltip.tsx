@@ -53,7 +53,7 @@ export function InfoTooltip({
           }}
         >
           {typeof info === 'string' ? (
-            <div className='text-xs'>{info}</div>
+            <div className='text-xs whitespace-pre-line'>{info}</div>
           ) : (
             info
           )}

@@ -19,6 +19,14 @@ import {
 import { cn } from '@/lib/utils';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 import { useFeeSettingsStore } from '@/store/fee-settings';
+import {
+  BEST_WORST_YEAR_INFO,
+  CURRENT_VALUE_INFO,
+  NET_CURRENT_VALUE_INFO,
+  PRINCIPAL_INFO,
+  PROFIT_INFO,
+  RETURN_RATE_INFO,
+} from '@/constants/dashboard-info';
 
 type ChartLayout = 'expanded' | 'compact';
 
@@ -59,9 +67,19 @@ export default function Page() {
     '원금이 매년 같은 비율로 복리 성장해 현재 평가금액이 된다고 가정한 연평균 수익률입니다.';
   const averageAnnualReturnInfo =
     '누적수익률을 전체 투자 기간(년)으로 나눈 값입니다. 복리 효과는 반영하지 않습니다.';
-  const principalInfo = '입금 총액에서 출금 총액을 뺀 금액입니다.';
-  const excessReturnInfo =
-    '벤치마크 수익금에서 내 포트폴리오 수익금을 뺀 값입니다. 양수면 벤치마크가 더 높고, 음수면 내 포트폴리오가 더 높습니다.';
+  const principalInfo = PRINCIPAL_INFO;
+  const excessReturnInfo = (
+    <div className='space-y-1 text-xs'>
+      <p>
+        벤치마크 수익금에서 내 포트폴리오 수익금을 뺀 값입니다. 양수면
+        벤치마크가 더 높고, 음수면 내 포트폴리오가 더 높습니다.
+      </p>
+      <p className='text-muted-foreground'>
+        같은 기간의 입출금 흐름과 사용자가 입력한 금리를 기준으로 예금
+        복리상품 시뮬레이션을 돌려 비교합니다.
+      </p>
+    </div>
+  );
   const formatRate = (rate: number) => `${Number((rate * 100).toFixed(6))}%`;
   const fxFeeRate =
     feeSettings.exchangeFeeRate * feeSettings.exchangeSpreadRate;
@@ -74,7 +92,7 @@ export default function Page() {
         }
       : undefined;
   const costInfo = {
-    usTax: `해외주식 양도차익에 적용하는 세금입니다. 양도차익이 양수일 때 ${formatRate(feeSettings.usCapitalGainsTaxRate)}를 적용합니다.`,
+    usTax: `해외주식 양도차익에 적용하는 추정 세금입니다. 양도차익이 양수일 때 ${formatRate(feeSettings.usCapitalGainsTaxRate)}를 적용하며, 연 250만원 기본공제는 계산하지 않습니다.`,
     usFxFee: `달러 자산을 원화로 환산할 때 반영하는 추정 환전 비용입니다. 환스프레드 ${formatRate(feeSettings.exchangeSpreadRate)}에 환전우대 ${formatRate(fxDiscountRate)}를 적용해 ${formatRate(fxFeeRate)}를 반영합니다.`,
     usBrokerFee: `해외주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(feeSettings.usBrokerFeeRate)}를 적용합니다.`,
     usSecFee: `미국 주식 매도 시 부과되는 SEC 수수료입니다. 평가금액에 ${formatRate(feeSettings.usSecFeeRate)}를 적용합니다.`,
@@ -117,18 +135,21 @@ export default function Page() {
       investment: formatCurrency(performance.currentValue, currency),
       benchmarkBest: formatCurrency(benchmarkBest.value, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.value, currency),
+      info: CURRENT_VALUE_INFO,
     },
     {
       metric: '누적수익금',
       investment: formatCurrency(performance.profit, currency),
       benchmarkBest: formatCurrency(benchmarkBest.profit, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.profit, currency),
+      info: PROFIT_INFO,
     },
     {
       metric: '누적수익률',
       investment: `${performance.returnRate}%`,
       benchmarkBest: `${benchmarkBest.returnRate}%`,
       benchmarkWorst: `${benchmarkWorst.returnRate}%`,
+      info: RETURN_RATE_INFO,
     },
     {
       metric: '금액가중수익률(MWR)',
@@ -180,18 +201,21 @@ export default function Page() {
       investment: formatCurrency(performance.netCurrentValue, currency),
       benchmarkBest: formatCurrency(benchmarkBest.netValue, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netValue, currency),
+      info: NET_CURRENT_VALUE_INFO,
     },
     {
       metric: '순누적수익금',
       investment: formatCurrency(performance.netProfit, currency),
       benchmarkBest: formatCurrency(benchmarkBest.netProfit, currency),
       benchmarkWorst: formatCurrency(benchmarkWorst.netProfit, currency),
+      info: PROFIT_INFO,
     },
     {
       metric: '순누적수익률',
       investment: `${performance.netReturnRate}%`,
       benchmarkBest: `${benchmarkBest.netReturnRate}%`,
       benchmarkWorst: `${benchmarkWorst.netReturnRate}%`,
+      info: RETURN_RATE_INFO,
     },
     {
       metric: '순금액가중수익률(MWR)',
@@ -332,21 +356,25 @@ export default function Page() {
             {
               label: 'Best Year',
               value: bestYear.year,
+              info: BEST_WORST_YEAR_INFO,
             },
             {
               label: showAfterTax ? '순수익금' : '수익금',
               value: formatCurrency(bestYear.profit, currency),
               valueClassName: 'theme-performance',
+              info: BEST_WORST_YEAR_INFO,
             },
             {
               label: 'Worst Year',
               value: worstYear.year,
               hasDivider: true,
+              info: BEST_WORST_YEAR_INFO,
             },
             {
               label: showAfterTax ? '순수익금' : '수익금',
               value: formatCurrency(worstYear.profit, currency),
               valueClassName: 'theme-performance',
+              info: BEST_WORST_YEAR_INFO,
             },
           ]}
         />

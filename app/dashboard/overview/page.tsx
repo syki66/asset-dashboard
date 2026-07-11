@@ -5,6 +5,15 @@ import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview
 import { DollarSign, Trophy, TrendingUp, PiggyBank } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
 import { useChartLayoutStore, useCurrencyStore, useTaxStore } from '@/store/options';
+import {
+  CURRENT_VALUE_INFO,
+  DIVIDEND_YIELD_INFO,
+  KRW_CASH_INFO,
+  PRINCIPAL_INFO,
+  PROFIT_INFO,
+  RETURN_RATE_INFO,
+  USD_CASH_INFO,
+} from '@/constants/dashboard-info';
 import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 
@@ -39,7 +48,7 @@ export default function Page() {
               label: '평가금액',
               value: formatCurrency(currentValue, currency),
               valueClassName: 'asset-value-wave',
-              info: '주식 + KRX금현물 + 현금',
+              info: CURRENT_VALUE_INFO,
             },
             {
               label: '원금',
@@ -47,7 +56,7 @@ export default function Page() {
                 dashboardData.performance.principal,
                 currency,
               ),
-              info: '입금 총액 - 출금 총액',
+              info: PRINCIPAL_INFO,
             },
           ]}
         />
@@ -60,13 +69,13 @@ export default function Page() {
               label: '수익금',
               value: formatCurrency(profit, currency),
               valueClassName: getReturnRateColorClass(profit),
-              info: '평가금액 - 원금',
+              info: PROFIT_INFO,
             },
             {
               label: '수익률',
               value: `${returnRate}%`,
               valueClassName: getReturnRateColorClass(returnRate),
-              info: '수익금 ÷ 원금',
+              info: RETURN_RATE_INFO,
             },
           ]}
         />
@@ -89,6 +98,7 @@ export default function Page() {
             {
               label: isPostTax ? '세후 배당률' : '배당률',
               value: `${isPostTax ? dashboardData.dividends.netDividendYield : dashboardData.dividends.dividendYield}%`,
+              info: DIVIDEND_YIELD_INFO,
             },
           ]}
         />
@@ -100,10 +110,12 @@ export default function Page() {
             {
               label: '원화',
               value: formatCurrency(dashboardData.cash.krwCash, 'krw'),
+              info: KRW_CASH_INFO,
             },
             {
               label: '달러',
               value: formatCurrency(dashboardData.cash.usdCash, 'usd'),
+              info: USD_CASH_INFO,
             },
           ]}
         />

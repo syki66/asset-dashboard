@@ -9,6 +9,15 @@ import { useDashboardStore } from '@/store/dashboard';
 import { useChartLayoutStore, useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
 import {
+  BEST_SHARPE_RATIO_INFO,
+  DRAWDOWN_DAYS_INFO,
+  DAILY_DRAWDOWN_INFO,
+  DRAWDOWN_PERIOD_INFO,
+  MAX_DRAWDOWN_INFO,
+  VOLATILITY_INFO,
+  WORST_SHARPE_RATIO_INFO,
+} from '@/constants/dashboard-info';
+import {
   Activity,
   ShieldAlert,
   TrendingDown,
@@ -23,8 +32,6 @@ export default function Page() {
   const chartLayout = useChartLayoutStore((state) => state.chartLayout);
   const [rollingChartLayout, setRollingChartLayout] =
     useState<ChartLayout>(chartLayout);
-  const rollingRiskInfo =
-    '최근 90개 거래일의 TWR 일별 수익률로 계산합니다. 주말 스냅샷은 금요일 가격 복사값이므로 리스크 계산에서 제외합니다.';
 
   useEffect(() => {
     setRollingChartLayout(chartLayout);
@@ -45,14 +52,17 @@ export default function Page() {
                 currency
               ),
               valueClassName: 'theme-risk',
+              info: MAX_DRAWDOWN_INFO,
             },
             {
               label: '회복 기간',
               value: `${dashboardData.drawdown.maxDrawdownStartDate} ~ ${dashboardData.drawdown.maxDrawdownEndDate}`,
+              info: DRAWDOWN_PERIOD_INFO,
             },
             {
               label: '회복 일수',
               value: `${dashboardData.drawdown.recoveryDuration}일`,
+              info: DRAWDOWN_DAYS_INFO,
             },
           ]}
         />
@@ -68,10 +78,12 @@ export default function Page() {
                 currency
               ),
               valueClassName: 'theme-risk',
+              info: DAILY_DRAWDOWN_INFO,
             },
             {
               label: '최대 낙폭일',
               value: dashboardData.drawdown.maxDailyDrawdownDate,
+              info: DAILY_DRAWDOWN_INFO,
             },
           ]}
         />
@@ -84,19 +96,19 @@ export default function Page() {
               label: '샤프지수 (최상 금리)',
               value: dashboardData.drawdown.bestSharpeRatio,
               valueClassName: 'theme-risk',
-              info: rollingRiskInfo,
+              info: BEST_SHARPE_RATIO_INFO,
             },
             {
               label: '샤프지수 (최악 금리)',
               value: dashboardData.drawdown.worstSharpeRatio,
               valueClassName: 'theme-risk',
-              info: rollingRiskInfo,
+              info: WORST_SHARPE_RATIO_INFO,
             },
             {
               label: '90거래일 롤링 변동성',
               value: `${dashboardData.drawdown.volatility}%`,
               valueClassName: 'theme-risk',
-              info: rollingRiskInfo,
+              info: VOLATILITY_INFO,
             },
           ]}
         />
@@ -164,7 +176,7 @@ export default function Page() {
             },
           ]}
           title='90거래일 롤링 샤프지수'
-          description='주말 복사 데이터를 제외한 최근 90개 거래일 TWR 수익률과 최상/최악 금리 기준 위험 대비 수익 추이'
+          description='최근 90개 거래일의 TWR 일별 수익률과 사용자가 입력한 최상/최하 금리를 무위험 수익률로 가정한 위험 대비 수익 추이'
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
         />
