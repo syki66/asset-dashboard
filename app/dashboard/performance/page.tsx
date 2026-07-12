@@ -92,7 +92,19 @@ export default function Page() {
         }
       : undefined;
   const costInfo = {
-    usTax: `해외주식 양도차익에 적용하는 추정 세금입니다. 양도차익이 양수일 때 ${formatRate(feeSettings.usCapitalGainsTaxRate)}를 적용하며, 연 250만원 기본공제는 계산하지 않습니다.`,
+    usTax: (
+      <div className='space-y-1 text-xs'>
+        <p>
+          해외주식 양도차익에 적용하는 추정 세금입니다. 양도차익이
+          양수일 때 {formatRate(feeSettings.usCapitalGainsTaxRate)}를 단순
+          적용하며, 연 250만원 기본공제는 계산하지 않습니다.
+        </p>
+        <p>
+          실제 양도소득세는 확정 매도 시점의 환율, 기본공제, 수수료 등
+          신고 기준을 반영하므로 화면의 값과 다를 수 있습니다.
+        </p>
+      </div>
+    ),
     usFxFee: `달러 자산을 원화로 환산할 때 반영하는 추정 환전 비용입니다. 환스프레드 ${formatRate(feeSettings.exchangeSpreadRate)}에 환전우대 ${formatRate(fxDiscountRate)}를 적용해 ${formatRate(fxFeeRate)}를 반영합니다.`,
     usBrokerFee: `해외주식 매도 시 발생하는 증권사 수수료입니다. 평가금액에 ${formatRate(feeSettings.usBrokerFeeRate)}를 적용합니다.`,
     usSecFee: `미국 주식 매도 시 부과되는 SEC 수수료입니다. 평가금액에 ${formatRate(feeSettings.usSecFeeRate)}를 적용합니다.`,

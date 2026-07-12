@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import React from 'react';
+import { InfoTooltip } from './info-tooltip';
 
 interface DashboardCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface DashboardCardProps {
   valueClassName?: string;
   descClassName?: string;
   themeColor?: string;
+  info?: React.ReactNode;
 }
 
 export default function DashboardCard({
@@ -20,11 +22,15 @@ export default function DashboardCard({
   valueClassName = '',
   descClassName = '',
   themeColor,
+  info,
 }: DashboardCardProps) {
   return (
     <Card className="glass-card">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className="flex items-center gap-1">
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          {info && <InfoTooltip info={info} />}
+        </div>
         {Icon && <Icon className="h-4 w-4 text-muted-foreground" style={{ color: themeColor }} />}
       </CardHeader>
       <CardContent>

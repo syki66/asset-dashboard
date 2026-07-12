@@ -149,7 +149,8 @@ export function PrincipalAdjustmentStep({
             <h4 className='text-sm font-bold'>파일별 원금 보정</h4>
             <p className='mt-1 text-sm leading-6 text-muted-foreground'>
               CSV의 입출금 내역만으로 계산된 원금에 더하거나 뺄 금액을
-              입력합니다. 다른 통화로는 첫 거래일 환율을 기준으로 고정 환산됩니다.
+              입력합니다. 보정 금액은 각 계좌의 첫 거래일에 가상 입출금으로
+              처리됩니다.
             </p>
           </div>
         </div>
@@ -175,7 +176,8 @@ export function PrincipalAdjustmentStep({
                     <h4 className='truncate text-sm font-bold'>{file.name}</h4>
                   </div>
                   <p className='mt-1 text-xs text-muted-foreground'>
-                    양수는 원금 증가, 음수는 원금 차감으로 적용됩니다.
+                    양수는 원금 증가, 음수는 원금 차감으로 적용되며 평가금액은
+                    바꾸지 않습니다.
                   </p>
                 </div>
                 <Button

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
+import { DIVIDENDS_INFO } from '@/constants/dashboard-info';
 
 export default function Page() {
   const themeColor = 'var(--dividends-theme)';
@@ -45,6 +46,7 @@ export default function Page() {
               ? '최근 1년 동안 받은 세후 배당금'
               : '최근 1년 동안 받은 배당금'
           }
+          info={DIVIDENDS_INFO}
           icon={Landmark}
           themeColor={themeColor}
         />
@@ -82,8 +84,8 @@ export default function Page() {
           )}
           description={
             showAfterTax
-              ? '지금까지 받은 세후 누적 배당금'
-              : '지금까지 받은 누적 배당금'
+              ? '지금까지 받은 세후 배당금 총액'
+              : '지금까지 받은 배당금 총액'
           }
           icon={Receipt}
           themeColor={themeColor}
