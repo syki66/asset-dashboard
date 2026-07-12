@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Check, FileUp, Upload, X, FilePlus } from 'lucide-react';
+import { Check, FileUp, Upload, X, FilePlus, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -103,11 +103,6 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
           <p className='mt-1 text-sm text-muted-foreground'>
             신한투자증권의 CSV 파일만 지원됩니다
           </p>
-          <p className='mx-auto mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground'>
-            CSV와 계좌 거래내역은 서버에 저장되거나 외부로 업로드되지
-            않습니다. 보유 종목의 가격·히스토리·ETF 구성·섹터 정보를 표시하기
-            위해 필요한 종목 코드/심볼 기준의 공개 시장 데이터만 조회합니다.
-          </p>
           <input
             id='file-upload'
             type='file'
@@ -135,34 +130,50 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
               더미 CSV 불러오기
             </Button>
           </div>
+
+          {uploadedFiles.length > 0 && (
+            <div className='mx-auto mt-6 max-w-2xl space-y-2 rounded-2xl border border-white/15 bg-white/[0.04] p-4 text-left shadow-sm'>
+              <h4 className='text-sm font-bold'>업로드된 파일</h4>
+              {uploadedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className='flex items-center justify-between rounded-xl border border-white/15 bg-white/[0.04] p-2.5 shadow-sm'
+                >
+                  <div className='flex min-w-0 items-center gap-2'>
+                    <Check className='h-4 w-4 shrink-0 text-green-500' />
+                    <span className='truncate text-sm font-medium'>
+                      {file.name}
+                    </span>
+                  </div>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='h-7 w-7 cursor-pointer rounded-lg'
+                    onClick={() => removeFile(index)}
+                  >
+                    <X className='h-4 w-4' />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {uploadedFiles.length > 0 && (
-          <div className='mt-4 space-y-2 rounded-2xl border border-white/15 bg-transparent p-4 shadow-sm backdrop-blur-md'>
-            <h4 className='text-sm font-bold'>업로드된 파일</h4>
-            {uploadedFiles.map((file, index) => (
-              <div
-                key={index}
-                className='flex items-center justify-between rounded-xl border border-white/15 bg-white/[0.04] p-2.5 shadow-sm'
-              >
-                <div className='flex min-w-0 items-center gap-2'>
-                  <Check className='h-4 w-4 shrink-0 text-green-500' />
-                  <span className='truncate text-sm font-medium'>
-                    {file.name}
-                  </span>
-                </div>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-7 w-7 cursor-pointer rounded-lg'
-                  onClick={() => removeFile(index)}
-                >
-                  <X className='h-4 w-4' />
-                </Button>
-              </div>
-            ))}
+        <div className='flex gap-3 rounded-xl border border-border bg-[oklch(0.7_0.18_150_/_0.025)] p-4 text-left shadow-sm backdrop-blur-md'>
+          <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card'>
+            <ShieldCheck className='h-5 w-5 text-[oklch(0.62_0.18_150)]' />
           </div>
-        )}
+          <div className='space-y-1'>
+            <h4 className='text-sm font-bold text-[oklch(0.62_0.18_150)]'>
+              데이터 처리 안내
+            </h4>
+            <p className='text-sm leading-relaxed text-[oklch(0.62_0.18_150)]'>
+              CSV와 계좌 거래내역은 서버에 저장되거나 외부로 업로드되지
+              않습니다. 보유 종목의 가격·히스토리·ETF 구성·섹터 정보를 표시하기
+              위해 필요한 종목 코드/심볼 기준의 공개 시장 데이터만 조회합니다.
+            </p>
+          </div>
+        </div>
       </div>
     </>
   );
