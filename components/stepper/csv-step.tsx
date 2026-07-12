@@ -103,6 +103,11 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
           <p className='mt-1 text-sm text-muted-foreground'>
             신한투자증권의 CSV 파일만 지원됩니다
           </p>
+          <p className='mx-auto mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground'>
+            CSV와 계좌 거래내역은 서버에 저장되거나 외부로 업로드되지
+            않습니다. 보유 종목의 가격·히스토리·ETF 구성·섹터 정보를 표시하기
+            위해 필요한 종목 코드/심볼 기준의 공개 시장 데이터만 조회합니다.
+          </p>
           <input
             id='file-upload'
             type='file'
