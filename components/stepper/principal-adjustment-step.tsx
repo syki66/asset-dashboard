@@ -148,9 +148,10 @@ export function PrincipalAdjustmentStep({
           <div>
             <h4 className='text-sm font-bold'>파일별 원금 보정</h4>
             <p className='mt-1 text-sm leading-6 text-muted-foreground'>
-              CSV의 입출금 내역만으로 계산된 원금에 더하거나 뺄 금액을
-              입력합니다. 보정 금액은 각 계좌의 첫 거래일에 가상 입출금으로
-              처리됩니다.
+              원금에 더하거나 뺄 보정금액을 입력합니다. 보정 금액은 각 계좌의
+              첫 거래일에 가상 입출금으로
+              처리되며, 양수는 원금 증가, 음수는 원금 차감으로 적용됩니다.
+              평가금액은 바꾸지 않습니다.
             </p>
           </div>
         </div>
@@ -175,10 +176,6 @@ export function PrincipalAdjustmentStep({
                     <WalletCards className='h-4 w-4 shrink-0 text-[color:var(--setup-primary,var(--primary))]' />
                     <h4 className='truncate text-sm font-bold'>{file.name}</h4>
                   </div>
-                  <p className='mt-1 text-xs text-muted-foreground'>
-                    양수는 원금 증가, 음수는 원금 차감으로 적용되며 평가금액은
-                    바꾸지 않습니다.
-                  </p>
                 </div>
                 <Button
                   type='button'

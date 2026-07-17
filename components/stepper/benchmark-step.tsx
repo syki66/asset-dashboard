@@ -1,4 +1,5 @@
 import { InterestRatePanel } from './interest-rate-panel';
+import { Clock3 } from 'lucide-react';
 
 const upcomingBenchmarks = [
   'S&P 500',
@@ -25,12 +26,12 @@ interface BenchmarkStepProps {
 export const BenchmarkStep = ({ startYear }: BenchmarkStepProps) => {
   return (
     <div className='space-y-4'>
-      <div className='space-y-4 rounded-2xl border border-white/20 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--setup-primary,var(--primary))_8%,transparent),color-mix(in_oklch,var(--setup-secondary,var(--primary))_6%,transparent))] p-4 shadow-sm backdrop-blur-md'>
+      <div className='space-y-4 rounded-2xl border border-white/15 bg-white/[0.04] p-4 shadow-sm backdrop-blur-md'>
         <div className='rounded-xl border border-white/15 bg-white/[0.04] p-4'>
-          <div className='inline-flex items-center rounded-full border border-[color:var(--setup-primary,var(--primary))]/20 bg-[color:var(--setup-primary,var(--primary))]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--setup-primary,var(--primary))]'>
+          <div className='inline-flex items-center rounded-full border border-white/15 bg-white/[0.08] px-2.5 py-1 text-xs font-semibold text-muted-foreground'>
             현재 지원
           </div>
-          <h3 className='mt-3 bg-[linear-gradient(90deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--primary)))] bg-clip-text text-base font-semibold text-transparent'>
+          <h3 className='mt-3 text-base font-semibold text-foreground'>
             예금 벤치마크
           </h3>
           <p className='mt-1 text-sm text-muted-foreground'>
@@ -41,10 +42,11 @@ export const BenchmarkStep = ({ startYear }: BenchmarkStepProps) => {
         </div>
         <InterestRatePanel startYear={startYear} />
       </div>
-      <div className='rounded-xl border border-dashed border-[color:var(--setup-secondary,var(--primary))]/30 bg-[color-mix(in_oklch,var(--setup-secondary,var(--primary))_6%,transparent)] p-4 shadow-sm backdrop-blur-md'>
+      <div className='rounded-xl border border-dashed border-yellow-500/25 bg-yellow-500/[0.045] p-4 shadow-sm backdrop-blur-md'>
         <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
           <div>
-            <div className='inline-flex items-center rounded-full border border-[color:var(--setup-secondary,var(--primary))]/20 bg-[color-mix(in_oklch,var(--setup-secondary,var(--primary))_8%,transparent)] px-2.5 py-1 text-xs font-semibold text-[color:var(--setup-secondary,var(--primary))]'>
+            <div className='inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-amber-500/55 px-2.5 py-1 text-xs font-bold text-foreground shadow-sm'>
+              <Clock3 className='h-3 w-3 text-amber-600' aria-hidden='true' />
               추후 지원
             </div>
             <p className='mt-2 text-xs text-muted-foreground'>

@@ -18,22 +18,6 @@ const feeSettingGroups: {
   items: FeeSettingItem[];
 }[] = [
   {
-    title: '환전',
-    description: '달러 자산을 원화로 환산할 때 적용할 추정 환전 비용입니다.',
-    items: [
-      {
-        key: 'exchangeSpreadRate',
-        label: '환스프레드',
-        description: '매수/매도 환율 차이로 보는 기본 스프레드',
-      },
-      {
-        key: 'exchangeFeeRate',
-        label: '환전우대',
-        description: '환전 스프레드에서 할인받는 비율',
-      },
-    ],
-  },
-  {
     title: '국내 주식',
     description: '국내 주식 매도 시 차감할 수수료와 세금입니다.',
     items: [
@@ -72,6 +56,22 @@ const feeSettingGroups: {
         key: 'usCapitalGainsTaxRate',
         label: '양도소득세',
         description: '양도차익이 양수일 때 적용',
+      },
+    ],
+  },
+  {
+    title: '환전',
+    description: '달러 자산을 원화로 환산할 때 적용할 추정 환전 비용입니다.',
+    items: [
+      {
+        key: 'exchangeSpreadRate',
+        label: '환스프레드',
+        description: '매수/매도 환율 차이로 보는 기본 스프레드',
+      },
+      {
+        key: 'exchangeFeeRate',
+        label: '환전우대',
+        description: '환전 스프레드에서 할인받는 비율',
       },
     ],
   },

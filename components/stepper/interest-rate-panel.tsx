@@ -21,11 +21,11 @@ interface InterestRatePanelProps {
 }
 
 const activeMonthButtonClass =
-  'border-[color:var(--setup-primary,var(--primary))]/25 bg-[color-mix(in_oklch,var(--setup-primary,var(--primary))_12%,transparent)] text-foreground shadow-sm';
+  'border-[color:var(--setup-primary,var(--primary))]/70 bg-white/[0.08] text-foreground shadow-sm ring-1 ring-[color:var(--setup-primary,var(--primary))]/20 hover:border-[color:var(--setup-primary,var(--primary))]';
 const inactiveMonthButtonClass =
-  'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50';
+  'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50 hover:border-white/25';
 const activeRateInputClass =
-  'border-white/15 bg-white/[0.08] text-foreground shadow-sm backdrop-blur-md focus-visible:ring-[color:var(--setup-primary,var(--primary))]/35';
+  'border-white/15 bg-white/[0.08] text-foreground shadow-sm backdrop-blur-md focus-visible:ring-ring/35';
 const inactiveRateInputClass =
   'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50 placeholder:text-[0.5625rem] placeholder:text-muted-foreground/70';
 
@@ -290,7 +290,7 @@ export function InterestRatePanel({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Content */}
-      <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-2">
+      <div className="space-y-4">
         {years.map((year) => {
           const yearData = groupedRates[year] || [];
           const stats = getYearStats(yearData);
@@ -305,7 +305,7 @@ export function InterestRatePanel({
               className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-sm backdrop-blur-md"
             >
               <div className="flex items-center gap-3">
-                <h4 className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-base font-semibold text-[color:var(--setup-primary,var(--primary))]">
+                <h4 className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-base font-semibold text-foreground">
                   {year}년
                 </h4>
                 <div className="h-px flex-1 bg-white/15"></div>
@@ -334,7 +334,7 @@ export function InterestRatePanel({
                           isMonthActive ? '활성' : '비활성'
                         }`}
                         onClick={() => toggleActive(year, month)}
-                        className={`h-7 rounded border text-center font-medium transition-all hover:-translate-y-0.5 hover:border-[color:var(--setup-primary,var(--primary))]/35 ${
+                        className={`interactive-lift h-7 rounded border text-center font-medium transition-all ${
                           isMonthActive
                             ? activeMonthButtonClass
                             : inactiveMonthButtonClass
