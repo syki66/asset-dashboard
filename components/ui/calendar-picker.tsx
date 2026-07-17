@@ -307,7 +307,7 @@ export function CalendarPicker({
             onClick={handleTodayClick}
             disabled={!isTodaySelectable}
             className={cn(
-              "ml-1 h-7 px-2 text-xs font-medium cursor-pointer border-transparent shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow-sm",
+              'interactive-lift ml-1 h-7 cursor-pointer border-transparent px-2 text-xs font-medium shadow-sm',
               !isTodaySelectable && "cursor-not-allowed opacity-45",
               "bg-[color:var(--calendar-theme)] text-white hover:bg-[color:var(--calendar-theme)]",
             )}

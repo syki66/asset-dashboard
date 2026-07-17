@@ -13,6 +13,7 @@ import {
   Clock,
   FolderOpen,
   Loader2,
+  FileUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -227,33 +228,44 @@ export default function Page() {
               </CardDescription>
             </div>
 
-            <div className='flex items-center gap-4'>
-              <div className='text-xs font-semibold text-muted-foreground'>
-                선택됨:{' '}
-                <span className='font-bold' style={{ color: themeColor }}>
-                  {draftSelectedAccounts.length}
-                </span>{' '}
-                / {totalAccountData?.length || 0}
-              </div>
+            <div className='flex flex-wrap items-center justify-end gap-4'>
               <Button
                 variant='outline'
                 size='sm'
-                onClick={handleSelectAllAccounts}
-                className='h-8 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm transition-all hover:bg-white/10 hover:text-foreground'
+                onClick={() => router.push('/setup')}
+                className='interactive-lift h-11 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm hover:bg-white/10 hover:text-foreground'
               >
-                {draftSelectedAccounts.length === totalAccountData?.length
-                  ? '전체 선택 해제'
-                  : '전체 선택'}
+                <FileUp className='mr-1.5 h-3.5 w-3.5' />
+                계좌 재등록
               </Button>
-              <Button
-                size='sm'
-                onClick={handleApplySelectedAccounts}
-                disabled={!hasSelectionChanges || isApplyingSelection}
-                className='h-8 cursor-pointer rounded-lg text-xs font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50'
-                style={{ backgroundColor: themeColor }}
-              >
-                적용
-              </Button>
+              <div className='flex flex-wrap items-center justify-end gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1.5 shadow-sm backdrop-blur-sm'>
+                <div className='px-1 text-xs font-semibold text-muted-foreground'>
+                  선택됨:{' '}
+                  <span className='font-bold' style={{ color: themeColor }}>
+                    {draftSelectedAccounts.length}
+                  </span>{' '}
+                  / {totalAccountData?.length || 0}
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleSelectAllAccounts}
+                  className='interactive-lift h-8 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm hover:bg-white/10 hover:text-foreground'
+                >
+                  {draftSelectedAccounts.length === totalAccountData?.length
+                    ? '전체 선택 해제'
+                    : '전체 선택'}
+                </Button>
+                <Button
+                  size='sm'
+                  onClick={handleApplySelectedAccounts}
+                  disabled={!hasSelectionChanges || isApplyingSelection}
+                  className='interactive-lift h-8 cursor-pointer rounded-lg text-xs font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50'
+                  style={{ backgroundColor: themeColor }}
+                >
+                  적용
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>

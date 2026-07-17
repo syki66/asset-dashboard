@@ -35,7 +35,7 @@ export function SeriesToggleButtons({
           variant="outline"
           size="sm"
           className={cn(
-            'flex h-8 cursor-pointer items-center justify-center rounded-full border bg-background/40 shadow-sm backdrop-blur-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-lg active:translate-y-0 active:shadow-sm',
+            'interactive-lift flex h-8 cursor-pointer items-center justify-center rounded-full border bg-background/40 shadow-sm backdrop-blur-sm hover:bg-white/10',
             {
               'border-dashed text-muted-foreground hover:border-white/30 hover:text-muted-foreground':
                 !activeSeries.includes(s.id),
