@@ -14,7 +14,7 @@
 - **Language**: TypeScript
 - **State Management**: Zustand
 - **Data fetching**: TanStack Query, Axios
-- **Styling / UI**: Tailwind CSS, shadcn/ui, Lucide
+- **Styling / UI**: Tailwind CSS, shadcn/ui, Sonner, Lucide
 - **Chart**: Recharts, d3-scale
 - **Testing**: Jest
 - **Code Quality**: ESLint, Prettier, Husky, lint-staged
@@ -78,6 +78,8 @@ _(⚠️ 체험용 더미 데이터도 제공하고 있어, CSV 파일 없이도
   계좌 조회 기준일을 설정해 특정 시점의 자산 현황을 확인할 수 있고, 업로드된 파일의 최근 업데이트 날짜도 함께 확인할 수 있습니다.
 - **화면 보기 방식 전환**  
   차트를 펼쳐보기 또는 모아보기로 전환해 화면 구성을 조정할 수 있습니다.
+- **Toast 알림 제공**  
+  파일 업로드, 설정 적용, 데이터 조회 실패 등 주요 처리 결과와 발생한 오류 내역을 Toast 메시지로 안내합니다.
 - **계산 결과 캐싱**  
   이미 연산된 계좌 조합과 통화 기준의 대시보드 결과를 캐시해, 환전/세금 설정이나 화면 옵션을 바꾼 뒤에도 같은 조건의 결과를 빠르게 다시 불러옵니다.
 
