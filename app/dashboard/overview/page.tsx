@@ -16,6 +16,10 @@ import {
 } from '@/constants/dashboard-info';
 import { formatCurrency, getReturnRateColorClass } from '@/utils/format';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
+import {
+  PORTFOLIO_CHART_COLORS,
+  OVERVIEW_CHART_COLORS,
+} from '@/constants/chart-colors';
 
 export default function Page() {
   const themeColor = 'var(--overview-theme)';
@@ -148,7 +152,8 @@ export default function Page() {
             {
               id: 'benchmarkRange',
               name: '벤치마크',
-              color: '#FF9800',
+              color: OVERVIEW_CHART_COLORS.benchmarkAverage,
+              showActiveBackground: false,
               seriesIds: isPostTax
                 ? ['benchmarkBestNet', 'benchmarkWorstNet']
                 : ['benchmarkBest', 'benchmarkWorst'],
@@ -158,13 +163,15 @@ export default function Page() {
             {
               id: 'principal',
               name: '원금',
-              color: '#888888',
+              color: OVERVIEW_CHART_COLORS.neutral,
+              zIndex: 10,
               data: dashboardData.charts.principal,
             },
             {
               id: isPostTax ? 'netCurrentValue' : 'currentValue',
               name: isPostTax ? '세후 평가금' : '평가금',
-              color: '#F44336',
+              color: OVERVIEW_CHART_COLORS.currentValue,
+              zIndex: 30,
               data: isPostTax
                 ? dashboardData.charts.netCurrentValue
                 : dashboardData.charts.currentValue,
@@ -172,7 +179,8 @@ export default function Page() {
             {
               id: isPostTax ? 'benchmarkBestNet' : 'benchmarkBest',
               name: '벤치마크 (최상)',
-              color: '#FF9800',
+              color: OVERVIEW_CHART_COLORS.benchmarkBest,
+              zIndex: 20,
               data: isPostTax
                 ? dashboardData.charts.benchmarkBestNet
                 : dashboardData.charts.benchmarkBest,
@@ -180,7 +188,8 @@ export default function Page() {
             {
               id: isPostTax ? 'benchmarkWorstNet' : 'benchmarkWorst',
               name: '벤치마크 (최악)',
-              color: '#FF5722',
+              color: OVERVIEW_CHART_COLORS.benchmarkWorst,
+              zIndex: 20,
               data: isPostTax
                 ? dashboardData.charts.benchmarkWorstNet
                 : dashboardData.charts.benchmarkWorst,
@@ -193,6 +202,7 @@ export default function Page() {
           stocks={dashboardData.stocks}
           cash={dashboardData.cash.total}
           themeColor={themeColor}
+          colors={PORTFOLIO_CHART_COLORS}
           isCompact={chartLayout === 'compact'}
           selectedDate={dashboardData.date}
         />

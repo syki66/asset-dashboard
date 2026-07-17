@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
+import { DIVIDENDS_CHART_COLORS } from '@/constants/chart-colors';
 import { DIVIDENDS_INFO } from '@/constants/dashboard-info';
 
 export default function Page() {
@@ -133,7 +134,7 @@ export default function Page() {
             {
               id: 'dividendYield',
               name: showAfterTax ? '세후 배당률' : '배당률',
-              color: '#FFEB3B',
+              color: DIVIDENDS_CHART_COLORS.primary,
               data: showAfterTax
                 ? dashboardData.charts.dividendYieldNet
                 : dashboardData.charts.dividendYield,
@@ -152,7 +153,7 @@ export default function Page() {
             {
               id: 'YoC',
               name: showAfterTax ? '세후 원금 대비 배당률' : '원금 대비 배당률',
-              color: '#FFC107',
+              color: DIVIDENDS_CHART_COLORS.secondary,
               data: showAfterTax
                 ? dashboardData.charts.yieldOnCostNet
                 : dashboardData.charts.yieldOnCost,

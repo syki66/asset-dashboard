@@ -12,6 +12,7 @@ import {
   Sparkles,
   Clock,
   FolderOpen,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -196,18 +197,22 @@ export default function Page() {
 
   return (
     <div className='relative mb-8'>
-      {isApplyingSelection && (
-        <div className='fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-background/55 backdrop-blur-xl'>
-          <div
-            className='h-10 w-10 animate-spin rounded-full border-4 border-t-transparent'
-            style={{ borderColor: themeColor, borderTopColor: 'transparent' }}
-          />
-          <p className='text-sm font-semibold' style={{ color: themeColor }}>
-            계좌 선택을 반영하는 중입니다...
-          </p>
-        </div>
-      )}
       <Card className='relative z-10 border border-white/10 bg-card/10 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden'>
+        {isApplyingSelection && (
+          <div className='absolute inset-0 z-20 flex items-center justify-center bg-white/[0.18] backdrop-blur-md'>
+            <div className='rounded-2xl border border-white/25 bg-white/[0.28] px-6 py-5 text-center shadow-xl backdrop-blur-xl'>
+              <div className='mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--settings-theme)]/20 bg-[color:var(--settings-theme)]/10'>
+                <Loader2 className='h-5 w-5 animate-spin text-[color:var(--settings-theme)]' />
+              </div>
+              <p className='mt-3 text-sm font-semibold text-foreground'>
+                계좌 선택을 반영하는 중입니다.
+              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                대시보드 데이터를 다시 계산하고 있습니다.
+              </p>
+            </div>
+          </div>
+        )}
         <CardHeader className='pb-4 border-b border-white/5'>
           <div className='flex items-center justify-between gap-4'>
             <div>

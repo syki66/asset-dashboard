@@ -226,7 +226,7 @@ export function DividendChart({
             : `${labelText}년`;
 
       return (
-        <div className='glassmorphism-tooltip'>
+        <div className='liquid-glass-surface glassmorphism-tooltip'>
           <p className='text-center font-bold text-base mb-2'>
             {formattedLabel}
           </p>
@@ -252,7 +252,7 @@ export function DividendChart({
   };
 
   return (
-    <Card className='w-full glass-card'>
+    <Card className='chart-card w-full glass-card'>
       <CardHeader>
         <div className='flex items-start justify-between'>
           <div className='flex flex-col gap-1'>

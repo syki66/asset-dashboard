@@ -79,6 +79,7 @@ interface AssetSeries {
   color?: string;
   data: AssetDataPoint[];
   unit?: 'currency' | 'percent' | 'number';
+  zIndex?: number;
 }
 
 interface SeriesToggleGroup {
@@ -86,6 +87,7 @@ interface SeriesToggleGroup {
   name: string;
   color?: string;
   seriesIds: string[];
+  showActiveBackground?: boolean;
 }
 
 // 기본 색상 팔레트 - 더 많은 시리즈가 있을 경우 사용
@@ -308,6 +310,9 @@ export function AssetChart({
   // 활성화된 시리즈만 필터링
   const activeSeriesData = filteredSeriesData.filter((series) =>
     activeSeries.includes(series.id),
+  );
+  const renderedSeriesData = [...activeSeriesData].sort(
+    (a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0),
   );
 
   // 차트 데이터 준비 - 모든 시리즈의 데이터를 날짜별로 병합
@@ -577,6 +582,7 @@ export function AssetChart({
         id: group.id,
         name: group.name,
         color: group.color ?? firstSeries?.color ?? DEFAULT_COLORS[0],
+        showActiveBackground: group.showActiveBackground,
       };
     }),
   ];
@@ -778,7 +784,7 @@ export function AssetChart({
         : '';
 
       return (
-        <div className='glassmorphism-tooltip'>
+        <div className='liquid-glass-surface glassmorphism-tooltip'>
           <p className='text-center font-bold text-base mb-2'>
             {formattedLabel}
           </p>
@@ -820,7 +826,7 @@ export function AssetChart({
   // 시리즈가 없을 경우 안내 메시지 표시
   if (series.length === 0) {
     return (
-      <Card className='w-full glass-card'>
+      <Card className='chart-card w-full glass-card'>
         <CardHeader>
           <CardTitle className='text-lg flex items-center gap-2'>
             {Icon ? (
@@ -842,7 +848,7 @@ export function AssetChart({
   }
 
   return (
-    <Card className='w-full h-full glass-card flex flex-col'>
+    <Card className='chart-card w-full h-full glass-card flex flex-col'>
       <CardHeader>
         <div className='flex flex-col gap-1'>
           <div className='flex items-center justify-between gap-4'>
@@ -1046,7 +1052,7 @@ export function AssetChart({
                 <Tooltip content={<CustomTooltip />} />
 
                 {/* 각 시리즈별 라인 */}
-                {activeSeriesData.map((series) => (
+                {renderedSeriesData.map((series) => (
                   <Area
                     key={series.id}
                     type='monotone'
@@ -1106,7 +1112,7 @@ export function AssetChart({
                   )}
 
                 {/* 각 시리즈별 라인 */}
-                {activeSeriesData.map((series) => (
+                {renderedSeriesData.map((series) => (
                   <Line
                     key={series.id}
                     type='monotone'

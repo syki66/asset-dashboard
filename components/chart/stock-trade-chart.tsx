@@ -27,6 +27,7 @@ import { StockTradeHistoryChartProps } from '@/types';
 import { cn } from '@/lib/utils';
 import { useCurrencyStore } from '@/store/options';
 import { formatCompactCurrency } from '@/utils/format';
+import { TRANSACTION_CHART_COLORS } from '@/constants/chart-colors';
 
 interface AggregatedTradeData {
   date: string;
@@ -81,25 +82,7 @@ type DataViewMode = 'quantity' | 'price';
 type AggregationMode = 'daily' | 'monthly' | 'yearly';
 
 const generateStockColor = (index: number): string => {
-  const colors = [
-    '#3B82F6',
-    '#EC4899',
-    '#EF4444',
-    '#06B6D4',
-    '#10B981',
-    '#84CC16',
-    '#8B5CF6',
-    '#F59E0B',
-    '#F97316',
-    '#14B8A6',
-    '#8B5A2B',
-    '#DC2626',
-    '#7C3AED',
-    '#059669',
-    '#DB2777',
-    '#2563EB',
-  ];
-  return colors[index % colors.length];
+  return TRANSACTION_CHART_COLORS[index % TRANSACTION_CHART_COLORS.length];
 };
 
 const DynamicBarShape = ({
@@ -434,7 +417,7 @@ export function StockTradeChart({
       const labelText = label ?? '';
 
       return (
-        <div className='glassmorphism-tooltip min-w-[13.75rem]'>
+        <div className='liquid-glass-surface glassmorphism-tooltip min-w-[13.75rem]'>
           <p className='text-center font-bold text-base mb-2'>
             {aggregationMode === 'yearly'
               ? `${labelText}년`
@@ -510,7 +493,7 @@ export function StockTradeChart({
 
   return (
     <Card
-      className='w-full glass-card'
+      className='chart-card w-full glass-card'
       style={
         {
           '--trade-theme-hover': tradeThemeHoverColor,

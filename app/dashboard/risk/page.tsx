@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
+import { RISK_CHART_COLORS } from '@/constants/chart-colors';
 import { cn } from '@/lib/utils';
 import { useDashboardStore } from '@/store/dashboard';
 import { useChartLayoutStore, useCurrencyStore } from '@/store/options';
@@ -125,7 +126,7 @@ export default function Page() {
             {
               id: 'drawdown',
               name: '손실 낙폭',
-              color: '#F44336',
+              color: RISK_CHART_COLORS.primary,
               data: dashboardData.charts.drawdown,
             },
           ]}
@@ -163,14 +164,14 @@ export default function Page() {
             {
               id: 'bestSharpeRatio',
               name: '최상 금리 기준',
-              color: '#FF9800',
+              color: RISK_CHART_COLORS.rollingBest,
               data: dashboardData.charts.bestSharpeRatio,
               unit: 'number',
             },
             {
               id: 'worstSharpeRatio',
               name: '최악 금리 기준',
-              color: '#FFC107',
+              color: RISK_CHART_COLORS.rollingWorst,
               data: dashboardData.charts.worstSharpeRatio,
               unit: 'number',
             },
@@ -188,7 +189,7 @@ export default function Page() {
             {
               id: 'volatility',
               name: '변동성',
-              color: '#E91E63',
+              color: RISK_CHART_COLORS.rollingVolatility,
               data: dashboardData.charts.volatility,
               unit: 'percent',
             },

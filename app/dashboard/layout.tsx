@@ -40,6 +40,7 @@ import { Sidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
@@ -345,8 +346,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <div className='w-72 shrink-0' />
       <div className={cn('flex-1 p-4 pl-0')}>
-        <div className='glass-card rounded-2xl w-full p-8 flex flex-col'>
-          <header className='lg:sticky lg:top-4 lg:z-40 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-card/20 lg:px-6 lg:py-3 lg:shadow-lg lg:backdrop-blur-xl'>
+        <div className='w-full rounded-2xl border border-border bg-card p-8 shadow-[0_0.5rem_2rem_rgb(0_0_0_/_0.07)] flex flex-col'>
+          <header
+            className='glass-card liquid-glass-surface text-card-foreground lg:sticky lg:top-4 lg:z-40 lg:px-6 lg:py-3'
+          >
             <div className='flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6'>
               <div>
                 <h1 className={cn('text-4xl font-bold mb-2', textThemeClass)}>
@@ -468,7 +471,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 {/* Status Card */}
-                <div className='flex flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/10 backdrop-blur-md shadow-md p-4 text-sm shrink-0 min-w-[200px]'>
+                <Popover>
+                  <div className='relative flex min-w-[200px] shrink-0 flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/10 p-4 text-sm shadow-md backdrop-blur-md'>
+                    <PopoverAnchor className='pointer-events-none absolute inset-0' />
                   <div className='flex items-center gap-2'>
                     <RefreshCw
                       className={cn(
@@ -496,7 +501,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <span className='font-medium text-foreground'>
                       계좌:
                     </span>
-                    <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant='ghost'
@@ -510,41 +514,42 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           <ChevronDown className='h-3.5 w-3.5 opacity-70' />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent
-                        className='w-auto border-white/10 !bg-transparent p-0 shadow-none'
-                        align='end'
-                        style={{
-                          background: 'transparent',
-                          boxShadow: 'none',
-                          backdropFilter: 'none',
-                          WebkitBackdropFilter: 'none',
-                        }}
-                      >
-                        <CalendarPicker
-                          category={activeCategory}
-                          minDate={dashboardDateRange.minDate}
-                          maxDate={dashboardDateRange.maxDate}
-                          selectedDate={(() => {
-                            const [y, m, d] = dashboardData.date
-                              .split('-')
-                              .map(Number);
-                            return new Date(y, m - 1, d);
-                          })()}
-                          onDateSelect={(date) => {
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(
-                              2,
-                              '0',
-                            );
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const dateString = `${year}-${month}-${day}`;
-                            setSelectedDate(dateString);
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
                   </div>
-                </div>
+                    <PopoverContent
+                      className='w-auto border-white/10 !bg-transparent p-0 shadow-none'
+                      align='end'
+                      sideOffset={24}
+                      style={{
+                        background: 'transparent',
+                        boxShadow: 'none',
+                        backdropFilter: 'none',
+                        WebkitBackdropFilter: 'none',
+                      }}
+                    >
+                      <CalendarPicker
+                        category={activeCategory}
+                        minDate={dashboardDateRange.minDate}
+                        maxDate={dashboardDateRange.maxDate}
+                        selectedDate={(() => {
+                          const [y, m, d] = dashboardData.date
+                            .split('-')
+                            .map(Number);
+                          return new Date(y, m - 1, d);
+                        })()}
+                        onDateSelect={(date) => {
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            '0',
+                          );
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const dateString = `${year}-${month}-${day}`;
+                          setSelectedDate(dateString);
+                        }}
+                      />
+                    </PopoverContent>
+                  </div>
+                </Popover>
               </div>
             </div>
           </header>

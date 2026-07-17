@@ -7,6 +7,7 @@ export interface SeriesInfo {
   id: string;
   name: string;
   color: string;
+  showActiveBackground?: boolean;
 }
 
 interface SeriesToggleButtonsProps {
@@ -44,7 +45,7 @@ export function SeriesToggleButtons({
           onClick={() => onToggle(s.id)}
           style={{
             borderColor: activeSeries.includes(s.id) ? s.color : '',
-            background: activeSeries.includes(s.id)
+            background: activeSeries.includes(s.id) && s.showActiveBackground === true
               ? `${s.color}20`
               : 'transparent',
           }}

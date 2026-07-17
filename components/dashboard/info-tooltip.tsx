@@ -45,7 +45,7 @@ export function InfoTooltip({
         style={{ background: 'transparent', backdropFilter: 'none' }}
       >
         <div
-          className='glassmorphism-tooltip'
+          className='liquid-glass-surface glassmorphism-tooltip'
           style={{
             backgroundColor: 'oklch(0.98 0.01 200 / 0.1)',
             backdropFilter: 'blur(2px)',

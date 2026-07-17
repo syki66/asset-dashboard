@@ -20,6 +20,7 @@ import { InfoTooltip } from '@/components/dashboard/info-tooltip';
 import { StockProps } from '@/types';
 import { useCurrencyStore } from '@/store/options';
 import { PieChart as PieChartIcon } from 'lucide-react';
+import { PORTFOLIO_CHART_COLORS } from '@/constants/chart-colors';
 
 interface PortfolioAllocationChartProps {
   stocks: StockProps[];
@@ -30,6 +31,7 @@ interface PortfolioAllocationChartProps {
   isCompact?: boolean;
   allocationMode?: 'holdings' | 'sectors';
   selectedDate?: string;
+  colors?: readonly string[];
 }
 
 type HoldingWeight = {
@@ -78,22 +80,6 @@ const fetchSectors = (symbol: string) =>
     sectorsCache,
     `/api/sectors/${symbol.toUpperCase()}`,
   );
-
-const COLORS = [
-  '#6366f1', // 인디고
-  '#f59e0b', // 앰버
-  '#10b981', // 에메랄드
-  '#ef4444', // 레드
-  '#8b5cf6', // 바이올렛
-  '#3b82f6', // 블루
-  '#ec4899', // 핑크
-  '#14b8a6', // 틸
-  '#f97316', // 오렌지
-  '#84cc16', // 라임
-  '#06b6d4', // 사이안
-  '#d946ef', // 퓨시아
-  '#94a3b8', // 슬레이트 (현금용)
-];
 
 const SECTOR_NAME_KO: Record<string, string> = {
   'basic materials': '원자재',
@@ -146,6 +132,7 @@ export function PortfolioAllocationChart({
   isCompact = false,
   allocationMode = 'holdings',
   selectedDate,
+  colors = PORTFOLIO_CHART_COLORS,
 }: PortfolioAllocationChartProps) {
   const [chartData, setChartData] = useState<AllocationChartData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -360,9 +347,9 @@ export function PortfolioAllocationChart({
         value: entry.name,
         type: 'square' as const,
         id: entry.name,
-        color: entry.name === '기타' ? '#94a3b8' : COLORS[index % COLORS.length],
+        color: entry.name === '기타' ? '#94a3b8' : colors[index % colors.length],
       })),
-    [legendItems],
+    [colors, legendItems],
   );
 
   const sectorFallbackInfo = useMemo(() => {
@@ -383,7 +370,7 @@ export function PortfolioAllocationChart({
 
   if (isLoading) {
     return (
-      <Card className='glass-card'>
+      <Card className='chart-card glass-card'>
         <CardHeader>
           <CardTitle className='text-lg flex items-center gap-2'>
             <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
@@ -406,7 +393,7 @@ export function PortfolioAllocationChart({
 
   if (chartData.length === 0) {
     return (
-      <Card className='glass-card'>
+      <Card className='chart-card glass-card'>
         <CardHeader>
           <CardTitle className='text-lg flex items-center gap-2'>
             <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
@@ -428,13 +415,17 @@ export function PortfolioAllocationChart({
 
       const index = pieChartData.findIndex((item) => item.name === data.name);
       const isOthers = data.name === '기타';
-      const color = isOthers ? '#94a3b8' : COLORS[index % COLORS.length];
+      const color = isOthers ? '#94a3b8' : colors[index % colors.length];
 
       return (
-        <div className='glassmorphism-tooltip'>
-          <p className='font-bold text-base mb-1' style={{ color }}>
-            {data.name}
-          </p>
+        <div className='liquid-glass-surface glassmorphism-tooltip'>
+          <div className='mb-1 flex items-center gap-2 text-base font-bold text-foreground'>
+            <span
+              className='size-2.5 rounded-full'
+              style={{ backgroundColor: color }}
+            />
+            <p>{data.name}</p>
+          </div>
           <p className='text-xs text-muted-foreground mb-2'>{data.fullName}</p>
           <hr className='border-border my-1' />
           <div className='mt-2 space-y-1'>
@@ -466,7 +457,7 @@ export function PortfolioAllocationChart({
 
   return (
     <Card
-      className='glass-card'
+      className='chart-card glass-card'
       style={
         {
           '--theme-hover': `color-mix(in srgb, ${themeColor} 15%, transparent)`,
@@ -513,7 +504,7 @@ export function PortfolioAllocationChart({
                       <Cell
                         key={`cell-${index}`}
                         fill={
-                          isOthers ? '#94a3b8' : COLORS[index % COLORS.length]
+                          isOthers ? '#94a3b8' : colors[index % colors.length]
                         }
                         stroke='rgba(255,255,255,0.1)'
                       />
@@ -563,7 +554,7 @@ export function PortfolioAllocationChart({
                   const isLarge = item.value >= threshold;
                   const color =
                     allocationMode === 'sectors' || isLarge
-                      ? COLORS[index % COLORS.length]
+                      ? colors[index % colors.length]
                       : '#94a3b8';
 
                   return (

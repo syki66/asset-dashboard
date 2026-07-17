@@ -215,18 +215,12 @@ export function CalendarPicker({
     '--calendar-selected-bg': category
       ? `linear-gradient(135deg, color-mix(in oklch, var(--${category}-theme) 86%, transparent), color-mix(in oklch, var(--${category}-theme) 62%, transparent))`
       : 'linear-gradient(135deg, color-mix(in oklch, var(--setup-primary,var(--primary)) 86%, transparent), color-mix(in oklch, var(--setup-secondary,var(--primary)) 62%, transparent))',
-    backgroundColor: 'color-mix(in oklch, var(--card) 0%, transparent)',
-    borderColor: 'var(--border)',
-    boxShadow:
-      '0 0.25rem 0.375rem -0.0625rem rgb(0 0 0 / 0.1), 0 0.125rem 0.25rem -0.125rem rgb(0 0 0 / 0.1)',
-    backdropFilter: 'blur(0.5rem)',
-    WebkitBackdropFilter: 'blur(0.5rem)',
   } as React.CSSProperties;
 
   return (
     <Card
       className={cn(
-        'p-4 w-fit',
+        'liquid-glass-surface p-4 w-fit',
         className,
       )}
       style={calendarStyle}
@@ -313,9 +307,9 @@ export function CalendarPicker({
             onClick={handleTodayClick}
             disabled={!isTodaySelectable}
             className={cn(
-              "ml-1 h-7 px-2 text-xs font-medium cursor-pointer transition-opacity border-transparent",
+              "ml-1 h-7 px-2 text-xs font-medium cursor-pointer border-transparent shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow-sm",
               !isTodaySelectable && "cursor-not-allowed opacity-45",
-              "bg-[image:var(--calendar-selected-bg)] text-white hover:opacity-90",
+              "bg-[color:var(--calendar-theme)] text-white hover:bg-[color:var(--calendar-theme)]",
             )}
             size="sm"
           >
