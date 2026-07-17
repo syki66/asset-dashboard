@@ -37,7 +37,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { inflationRates } from '@/constants/keywords';
+import { koreaCpiIndexes } from '@/constants/korea-cpi-indexes';
 import { useCurrencyStore } from '@/store/options';
 import { Button } from '../ui/button';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
@@ -106,6 +106,16 @@ const DEFAULT_COLORS = [
   '#d946ef', // 퓨시아
 ];
 
+const latestCpiIndex = koreaCpiIndexes[0]?.index ?? 100;
+
+const getCpiIndexForDate = (date: string) => {
+  const month = date.slice(0, 7);
+  const matchingEntry = koreaCpiIndexes.find((entry) => entry.date <= month);
+  const oldestEntry = koreaCpiIndexes.at(-1);
+
+  return matchingEntry?.index ?? oldestEntry?.index ?? latestCpiIndex;
+};
+
 interface AssetHistoryChartProps {
   series: AssetSeries[];
   title?: string;
@@ -166,19 +176,9 @@ export function AssetChart({
   const adjustValueForInflation = (value: number, dateStr: string) => {
     if (!adjustForInflation) return value;
 
-    let adjustedValue = value;
-    const year = Number.parseInt(dateStr.substring(0, 4));
-    const currentYear = new Date().getFullYear();
+    const dateIndex = getCpiIndexForDate(dateStr);
 
-    // 현재 연도부터 해당 연도까지 인플레이션 적용
-    for (let y = year; y < currentYear; y++) {
-      const inflationRate = (inflationRates as Record<number, number>)[y];
-      if (inflationRate) {
-        adjustedValue = adjustedValue * (1 + inflationRate / 100);
-      }
-    }
-
-    return adjustedValue;
+    return value * (latestCpiIndex / dateIndex);
   };
 
   // 데이터 처리 - 각 시리즈별로 처리

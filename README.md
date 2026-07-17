@@ -120,6 +120,8 @@ _(⚠️ 체험용 더미 데이터도 제공하고 있어, CSV 파일 없이도
 
 ![Portfolio](docs/images/dashboard-portfolio.png)
 
+- **포트폴리오 요약 지표 제공**  
+  실보유한 종목 수, ETF 내부 구성까지 반영한 구성 종목 수, 종목 집중도, 섹터 집중도를 카드로 제공합니다. 집중도는 현금을 포함한 전체 자산 비중을 기준으로 계산한 HHI를 백분율로 환산해 표시합니다.
 - **포트폴리오 구성 현황 확인**  
   전체 자산 기준 종목과 현금 비중을 파이 차트와 목록으로 표시합니다. ETF는 구성 종목 정보를 개별 주식 비중으로 환산해 함께 반영합니다.
 - **섹터 비중 분석**  
@@ -213,7 +215,8 @@ asset-visualizer/
 │   ├── stepper/                # Setup 단계별 입력 컴포넌트
 │   └── ui/                     # 공통 UI 컴포넌트
 ├── constants/
-│   └── keywords.ts             # 기본 환율, 세율, 수수료, 심볼, 인플레이션율
+│   ├── keywords.ts             # 기본 환율, 세율, 수수료, 심볼
+│   └── korea-cpi-indexes.ts    # 한국 월별 소비자물가지수 원지수
 ├── store/                      # Zustand 전역 상태
 ├── types/                      # 주요 타입 정의
 ├── utils/
@@ -429,6 +432,12 @@ Yahoo Finance에서 액면분할/액면병합 이벤트를 받아와 `preSplitCl
 전체 평가금 기준으로 MDD를 계산하면 현금 잔고 반영 시점의 오차뿐 아니라 입출금에 따른 평가금 증감까지 낙폭에 섞일 수 있습니다. 이 영향을 줄이기 위해 MDD와 하루 최대 낙폭은 전체 평가금 대비 비율이 아니라 주식 평가손익 기준의 금액 낙폭으로 계산합니다.
 
 따라서 일반적인 퍼센트 기준 MDD와 다르며, 실제 계좌 손실률이나 변동률과 차이가 날 수 있습니다.
+
+### 인플레이션 보정용 CPI 데이터는 수동으로 갱신
+
+인플레이션 보정에는 [KOSIS 소비자물가지수](https://kosis.kr/statHtml/statHtml.do?sso=ok&returnurl=https%3A%2F%2Fkosis.kr%3A443%2FstatHtml%2FstatHtml.do%3Fpath%3D%252Fvisual%252FeconomyBoard%252FeconomyJipyo.do%26conn_path%3DZF%26tblId%3DDT_1J22003%26vw_cd%3DMT_ZTITLE%26orgId%3D101%26)의 한국 월별 CPI 원지수(2020년=100)를 사용합니다. 데이터는 `constants/korea-cpi-indexes.ts`에서 수동으로 갱신합니다.
+
+차트 날짜에 해당하는 월의 CPI를 사용합니다. 아직 CPI가 갱신되지 않은 최신 월 이후 기간은 최신 CPI와 같은 값으로 처리되어 인플레이션 보정이 적용되지 않습니다.
 
 ### 소수점 주식 수량
 
