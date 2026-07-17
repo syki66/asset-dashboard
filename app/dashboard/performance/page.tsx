@@ -272,7 +272,7 @@ export default function Page() {
       <div className='grid md:grid-cols-1 xl:grid-cols-3 gap-y-4 xl:gap-4'>
         <div className='col-span-2'>
           <ComparisonTable
-            title={`벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
+            title={`예금 벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
             icon={<ChartLine className='h-5 w-5 theme-performance' />}
             themeColor={themeColor}
             comparisonData={showAfterTax ? afterTaxData : beforeTaxData}

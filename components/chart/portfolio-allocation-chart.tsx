@@ -32,7 +32,13 @@ interface PortfolioAllocationChartProps {
   allocationMode?: 'holdings' | 'sectors';
   selectedDate?: string;
   colors?: readonly string[];
+  onSummaryChange?: (summary: PortfolioAllocationSummary) => void;
 }
+
+export type PortfolioAllocationSummary = {
+  holdingCount: number;
+  concentrationHhi: number;
+};
 
 type HoldingWeight = {
   ticker: string;
@@ -133,6 +139,7 @@ export function PortfolioAllocationChart({
   allocationMode = 'holdings',
   selectedDate,
   colors = PORTFOLIO_CHART_COLORS,
+  onSummaryChange,
 }: PortfolioAllocationChartProps) {
   const [chartData, setChartData] = useState<AllocationChartData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -294,6 +301,27 @@ export function PortfolioAllocationChart({
   const totalValue = useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.value, 0);
   }, [chartData]);
+  const totalStockCount = useMemo(
+    () => chartData.filter((item) => item.name !== '현금').length,
+    [chartData],
+  );
+  const concentrationHhi = useMemo(() => {
+    if (totalValue === 0) return 0;
+
+    return Math.round(
+      chartData.reduce((sum, item) => {
+        const weight = item.value / totalValue;
+        return sum + weight ** 2;
+      }, 0) * 10000,
+    );
+  }, [chartData, totalValue]);
+
+  useEffect(() => {
+    onSummaryChange?.({
+      holdingCount: totalStockCount,
+      concentrationHhi,
+    });
+  }, [concentrationHhi, onSummaryChange, totalStockCount]);
 
   const pieChartData = useMemo(() => {
     if (totalValue === 0) return [];
@@ -465,14 +493,18 @@ export function PortfolioAllocationChart({
       }
     >
       <CardHeader>
-        <CardTitle className='text-lg flex items-center gap-2'>
-          <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
-          {title}
-          {sectorFallbackInfo && (
-            <InfoTooltip info={sectorFallbackInfo} side='right' />
-          )}
-        </CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        <div className='flex items-start justify-between gap-4'>
+          <div>
+            <CardTitle className='flex items-center gap-2 text-lg'>
+              <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
+              {title}
+              {sectorFallbackInfo && (
+                <InfoTooltip info={sectorFallbackInfo} side='right' />
+              )}
+            </CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div
@@ -543,8 +575,10 @@ export function PortfolioAllocationChart({
           </div>
 
           {!isCompact && (
-            <div className='flex-1 overflow-y-auto pr-2 custom-scrollbar'>
-              <div className='space-y-4'>
+            <div className='flex flex-1 flex-col gap-3 overflow-hidden'>
+              <div className='portfolio-scroll-fade min-h-0 flex-1'>
+                <div className='portfolio-scrollbar h-full overflow-y-auto pr-2'>
+                  <div className='space-y-4'>
                 {chartData.map((item, index) => {
                   const percentage = ((item.value / totalValue) * 100).toFixed(
                     2,
@@ -598,6 +632,8 @@ export function PortfolioAllocationChart({
                     </div>
                   );
                 })}
+                  </div>
+                </div>
               </div>
             </div>
           )}

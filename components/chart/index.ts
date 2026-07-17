@@ -1,4 +1,7 @@
 export { AssetChart } from './asset-charts';
 export { DividendChart } from './dividend-chart';
 export { StockTradeChart } from './stock-trade-chart';
-export { PortfolioAllocationChart } from './portfolio-allocation-chart';
+export {
+  PortfolioAllocationChart,
+  type PortfolioAllocationSummary,
+} from './portfolio-allocation-chart';
