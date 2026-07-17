@@ -177,7 +177,7 @@ export function CalendarPicker({
           onClick={() => handleDateClick(day)}
           disabled={!isSelectable}
           className={cn(
-            'h-10 w-10 rounded-md text-sm font-medium transition-colors cursor-pointer',
+            'interactive-lift h-10 w-10 cursor-pointer rounded-md text-sm font-medium',
             !isSelectable &&
               'cursor-not-allowed text-muted-foreground/35 opacity-45 hover:bg-transparent hover:text-muted-foreground/35',
             isSelectable &&
@@ -236,7 +236,7 @@ export function CalendarPicker({
               onClick={() => navigateYear('prev')}
               disabled={!canNavigatePrevYear}
               className={cn(
-                "h-7 w-7 cursor-pointer",
+                "interactive-lift h-7 w-7 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigatePrevYear && "cursor-not-allowed opacity-45",
               )}
@@ -252,7 +252,7 @@ export function CalendarPicker({
               onClick={() => navigateMonth('prev')}
               disabled={!canNavigatePrevMonth}
               className={cn(
-                "h-7 w-7 cursor-pointer",
+                "interactive-lift h-7 w-7 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigatePrevMonth && "cursor-not-allowed opacity-45",
               )}
@@ -277,7 +277,7 @@ export function CalendarPicker({
               onClick={() => navigateMonth('next')}
               disabled={!canNavigateNextMonth}
               className={cn(
-                "h-7 w-7 cursor-pointer",
+                "interactive-lift h-7 w-7 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigateNextMonth && "cursor-not-allowed opacity-45",
               )}
@@ -293,7 +293,7 @@ export function CalendarPicker({
               onClick={() => navigateYear('next')}
               disabled={!canNavigateNextYear}
               className={cn(
-                "h-7 w-7 cursor-pointer",
+                "interactive-lift h-7 w-7 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigateNextYear && "cursor-not-allowed opacity-45",
               )}

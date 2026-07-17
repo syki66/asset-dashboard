@@ -915,61 +915,61 @@ export function AssetChart({
               <TabsList className='grid w-full grid-cols-10 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
                 <TabsTrigger
                   value='1m'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   1개월
                 </TabsTrigger>
                 <TabsTrigger
                   value='3m'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   3개월
                 </TabsTrigger>
                 <TabsTrigger
                   value='6m'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   6개월
                 </TabsTrigger>
                 <TabsTrigger
                   value='ytd'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   YTD
                 </TabsTrigger>
                 <TabsTrigger
                   value='1y'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   1년
                 </TabsTrigger>
                 <TabsTrigger
                   value='3y'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   3년
                 </TabsTrigger>
                 <TabsTrigger
                   value='5y'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   5년
                 </TabsTrigger>
                 <TabsTrigger
                   value='10y'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   10년
                 </TabsTrigger>
                 <TabsTrigger
                   value='all'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   전체
                 </TabsTrigger>
                 <TabsTrigger
                   value='custom'
-                  className='rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md text-xs font-semibold'
                 >
                   직접 설정
                 </TabsTrigger>

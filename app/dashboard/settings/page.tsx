@@ -297,7 +297,7 @@ export default function Page() {
                       key={card.name}
                       onClick={() => handleAccountToggle(card.name)}
                       className={cn(
-                        'group relative cursor-pointer overflow-hidden rounded-2xl border bg-card/10 backdrop-blur-md p-6 shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between min-h-[220px]',
+                        'interactive-lift group relative flex min-h-[220px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border bg-card/10 p-6 shadow-md backdrop-blur-md',
                         isSelected
                           ? 'border-[color:var(--settings-theme)]/50 bg-[color:var(--settings-theme)]/5 shadow-[color:var(--settings-theme)]/10'
                           : 'border-white/10 hover:border-white/20 hover:bg-card/20',

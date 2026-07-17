@@ -272,22 +272,22 @@ export function DividendChart({
               }
             >
               <TabsList className='grid grid-cols-6 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
-                <TabsTrigger value='ytd' className='rounded-md font-semibold'>
+                <TabsTrigger value='ytd' className='interactive-lift rounded-md font-semibold'>
                   YTD
                 </TabsTrigger>
-                <TabsTrigger value='1y' className='rounded-md font-semibold'>
+                <TabsTrigger value='1y' className='interactive-lift rounded-md font-semibold'>
                   1년
                 </TabsTrigger>
-                <TabsTrigger value='3y' className='rounded-md font-semibold'>
+                <TabsTrigger value='3y' className='interactive-lift rounded-md font-semibold'>
                   3년
                 </TabsTrigger>
-                <TabsTrigger value='5y' className='rounded-md font-semibold'>
+                <TabsTrigger value='5y' className='interactive-lift rounded-md font-semibold'>
                   5년
                 </TabsTrigger>
-                <TabsTrigger value='10y' className='rounded-md font-semibold'>
+                <TabsTrigger value='10y' className='interactive-lift rounded-md font-semibold'>
                   10년
                 </TabsTrigger>
-                <TabsTrigger value='max' className='rounded-md font-semibold'>
+                <TabsTrigger value='max' className='interactive-lift rounded-md font-semibold'>
                   MAX
                 </TabsTrigger>
               </TabsList>

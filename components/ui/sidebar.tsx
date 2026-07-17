@@ -62,9 +62,8 @@ export function Sidebar({
                 key={id}
                 href={href}
                 className={cn(
-                  'w-full flex flex-col items-start gap-1 px-4 py-3 rounded-xl transition-all duration-200',
+                  'interactive-lift w-full flex flex-col items-start gap-1 px-4 py-3 rounded-xl',
                   !isActive && theme.hover,
-                  !isActive && 'hover:scale-105',
                   isActive && theme.bg,
                   isActive && 'text-white shadow-lg'
                 )}

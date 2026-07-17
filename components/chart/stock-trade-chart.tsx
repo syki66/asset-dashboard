@@ -516,7 +516,7 @@ export function StockTradeChart({
                 size='sm'
                 onClick={() => setViewMode('quantity')}
                 className={cn(
-                  'h-7 cursor-pointer',
+                  'interactive-lift h-7 cursor-pointer',
                   viewMode !== 'quantity' &&
                     'hover:!bg-[var(--trade-theme-hover)] hover:!text-current',
                 )}
@@ -529,7 +529,7 @@ export function StockTradeChart({
                 size='sm'
                 onClick={() => setViewMode('price')}
                 className={cn(
-                  'h-7 cursor-pointer',
+                  'interactive-lift h-7 cursor-pointer',
                   viewMode !== 'price' &&
                     'hover:!bg-[var(--trade-theme-hover)] hover:!text-current',
                 )}
@@ -547,7 +547,7 @@ export function StockTradeChart({
                   setAggregationMode('monthly');
                 }
               }}
-              className='h-9 rounded-md border border-border bg-background px-3 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring'
+              className='interactive-lift h-9 cursor-pointer rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring'
             >
               <option value='all'>전체기간</option>
               {availableYears.map((year) => (
@@ -559,7 +559,7 @@ export function StockTradeChart({
             <select
               value={aggregationMode}
               onChange={(e) => setAggregationMode(e.target.value as AggregationMode)}
-              className='h-9 rounded-md border border-border bg-background px-3 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring'
+              className='interactive-lift h-9 cursor-pointer rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring'
             >
               <option value='daily'>일별 합산</option>
               <option value='monthly'>월별 합산</option>
