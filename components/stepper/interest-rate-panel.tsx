@@ -21,7 +21,7 @@ interface InterestRatePanelProps {
 }
 
 const activeMonthButtonClass =
-  'border-[color:var(--setup-primary,var(--primary))]/70 bg-white/[0.08] text-foreground shadow-sm ring-1 ring-[color:var(--setup-primary,var(--primary))]/20 hover:border-[color:var(--setup-primary,var(--primary))]';
+  'border-white/15 bg-[color:color-mix(in_oklch,var(--setup-primary,var(--primary))_8%,transparent)] text-foreground shadow-sm hover:bg-[color:color-mix(in_oklch,var(--setup-primary,var(--primary))_12%,transparent)]';
 const inactiveMonthButtonClass =
   'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50 hover:border-white/25';
 const activeRateInputClass =
@@ -334,7 +334,7 @@ export function InterestRatePanel({
                           isMonthActive ? '활성' : '비활성'
                         }`}
                         onClick={() => toggleActive(year, month)}
-                        className={`interactive-lift h-7 rounded border text-center font-medium transition-all ${
+                        className={`interactive-lift liquid-glass-surface h-7 cursor-pointer rounded border text-center font-medium transition-all ${
                           isMonthActive
                             ? activeMonthButtonClass
                             : inactiveMonthButtonClass
