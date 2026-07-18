@@ -27,7 +27,7 @@ export function DashboardOverviewCard({
   themeColor,
 }: DashboardOverviewCardProps) {
   return (
-    <Card className={cn('glass-card flex flex-col h-full', className)}>
+    <Card className={cn('dashboard-card flex flex-col h-full', className)}>
       <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-3'>
         <CardTitle className='text-lg font-medium'>{title}</CardTitle>
         <Icon className='h-4 w-4' style={{ color: themeColor }} />

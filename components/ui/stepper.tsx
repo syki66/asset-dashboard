@@ -36,7 +36,7 @@ export function Stepper({
                 <button
                   type='button'
                   className={cn(
-                    'flex h-11 w-11 items-center justify-center rounded-full border text-sm font-bold shadow-sm backdrop-blur-sm transition-all duration-200',
+                    'flex h-11 w-11 items-center justify-center rounded-full border text-sm font-bold shadow-sm transition-all duration-200',
                     isCompleted
                       ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))] text-white shadow-[color:var(--setup-primary,var(--primary))]/20'
                       : isCurrent

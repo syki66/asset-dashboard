@@ -181,7 +181,7 @@ export function FeeSettingsStep() {
         {feeSettingGroups.map((group) => (
           <section
             key={group.title}
-            className='rounded-2xl border border-white/15 bg-white/[0.035] p-4 shadow-sm backdrop-blur-md'
+            className='rounded-2xl border border-white/15 bg-white/[0.035] p-4 shadow-sm'
           >
             <div className='mb-4'>
               <h4 className='text-sm font-bold text-foreground'>
@@ -195,7 +195,7 @@ export function FeeSettingsStep() {
               {group.items.map((item) => (
                 <label
                   key={item.key}
-                  className='grid gap-2 rounded-xl border border-white/15 bg-white/[0.04] p-3 shadow-[0_4px_14px_rgba(15,23,42,0.04)] backdrop-blur-md transition-colors duration-200 hover:bg-white/[0.1]'
+                  className='grid gap-2 rounded-xl border border-white/15 bg-white/[0.04] p-3 shadow-[0_4px_14px_rgba(15,23,42,0.04)] transition-colors duration-200 hover:bg-white/[0.1]'
                 >
                   <div className='flex items-center justify-between gap-3'>
                     <div className='min-w-0'>

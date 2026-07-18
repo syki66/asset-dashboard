@@ -39,7 +39,7 @@ export function ComparisonTable({
   const hoverBgVar = themeColor.replace('-theme)', '-hover-bg)');
 
   return (
-    <Card>
+    <Card className='dashboard-card'>
       <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-3'>
         <CardTitle className='flex items-center gap-2 text-lg font-medium'>
           {icon}

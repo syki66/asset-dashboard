@@ -26,7 +26,7 @@ interface BenchmarkStepProps {
 export const BenchmarkStep = ({ startYear }: BenchmarkStepProps) => {
   return (
     <div className='space-y-4'>
-      <div className='space-y-4 rounded-2xl border border-white/15 bg-white/[0.04] p-4 shadow-sm backdrop-blur-md'>
+      <div className='space-y-4 rounded-2xl border border-white/15 bg-white/[0.04] p-4 shadow-sm'>
         <div className='rounded-xl border border-white/15 bg-white/[0.04] p-4'>
           <div className='inline-flex items-center rounded-full border border-white/15 bg-white/[0.08] px-2.5 py-1 text-xs font-semibold text-muted-foreground'>
             현재 지원

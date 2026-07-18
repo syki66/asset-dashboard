@@ -178,7 +178,8 @@
     box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.07);
   }
 
-  .chart-card {
+  .chart-card,
+  .dashboard-card {
     backdrop-filter: none;
   }
 

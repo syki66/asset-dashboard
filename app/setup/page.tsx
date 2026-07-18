@@ -286,7 +286,7 @@ export default function Page() {
     >
       <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_14%,oklch(0.62_0.24_255/0.22),transparent_28%),radial-gradient(circle_at_84%_18%,oklch(0.66_0.22_155/0.2),transparent_30%),radial-gradient(circle_at_70%_88%,oklch(0.78_0.16_82/0.18),transparent_32%),radial-gradient(circle_at_16%_88%,oklch(0.62_0.2_18/0.1),transparent_30%)]' />
       <div className='relative w-full max-w-5xl'>
-        <Card className='relative w-full overflow-hidden rounded-2xl border border-white/35 bg-white/[0.18] shadow-2xl shadow-black/10 backdrop-blur-2xl'>
+        <Card className='dashboard-card relative w-full overflow-hidden rounded-2xl border border-white/35 bg-white/[0.18] shadow-2xl shadow-black/10'>
         <div className='absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--setup-primary),var(--setup-secondary),var(--setup-accent),var(--setup-danger))]' />
         <CardHeader className='border-b border-white/25 bg-white/[0.06] px-8 py-7'>
           <div className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
@@ -303,7 +303,7 @@ export default function Page() {
                 계산합니다.
               </CardDescription>
             </div>
-            <div className='rounded-xl border border-white/30 bg-white/[0.14] px-4 py-3 text-right shadow-sm backdrop-blur-md'>
+            <div className='rounded-xl border border-white/30 bg-white/[0.14] px-4 py-3 text-right shadow-sm'>
               <p className='text-xs font-medium text-muted-foreground'>
                 현재 단계
               </p>
@@ -322,7 +322,7 @@ export default function Page() {
             className='mb-8'
           />
 
-          <div className='min-h-[360px] rounded-2xl border border-white/25 bg-white/[0.1] p-6 shadow-inner shadow-black/5 backdrop-blur-md'>
+          <div className='min-h-[360px] rounded-2xl border border-white/25 bg-white/[0.1] p-6 shadow-inner shadow-black/5'>
             {activeStep === 0 && (
               <div className='space-y-5'>
                 <div>

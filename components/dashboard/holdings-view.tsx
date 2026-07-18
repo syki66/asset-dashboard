@@ -19,7 +19,7 @@ export function HoldingsView({ stocks, themeColor }: { stocks: StockProps[]; the
   const [isDetailed, setIsDetailed] = useState(false);
 
   return (
-    <Card>
+    <Card className='dashboard-card'>
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>

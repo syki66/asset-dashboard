@@ -25,7 +25,7 @@ const activeMonthButtonClass =
 const inactiveMonthButtonClass =
   'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50 hover:border-white/25';
 const activeRateInputClass =
-  'border-white/15 bg-white/[0.08] text-foreground shadow-sm backdrop-blur-md focus-visible:ring-ring/35';
+  'border-white/15 bg-white/[0.08] text-foreground shadow-sm focus-visible:ring-ring/35';
 const inactiveRateInputClass =
   'border-white/10 bg-white/[0.03] text-muted-foreground opacity-50 placeholder:text-[0.5625rem] placeholder:text-muted-foreground/70';
 
@@ -302,7 +302,7 @@ export function InterestRatePanel({
           return (
             <div
               key={year}
-              className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-sm backdrop-blur-md"
+              className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-sm"
             >
               <div className="flex items-center gap-3">
                 <h4 className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-base font-semibold text-foreground">
@@ -318,7 +318,7 @@ export function InterestRatePanel({
                 )}
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
                 <div className="grid grid-cols-[2.75rem_repeat(12,minmax(0,1fr))] gap-1.5 text-[0.6875rem]">
                   <div />
                   {monthColumns.map((rate, index) => {
@@ -334,7 +334,7 @@ export function InterestRatePanel({
                           isMonthActive ? '활성' : '비활성'
                         }`}
                         onClick={() => toggleActive(year, month)}
-                        className={`interactive-lift liquid-glass-surface h-7 cursor-pointer rounded border text-center font-medium transition-all ${
+                        className={`interactive-lift h-7 cursor-pointer rounded border text-center font-medium transition-all ${
                           isMonthActive
                             ? activeMonthButtonClass
                             : inactiveMonthButtonClass
