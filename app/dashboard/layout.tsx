@@ -57,8 +57,9 @@ const categories = [
   {
     id: 'overview' as const,
     name: '개요',
-    subtitle: '포트폴리오 전체 현황',
-    description: '포트폴리오의 전반적인 요약과 주요 지표를 확인합니다.',
+    subtitle: '주요 지표 한눈에 보기',
+    description:
+      '자산 포트폴리오의 전반적인 요약과 주요 정보를 한눈에 확인합니다.',
     icon: Home,
     href: '/dashboard/overview',
     theme: {
@@ -72,7 +73,7 @@ const categories = [
     name: '수익성 분석',
     subtitle: '성과 지표 및 벤치마크',
     description:
-      '기간별 수익률, 벤치마크 대비 성과 등 다양한 성과 지표를 분석합니다.',
+      '기간별 수익률, 연도별 성과, 벤치마크 비교 등 다양한 성과 지표를 분석합니다.',
     icon: TrendingUp,
     href: '/dashboard/performance',
     theme: {
@@ -84,7 +85,7 @@ const categories = [
   {
     id: 'dividends' as const,
     name: '이자 및 배당',
-    subtitle: '배당금 및 수익률',
+    subtitle: '배당금 및 수익률 추이',
     description:
       '수령한 배당금 내역과 배당 수익률 추이를 시각적으로 분석합니다.',
     icon: DollarSign,
@@ -100,7 +101,7 @@ const categories = [
     name: '리스크 관리',
     subtitle: '손실 및 변동성 분석',
     description:
-      '변동성, 최대 낙폭(MDD) 등 리스크 관련 지표를 통해 포트폴리오를 진단합니다.',
+      '최대 낙폭, 변동성 및 샤프지수 등 리스크 관련 지표를 통해 포트폴리오의 위험 수준을 점검합니다.',
     icon: Shield,
     href: '/dashboard/risk',
     theme: {
@@ -113,7 +114,8 @@ const categories = [
     id: 'portfolio' as const,
     name: '포트폴리오',
     subtitle: '보유 종목 및 섹터 분석',
-    description: '보유 종목, 자산군별 비중 및 상세 정보를 상세하게 조회합니다.',
+    description:
+      '보유 종목과 섹터 비중, 집중도 등을 통해 포트폴리오 구성을 상세하게 분석합니다.',
     icon: PieChart,
     href: '/dashboard/portfolio',
     theme: {
@@ -125,9 +127,8 @@ const categories = [
   {
     id: 'transaction' as const,
     name: '거래 내역',
-    subtitle: '매수/매도 기록',
-    description:
-      '모든 매수, 매도 거래 내역을 기록하고 필터링하여 조회할 수 있습니다.',
+    subtitle: '매수·매도 기록',
+    description: '모든 매수·매도 거래 내역과 기간별 흐름을 확인할 수 있습니다.',
     icon: ArrowUpDown,
     href: '/dashboard/transaction',
     theme: {
@@ -139,8 +140,9 @@ const categories = [
   {
     id: 'settings' as const,
     name: '설정',
-    subtitle: '환경설정 및 계정 관리',
-    description: '계정 정보, 데이터 소스 및 표시 설정을 관리합니다.',
+    subtitle: '표시 계좌 선택',
+    description:
+      '대시보드에 합산해 표시할 계좌를 선택하거나 거래내역 CSV를 다시 등록합니다.',
     icon: Settings,
     href: '/dashboard/settings',
     theme: {
@@ -166,13 +168,12 @@ const getPageDetails = (pathname: string) => {
       description: currentCategory.description,
     };
   }
-  const rootPage = categories.find((c) => c.id === 'overview');
+  const rootPage =
+    categories.find((category) => category.id === 'overview') ?? categories[0];
   if (pathname === '/dashboard' || pathname === '/dashboard/') {
     return {
-      title: rootPage?.name || '개요',
-      description:
-        rootPage?.description ||
-        '포트폴리오의 전반적인 요약과 주요 지표를 확인합니다.',
+      title: rootPage.name,
+      description: rootPage.description,
     };
   }
   return { title: '대시보드', description: '데이터를 분석하고 관리하세요.' };
