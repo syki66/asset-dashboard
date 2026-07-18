@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
+import { LoadingOverlay } from '@/components/ui/loading-overlay';
 import {
   CsvStep,
   DateStep,
@@ -96,7 +97,7 @@ export default function Page() {
   const router = useRouter();
 
   const setTotalAccountData = useAccountStore(
-    (state) => state.setTotalAccountData
+    (state) => state.setTotalAccountData,
   );
   const setSelectedAccounts = useSelectedAccountsStore(
     (state) => state.setSelectedAccounts,
@@ -127,7 +128,10 @@ export default function Page() {
             undefined,
             principalAdjustments[getFileKey(file)],
           ); // 거래내역을 계좌정보로 변환
-          const benchmarkBestData = await createBenchmarkData(transactions, 'best');
+          const benchmarkBestData = await createBenchmarkData(
+            transactions,
+            'best',
+          );
           const benchmarkWorstData = await createBenchmarkData(
             transactions,
             'worst',
@@ -139,7 +143,7 @@ export default function Page() {
             benchmarkBestData,
             benchmarkWorstData,
           };
-        })
+        }),
       );
       return totalAccountData;
     },
@@ -281,7 +285,8 @@ export default function Page() {
       style={setupThemeStyle}
     >
       <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_14%,oklch(0.62_0.24_255/0.22),transparent_28%),radial-gradient(circle_at_84%_18%,oklch(0.66_0.22_155/0.2),transparent_30%),radial-gradient(circle_at_70%_88%,oklch(0.78_0.16_82/0.18),transparent_32%),radial-gradient(circle_at_16%_88%,oklch(0.62_0.2_18/0.1),transparent_30%)]' />
-      <Card className='relative w-full max-w-5xl overflow-hidden rounded-2xl border border-white/35 bg-white/[0.18] shadow-2xl shadow-black/10 backdrop-blur-2xl'>
+      <div className='relative w-full max-w-5xl'>
+        <Card className='relative w-full overflow-hidden rounded-2xl border border-white/35 bg-white/[0.18] shadow-2xl shadow-black/10 backdrop-blur-2xl'>
         <div className='absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--setup-primary),var(--setup-secondary),var(--setup-accent),var(--setup-danger))]' />
         <CardHeader className='border-b border-white/25 bg-white/[0.06] px-8 py-7'>
           <div className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
@@ -420,44 +425,35 @@ export default function Page() {
               activeStep === steps.length - 1 && 'min-w-[132px]',
             )}
           >
-            {activeStep === steps.length - 1
-              ? isLoading
-                ? (
-                    <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      처리 중
-                    </>
-                  )
-                : (
-                    <>
-                      완료
-                      <CheckCircle2 className='ml-2 h-4 w-4' />
-                    </>
-                  )
-              : (
-                  <>
-                    다음
-                    <ArrowRight className='ml-2 h-4 w-4' />
-                  </>
-                )}
+            {activeStep === steps.length - 1 ? (
+              isLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  처리 중
+                </>
+              ) : (
+                <>
+                  완료
+                  <CheckCircle2 className='ml-2 h-4 w-4' />
+                </>
+              )
+            ) : (
+              <>
+                다음
+                <ArrowRight className='ml-2 h-4 w-4' />
+              </>
+            )}
           </Button>
         </CardFooter>
+        </Card>
         {isLoading && (
-          <div className='absolute inset-0 z-20 flex items-center justify-center bg-white/[0.18] backdrop-blur-md'>
-            <div className='rounded-2xl border border-white/25 bg-white/[0.28] px-6 py-5 text-center shadow-xl backdrop-blur-xl'>
-              <div className='mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--setup-primary)]/20 bg-[color:var(--setup-primary)]/10'>
-                <Loader2 className='h-5 w-5 animate-spin text-[color:var(--setup-primary)]' />
-              </div>
-              <p className='mt-3 text-sm font-semibold text-foreground'>
-                계좌 데이터를 계산하는 중입니다.
-              </p>
-              <p className='mt-1 text-xs text-muted-foreground'>
-                거래내역이 많으면 잠시 시간이 걸릴 수 있습니다.
-              </p>
-            </div>
-          </div>
+          <LoadingOverlay
+            title='계좌 데이터를 계산하는 중입니다.'
+            description='거래내역이 많으면 잠시 시간이 걸릴 수 있습니다.'
+            accentColor='var(--setup-primary)'
+          />
         )}
-      </Card>
+      </div>
     </div>
   );
 }
