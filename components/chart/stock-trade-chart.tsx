@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { parseISO, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { TrendingUp } from 'lucide-react';
+import { ChevronDown, TrendingUp } from 'lucide-react';
 
 import {
   Card,
@@ -23,6 +23,13 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { StockTradeHistoryChartProps } from '@/types';
 import { cn } from '@/lib/utils';
 import { useCurrencyStore } from '@/store/options';
@@ -76,10 +83,22 @@ interface StockTradeChartProps {
   title?: string;
   description?: string;
   themeColor?: string;
+  onSummaryChange?: (summary: StockTradeChartSummary) => void;
 }
 
 type DataViewMode = 'quantity' | 'price';
 type AggregationMode = 'daily' | 'monthly' | 'yearly';
+
+export type StockTradeChartSummary = {
+  buyQuantity: number;
+  buyAmount: number;
+  sellQuantity: number;
+  sellAmount: number;
+  netQuantity: number;
+  netAmount: number;
+  buyStockCount: number;
+  sellStockCount: number;
+};
 
 const generateStockColor = (index: number): string => {
   return TRANSACTION_CHART_COLORS[index % TRANSACTION_CHART_COLORS.length];
@@ -165,6 +184,7 @@ export function StockTradeChart({
   title = '일별 주식 매매 현황',
   description = '각 날짜별로 매매한 주식 종목과 수량/금액을 확인합니다.',
   themeColor = '#EF4444', // Default to a red theme
+  onSummaryChange,
 }: StockTradeChartProps) {
   const [viewMode, setViewMode] = useState<DataViewMode>('quantity');
   const [aggregationMode, setAggregationMode] = useState<AggregationMode>('daily');
@@ -454,22 +474,51 @@ export function StockTradeChart({
 
 
 
-  const { totalBuy, totalSell } = useMemo(() => {
-    let buy = 0;
-    let sell = 0;
-    chartData.forEach((item) => {
-      Object.entries(item)
-        .filter(([key]) => key !== 'date')
-        .forEach(([key, value]) => {
-          if (key.endsWith('(매수)')) {
-            buy += value as number;
-          } else if (key.endsWith('(매도)')) {
-            sell += value as number;
-          }
-        });
+  const tradeSummary = useMemo(() => {
+    const filtered =
+      selectedPeriod === 'all'
+        ? data
+        : data.filter((item) => item.date.startsWith(selectedPeriod));
+    let buyQuantity = 0;
+    let buyAmount = 0;
+    let sellQuantity = 0;
+    let sellAmount = 0;
+    const buyStocks = new Set<string>();
+    const sellStocks = new Set<string>();
+
+    filtered.forEach((item) => {
+      selectedStocks.forEach((stock) => {
+        const quantity = item.quantityBySymbol[stock] ?? 0;
+        const amount = item.priceBySymbol[stock] ?? 0;
+        if (!quantity && !amount) return;
+
+        if (item.type === 'buy') {
+          buyQuantity += quantity;
+          buyAmount += amount;
+          buyStocks.add(stock);
+        } else {
+          sellQuantity -= quantity;
+          sellAmount -= amount;
+          sellStocks.add(stock);
+        }
+      });
     });
-    return { totalBuy: buy, totalSell: sell };
-  }, [chartData]);
+
+    return {
+      buyQuantity,
+      buyAmount,
+      sellQuantity,
+      sellAmount,
+      netQuantity: buyQuantity + sellQuantity,
+      netAmount: buyAmount + sellAmount,
+      buyStockCount: buyStocks.size,
+      sellStockCount: sellStocks.size,
+    };
+  }, [data, selectedPeriod, selectedStocks]);
+
+  useEffect(() => {
+    onSummaryChange?.(tradeSummary);
+  }, [onSummaryChange, tradeSummary]);
 
   const getYAxisLabel = () => {
     if (viewMode === 'quantity') {
@@ -490,6 +539,18 @@ export function StockTradeChart({
   };
 
   const tradeThemeHoverColor = `color-mix(in srgb, ${themeColor} 15%, transparent)`;
+  const liquidDropdownStyle = {
+    backgroundColor: 'oklch(0.98 0.01 200 / 0.1)',
+    backdropFilter: 'blur(2px)',
+    WebkitBackdropFilter: 'blur(2px)',
+  } as React.CSSProperties;
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setSelectedPeriod(newPeriod);
+    if (newPeriod !== 'all' && aggregationMode === 'yearly') {
+      setAggregationMode('monthly');
+    }
+  };
 
   return (
     <Card
@@ -497,6 +558,7 @@ export function StockTradeChart({
       style={
         {
           '--trade-theme-hover': tradeThemeHoverColor,
+          '--trade-theme-main': themeColor,
         } as React.CSSProperties
       }
     >
@@ -538,35 +600,112 @@ export function StockTradeChart({
                 가격
               </Button>
             </div>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => {
-                const newPeriod = e.target.value;
-                setSelectedPeriod(newPeriod);
-                if (newPeriod !== 'all' && aggregationMode === 'yearly') {
-                  setAggregationMode('monthly');
-                }
-              }}
-              className='interactive-lift h-9 cursor-pointer rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring'
-            >
-              <option value='all'>전체기간</option>
-              {availableYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}년
-                </option>
-              ))}
-            </select>
-            <select
-              value={aggregationMode}
-              onChange={(e) => setAggregationMode(e.target.value as AggregationMode)}
-              className='interactive-lift h-9 cursor-pointer rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring'
-            >
-              <option value='daily'>일별 합산</option>
-              <option value='monthly'>월별 합산</option>
-              {selectedPeriod === 'all' && (
-                <option value='yearly'>연도별 합산</option>
-              )}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='outline'
+                  className='interactive-lift group liquid-glass-surface h-9 w-[6.75rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white'
+                  style={{
+                    ...liquidDropdownStyle,
+                    '--date-button-hover': themeColor,
+                  } as React.CSSProperties}
+                >
+                  {selectedPeriod === 'all' ? '전체기간' : `${selectedPeriod}년`}
+                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align='end'
+                className='liquid-glass-surface w-[6.75rem] border-white/15 p-1'
+                style={{
+                  ...liquidDropdownStyle,
+                  '--trade-theme-hover': tradeThemeHoverColor,
+                  '--trade-theme-main': themeColor,
+                } as React.CSSProperties}
+              >
+                <DropdownMenuRadioGroup
+                  value={selectedPeriod}
+                  onValueChange={handlePeriodChange}
+                >
+                  <DropdownMenuRadioItem
+                    value='all'
+                    showIndicator={false}
+                    className='interactive-lift cursor-pointer rounded-md px-3 py-2 text-sm hover:!bg-[var(--trade-theme-hover)] hover:!text-current data-[state=checked]:!bg-[var(--trade-theme-main)] data-[state=checked]:!text-white data-[state=checked]:hover:!bg-[var(--trade-theme-main)]'
+                  >
+                    전체기간
+                  </DropdownMenuRadioItem>
+                  {availableYears.map((year) => (
+                    <DropdownMenuRadioItem
+                      key={year}
+                      value={year}
+                      showIndicator={false}
+                      className='interactive-lift cursor-pointer rounded-md px-3 py-2 text-sm hover:!bg-[var(--trade-theme-hover)] hover:!text-current data-[state=checked]:!bg-[var(--trade-theme-main)] data-[state=checked]:!text-white data-[state=checked]:hover:!bg-[var(--trade-theme-main)]'
+                    >
+                      {year}년
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='outline'
+                  className='interactive-lift group liquid-glass-surface h-9 w-[7.5rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white'
+                  style={{
+                    ...liquidDropdownStyle,
+                    '--date-button-hover': themeColor,
+                  } as React.CSSProperties}
+                >
+                  {aggregationMode === 'daily'
+                    ? '일별 합산'
+                    : aggregationMode === 'monthly'
+                      ? '월별 합산'
+                      : '연도별 합산'}
+                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align='end'
+                className='liquid-glass-surface w-[7.5rem] border-white/15 p-1'
+                style={{
+                  ...liquidDropdownStyle,
+                  '--trade-theme-hover': tradeThemeHoverColor,
+                  '--trade-theme-main': themeColor,
+                } as React.CSSProperties}
+              >
+                <DropdownMenuRadioGroup
+                  value={aggregationMode}
+                  onValueChange={(value) =>
+                    setAggregationMode(value as AggregationMode)
+                  }
+                >
+                  <DropdownMenuRadioItem
+                    value='daily'
+                    showIndicator={false}
+                    className='interactive-lift cursor-pointer rounded-md px-3 py-2 text-sm hover:!bg-[var(--trade-theme-hover)] hover:!text-current data-[state=checked]:!bg-[var(--trade-theme-main)] data-[state=checked]:!text-white data-[state=checked]:hover:!bg-[var(--trade-theme-main)]'
+                  >
+                    일별 합산
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    value='monthly'
+                    showIndicator={false}
+                    className='interactive-lift cursor-pointer rounded-md px-3 py-2 text-sm hover:!bg-[var(--trade-theme-hover)] hover:!text-current data-[state=checked]:!bg-[var(--trade-theme-main)] data-[state=checked]:!text-white data-[state=checked]:hover:!bg-[var(--trade-theme-main)]'
+                  >
+                    월별 합산
+                  </DropdownMenuRadioItem>
+                  {selectedPeriod === 'all' && (
+                    <DropdownMenuRadioItem
+                      value='yearly'
+                      showIndicator={false}
+                      className='interactive-lift cursor-pointer rounded-md px-3 py-2 text-sm hover:!bg-[var(--trade-theme-hover)] hover:!text-current data-[state=checked]:!bg-[var(--trade-theme-main)] data-[state=checked]:!text-white data-[state=checked]:hover:!bg-[var(--trade-theme-main)]'
+                    >
+                      연도별 합산
+                    </DropdownMenuRadioItem>
+                  )}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
@@ -675,48 +814,6 @@ export function StockTradeChart({
           onToggle={toggleStock}
           className='mt-4'
         />
-        {/* 총 값 Display */}
-        <div className='mt-6 grid grid-cols-1 gap-3 border-t border-white/10 pt-4 sm:grid-cols-3'>
-          <div className='rounded-xl border border-white/15 bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
-            <div className='flex flex-col gap-1'>
-              <span className='text-sm font-medium text-muted-foreground'>
-                총 매수
-              </span>
-              <span className='text-lg font-bold text-rose-500'>
-                {formatTradeValue(totalBuy)}
-              </span>
-            </div>
-          </div>
-          <div className='rounded-xl border border-white/15 bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
-            <div className='flex flex-col gap-1'>
-              <span className='text-sm font-medium text-muted-foreground'>
-                총 매도
-              </span>
-              <span className='text-lg font-bold text-blue-600'>
-                {formatTradeValue(totalSell)}
-              </span>
-            </div>
-          </div>
-          <div className='rounded-xl border border-white/15 bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl ring-1 ring-white/5'>
-            <div className='flex flex-col gap-1'>
-              <span className='text-sm font-medium text-muted-foreground'>
-                합계
-              </span>
-              <span
-                className={`text-lg font-bold ${
-                  totalBuy + totalSell > 0
-                    ? 'text-rose-500'
-                    : totalBuy + totalSell < 0
-                      ? 'text-blue-600'
-                      : 'text-foreground'
-                }`}
-              >
-                {totalBuy + totalSell > 0 ? '+' : ''}
-                {formatTradeValue(totalBuy + totalSell)}
-              </span>
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

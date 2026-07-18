@@ -198,6 +198,7 @@ export default function Page() {
           description='주말 복사 데이터를 제외한 최근 90개 거래일 TWR 수익률 기준 연환산 변동성'
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
+          yAxisMin={0}
         />
       </div>
     </>

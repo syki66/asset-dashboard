@@ -130,6 +130,7 @@ interface AssetHistoryChartProps {
   calendarCategory?: string;
   seriesToggleGroups?: SeriesToggleGroup[];
   displayAsNegative?: boolean;
+  yAxisMin?: number;
 }
 
 export function AssetChart({
@@ -146,6 +147,7 @@ export function AssetChart({
   calendarCategory,
   seriesToggleGroups = [],
   displayAsNegative = false,
+  yAxisMin,
 }: AssetHistoryChartProps) {
   const [useLogScale, setUseLogScale] = useState(false);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -460,6 +462,13 @@ export function AssetChart({
       const adjustedMaxValue =
         safeMax <= minLogValue ? minLogValue + 1 : safeMax * 1.1;
       return [minLogValue, adjustedMaxValue];
+    }
+
+    if (yAxisMin !== undefined) {
+      return [
+        yAxisMin,
+        safeMax > yAxisMin ? safeMax * 1.1 : yAxisMin + 1,
+      ];
     }
 
     if (usesPercentUnit) {

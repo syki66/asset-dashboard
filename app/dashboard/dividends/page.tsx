@@ -145,6 +145,7 @@ export default function Page() {
           description='자산 평가액 대비 세후 배당률'
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
+          yAxisMin={0}
         />
         <AssetChart
           themeColor={themeColor}
@@ -169,6 +170,7 @@ export default function Page() {
           icon={TrendingUpDown}
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
+          yAxisMin={0}
         />
       </div>
     </>
