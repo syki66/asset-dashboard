@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { CalendarPicker } from '@/components/ui/calendar-picker';
+import { LoadingOverlay } from '@/components/ui/loading-overlay';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -208,7 +209,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(() =>
     formatDateKey(dashboardDate),
   );
-  const [allDashboardData, setAllDashboardData] = useState<DashboardProps[]>([]);
+  const [allDashboardData, setAllDashboardData] = useState<DashboardProps[]>(
+    [],
+  );
   const [isCurrencyCalculating, setIsCurrencyCalculating] = useState(false);
   const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
   // 계좌 선택 순서가 달라도 같은 조합이면 같은 캐시를 쓰도록 정렬한 키를 만듭니다.
@@ -347,10 +350,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className='w-72 shrink-0' />
       <div className={cn('flex-1 p-4 pl-0')}>
         <div className='w-full rounded-2xl border border-border bg-card p-8 shadow-[0_0.5rem_2rem_rgb(0_0_0_/_0.07)] flex flex-col'>
-          <header
-            className='glass-card liquid-glass-surface text-card-foreground lg:sticky lg:top-4 lg:z-40 lg:px-6 lg:py-3'
-          >
-            <div className='flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6'>
+          <header className='relative z-0 text-card-foreground lg:sticky lg:top-4 lg:z-40 lg:px-6 lg:py-3'>
+            <div
+              className='liquid-glass-surface pointer-events-none absolute inset-0 z-0'
+              aria-hidden='true'
+            />
+            <div className='relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between'>
               <div>
                 <h1 className={cn('text-4xl font-bold mb-2', textThemeClass)}>
                   {title}
@@ -360,147 +365,139 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               <div className='flex flex-col lg:flex-row items-end lg:items-stretch gap-4 shrink-0'>
                 {/* Global Options Card */}
-                <div className='relative flex flex-col justify-center gap-2 overflow-hidden rounded-2xl border border-white/10 bg-card/10 p-2 shadow-md backdrop-blur-md shrink-0 w-fit'>
+                <div className='relative w-fit shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-card/10 shadow-md'>
+                  <div className='flex h-full flex-col justify-center p-2 backdrop-blur-md'>
+                    <div className='flex flex-col gap-2'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <Tabs
+                          value={tax}
+                          onValueChange={(v) => setTax(v as 'pre' | 'post')}
+                          className='w-[92px]'
+                        >
+                          <TabsList
+                            style={activeTabStyle}
+                            className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                          >
+                            <TabsTrigger
+                              value='pre'
+                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
+                            >
+                              세전
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value='post'
+                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
+                            >
+                              세후
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+
+                        <Tabs
+                          value={chartLayout}
+                          onValueChange={(v) =>
+                            setChartLayout(v as 'expanded' | 'compact')
+                          }
+                          className='w-[80px]'
+                        >
+                          <TabsList
+                            style={activeTabStyle}
+                            className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                          >
+                            <TabsTrigger
+                              value='expanded'
+                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
+                              title='펼쳐보기'
+                            >
+                              <Maximize2 className='h-4 w-4' />
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value='compact'
+                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
+                              title='모아보기'
+                            >
+                              <LayoutGrid className='h-4 w-4' />
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                      </div>
+
+                      <div className='flex items-center gap-2'>
+                        <Tabs
+                          value={currency}
+                          onValueChange={(v) =>
+                            handleCurrencyChange(v as 'krw' | 'usd')
+                          }
+                          className='w-[92px] shrink-0'
+                        >
+                          <TabsList
+                            style={activeTabStyle}
+                            className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                          >
+                            <TabsTrigger
+                              value='krw'
+                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
+                            >
+                              ₩
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value='usd'
+                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
+                            >
+                              $
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+
+                        <div className='flex-1 flex justify-center'>
+                          <span
+                            style={activeBadgeStyle}
+                            className='rounded-full px-2 py-1 text-xs font-semibold text-white'
+                          >
+                            {dashboardData.fxRate.toLocaleString()}원
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   {isCurrencyCalculating && (
-                    <div className='absolute inset-0 z-10 flex items-center justify-center gap-2 bg-background/45 backdrop-blur-md'>
-                      <div
-                        className='h-5 w-5 animate-spin rounded-full border-2 border-t-transparent'
-                        style={{
-                          borderColor: `var(--${activeCategory}-theme)`,
-                          borderTopColor: 'transparent',
-                        }}
-                      />
-                      <span
-                        className='text-xs font-semibold'
-                        style={{ color: `var(--${activeCategory}-theme)` }}
-                      >
-                        계산 중
-                      </span>
-                    </div>
+                    <LoadingOverlay
+                      compact
+                      title='계산 중'
+                      accentColor={`var(--${activeCategory}-theme)`}
+                    />
                   )}
-                  <div className='flex flex-wrap items-center gap-2'>
-                    <Tabs
-                      value={tax}
-                      onValueChange={(v) => setTax(v as 'pre' | 'post')}
-                      className='w-[92px]'
-                    >
-                      <TabsList
-                        style={activeTabStyle}
-                        className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
-                      >
-                        <TabsTrigger
-                          value='pre'
-                          className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
-                        >
-                          세전
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value='post'
-                          className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
-                        >
-                          세후
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-
-                    <Tabs
-                      value={chartLayout}
-                      onValueChange={(v) =>
-                        setChartLayout(v as 'expanded' | 'compact')
-                      }
-                      className='w-[80px]'
-                    >
-                      <TabsList
-                        style={activeTabStyle}
-                        className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
-                      >
-                        <TabsTrigger
-                          value='expanded'
-                          className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
-                          title='펼쳐보기'
-                        >
-                          <Maximize2 className='h-4 w-4' />
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value='compact'
-                          className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
-                          title='모아보기'
-                        >
-                          <LayoutGrid className='h-4 w-4' />
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    <Tabs
-                      value={currency}
-                      onValueChange={(v) =>
-                        handleCurrencyChange(v as 'krw' | 'usd')
-                      }
-                      className='w-[92px] shrink-0'
-                    >
-                      <TabsList
-                        style={activeTabStyle}
-                        className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
-                      >
-                        <TabsTrigger
-                          value='krw'
-                          className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
-                        >
-                          ₩
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value='usd'
-                          className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
-                        >
-                          $
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-
-                    <div className='flex-1 flex justify-center'>
-                      <span
-                        style={activeBadgeStyle}
-                        className='rounded-full px-2 py-1 text-xs font-semibold text-white'
-                      >
-                        {dashboardData.fxRate.toLocaleString()}원
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Status Card */}
                 <Popover>
                   <div className='relative flex min-w-[200px] shrink-0 flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/10 p-4 text-sm shadow-md backdrop-blur-md'>
                     <PopoverAnchor className='pointer-events-none absolute inset-0' />
-                  <div className='flex items-center gap-2'>
-                    <RefreshCw
-                      className={cn(
-                        'h-4 w-4',
-                        activeTheme?.text ?? 'text-primary',
-                      )}
-                    />
-                    <span className='font-medium text-foreground'>
-                      파일 업데이트:
-                    </span>
-                    <span className='text-muted-foreground cursor-help relative group'>
-                      {timeAgo(dashboardData.lastUpdated)}
-                      <div className='absolute bottom-full right-0 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10'>
-                        {formatDateKr(dashboardData.lastUpdated)}
-                      </div>
-                    </span>
-                  </div>
-                  <div className='flex items-center gap-2'>
-                    <CalendarDays
-                      className={cn(
-                        'h-4 w-4',
-                        activeTheme?.text ?? 'text-primary',
-                      )}
-                    />
-                    <span className='font-medium text-foreground'>
-                      계좌:
-                    </span>
+                    <div className='flex items-center gap-2'>
+                      <RefreshCw
+                        className={cn(
+                          'h-4 w-4',
+                          activeTheme?.text ?? 'text-primary',
+                        )}
+                      />
+                      <span className='font-medium text-foreground'>
+                        파일 업데이트:
+                      </span>
+                      <span className='text-muted-foreground cursor-help relative group'>
+                        {timeAgo(dashboardData.lastUpdated)}
+                        <div className='absolute bottom-full right-0 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10'>
+                          {formatDateKr(dashboardData.lastUpdated)}
+                        </div>
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <CalendarDays
+                        className={cn(
+                          'h-4 w-4',
+                          activeTheme?.text ?? 'text-primary',
+                        )}
+                      />
+                      <span className='font-medium text-foreground'>계좌:</span>
                       <PopoverTrigger asChild>
                         <Button
                           variant='ghost'
@@ -514,7 +511,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           <ChevronDown className='h-3.5 w-3.5 opacity-70' />
                         </Button>
                       </PopoverTrigger>
-                  </div>
+                    </div>
                     <PopoverContent
                       className='w-auto border-white/10 !bg-transparent p-0 shadow-none'
                       align='end'
