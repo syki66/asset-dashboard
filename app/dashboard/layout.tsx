@@ -504,11 +504,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           size='sm'
                           style={dateButtonStyle}
                           className={cn(
-                            'interactive-lift h-6 cursor-pointer rounded-md border border-white/15 bg-white/[0.06] px-2 py-0 text-xs font-medium text-foreground shadow-sm hover:bg-[var(--date-button-hover)] hover:text-white focus-visible:ring-2',
+                            'interactive-lift group h-6 cursor-pointer rounded-md border border-white/15 bg-white/[0.06] px-2 py-0 text-xs font-medium text-foreground shadow-sm hover:bg-[var(--date-button-hover)] hover:text-white data-[state=open]:!cursor-pointer data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm focus-visible:ring-2',
                           )}
                         >
                           <span>{formatDateKr(dashboardData.date)}</span>
-                          <ChevronDown className='h-3.5 w-3.5 opacity-70' />
+                          <ChevronDown className='h-3.5 w-3.5 opacity-70 group-hover:text-white group-data-[state=open]:!text-white' />
                         </Button>
                       </PopoverTrigger>
                     </div>

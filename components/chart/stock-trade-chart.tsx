@@ -600,18 +600,18 @@ export function StockTradeChart({
                 가격
               </Button>
             </div>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant='outline'
-                  className='interactive-lift group liquid-glass-surface h-9 w-[6.75rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white'
+                  className='interactive-lift group !cursor-pointer liquid-glass-surface h-9 w-[6.75rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm'
                   style={{
                     ...liquidDropdownStyle,
                     '--date-button-hover': themeColor,
                   } as React.CSSProperties}
                 >
                   {selectedPeriod === 'all' ? '전체기간' : `${selectedPeriod}년`}
-                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white' />
+                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white group-data-[state=open]:text-white' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -647,11 +647,11 @@ export function StockTradeChart({
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant='outline'
-                  className='interactive-lift group liquid-glass-surface h-9 w-[7.5rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white'
+                  className='interactive-lift group !cursor-pointer liquid-glass-surface h-9 w-[7.5rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm'
                   style={{
                     ...liquidDropdownStyle,
                     '--date-button-hover': themeColor,
@@ -662,7 +662,7 @@ export function StockTradeChart({
                     : aggregationMode === 'monthly'
                       ? '월별 합산'
                       : '연도별 합산'}
-                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white' />
+                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white group-data-[state=open]:text-white' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
