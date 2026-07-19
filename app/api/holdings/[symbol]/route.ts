@@ -28,32 +28,45 @@ type VanguardHoldingsResponse = {
   };
 };
 
+type HoldingsProvider = 'invesco' | 'vanguard';
+
+const isCusip = (value: string | null) =>
+  Boolean(value && /^[A-Z0-9]{9}$/.test(value));
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ symbol: string }> },
 ) {
   const { symbol } = await params;
+  const upperSymbol = symbol.toUpperCase();
+  const searchParams = new URL(request.url).searchParams;
+  const provider = searchParams.get('provider');
+  const cusip = searchParams.get('cusip')?.toUpperCase() ?? null;
 
-  const vanguardUrl = `https://investor.vanguard.com/investment-products/etfs/profile/api/${symbol.toUpperCase()}/portfolio-holding/stock?count=20000&asOfType=`; // 상위 500개 종목만 가져옴
+  const vanguardUrl = `https://investor.vanguard.com/investment-products/etfs/profile/api/${upperSymbol}/portfolio-holding/stock?count=20000&asOfType=`; // 상위 500개 종목만 가져옴
   const vtiUrl =
     'https://investor.vanguard.com/vmf/api/0970/portfolio-holding/stock.json?start=1&count=20000&asOfType='; // only VTI url (모든 종목 가져옴)
-  const qqqUrl =
-    'https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/QQQ/holdings/fund?idType=ticker&interval=monthly&productType=ETF'; // only QQQ url
-  const qqqmUrl =
-    'https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/46138G649/holdings/fund?idType=cusip&productType=ETF'; // cusip 코드를 사용하면 다른 invesco ETF도 가져올 수 있음
 
-  if (symbol.toUpperCase() === 'VTI') {
-    return fetchHoldings(vtiUrl, symbol);
-  } else if (symbol.toUpperCase() === 'QQQ') {
-    return fetchHoldings(qqqUrl, symbol);
-  } else if (symbol.toUpperCase() === 'QQQM') {
-    return fetchHoldings(qqqmUrl, symbol);
-  } else {
-    return fetchHoldings(vanguardUrl, symbol);
+  if (upperSymbol === 'VTI') {
+    return fetchHoldings(vtiUrl, symbol, 'vanguard');
   }
+
+  if (provider === 'invesco') {
+    const identifier = isCusip(cusip) ? cusip : upperSymbol;
+    const idType = isCusip(cusip) ? 'cusip' : 'ticker';
+    const invescoUrl = `https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/${encodeURIComponent(identifier)}/holdings/fund?idType=${idType}&productType=ETF`; // idType이 ticker인 경우 호출 안되는 ETF가 있음 (QQQ는 가능, QQQM은 불가능)
+
+    return fetchHoldings(invescoUrl, symbol, 'invesco');
+  }
+
+  return fetchHoldings(vanguardUrl, symbol, 'vanguard');
 }
 
-async function fetchHoldings(url: string, symbol: string) {
+async function fetchHoldings(
+  url: string,
+  symbol: string,
+  provider: HoldingsProvider,
+) {
   try {
     const response = await fetch(url, {
       headers: {
@@ -71,8 +84,8 @@ async function fetchHoldings(url: string, symbol: string) {
     const data = await response.json();
     let formattedData: Holding[] = [];
 
-    if (['QQQ', 'QQQM'].includes(symbol.toUpperCase())) {
-      // Invesco (QQQ, QQQM)
+    if (provider === 'invesco') {
+      // Invesco ETF
       const invescoData = data as InvescoHoldingsResponse;
 
       if (Array.isArray(invescoData.holdings)) {
@@ -83,7 +96,7 @@ async function fetchHoldings(url: string, symbol: string) {
         }));
       }
     } else {
-      // Vanguard (VTI, etc.)
+      // Vanguard ETF
       const vanguardData = data as VanguardHoldingsResponse;
 
       if (Array.isArray(vanguardData.fund?.entity)) {

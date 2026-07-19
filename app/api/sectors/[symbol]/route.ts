@@ -27,31 +27,40 @@ type VanguardSectorsResponse = {
   };
 };
 
+type SectorProvider = 'invesco' | 'vanguard';
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ symbol: string }> },
 ) {
   const { symbol } = await params;
   const upperSymbol = symbol.toUpperCase();
+  const provider = new URL(request.url).searchParams.get('provider');
 
-  if (upperSymbol === 'VTI') {
+  if (provider === 'vanguard') {
     return fetchSectors(
-      'https://investor.vanguard.com/vmf/api/VTI/diversification?isInternal=true&isBfpDiversificationToggle=false',
+      `https://investor.vanguard.com/vmf/api/${encodeURIComponent(upperSymbol)}/diversification?isInternal=true&isBfpDiversificationToggle=false`,
       upperSymbol,
+      'vanguard',
     );
   }
 
-  if (upperSymbol === 'QQQM') {
+  if (provider === 'invesco') {
     return fetchSectors(
-      'https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/QQQM/weightedHoldings/fund?idType=ticker&productType=ETF&breakdown=sector',
+      `https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/${encodeURIComponent(upperSymbol)}/weightedHoldings/fund?idType=ticker&productType=ETF&breakdown=sector`,
       upperSymbol,
+      'invesco',
     );
   }
 
   return NextResponse.json([]);
 }
 
-async function fetchSectors(url: string, symbol: string) {
+async function fetchSectors(
+  url: string,
+  symbol: string,
+  provider: SectorProvider,
+) {
   try {
     const response = await fetch(url, {
       headers: {
@@ -68,7 +77,7 @@ async function fetchSectors(url: string, symbol: string) {
 
     const data = await response.json();
     const formattedData =
-      symbol === 'QQQM'
+      provider === 'invesco'
         ? formatInvescoSectors(data)
         : formatVanguardSectors(data);
 

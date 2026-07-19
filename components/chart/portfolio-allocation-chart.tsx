@@ -21,6 +21,7 @@ import { StockProps } from '@/types';
 import { useCurrencyStore } from '@/store/options';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import { PORTFOLIO_CHART_COLORS } from '@/constants/chart-colors';
+import { getCusipFromUsIsin } from '@/utils/security-identifiers';
 
 interface PortfolioAllocationChartProps {
   stocks: StockProps[];
@@ -75,16 +76,29 @@ const fetchCachedJson = <T,>(cache: Map<string, Promise<T>>, url: string) => {
   return request;
 };
 
-const fetchHoldings = (symbol: string) =>
-  fetchCachedJson<HoldingWeight[]>(
-    holdingsCache,
-    `/api/holdings/${symbol.toUpperCase()}`,
-  );
+const fetchHoldings = (
+  symbol: string,
+  provider?: 'invesco',
+  cusip?: string,
+) => {
+  const searchParams = new URLSearchParams();
+  if (provider) searchParams.set('provider', provider);
+  if (cusip) searchParams.set('cusip', cusip);
+  const query = searchParams.size > 0 ? `?${searchParams.toString()}` : '';
 
-const fetchSectors = (symbol: string) =>
+  return fetchCachedJson<HoldingWeight[]>(
+    holdingsCache,
+    `/api/holdings/${symbol.toUpperCase()}${query}`,
+  );
+};
+
+const fetchSectors = (
+  symbol: string,
+  provider?: 'invesco' | 'vanguard',
+) =>
   fetchCachedJson<SectorWeight[]>(
     sectorsCache,
-    `/api/sectors/${symbol.toUpperCase()}`,
+    `/api/sectors/${symbol.toUpperCase()}${provider ? `?provider=${provider}` : ''}`,
   );
 
 const SECTOR_NAME_KO: Record<string, string> = {
@@ -196,9 +210,12 @@ export function PortfolioAllocationChart({
         if (allocationMode === 'sectors') {
           const symbol = stock.symbol.toUpperCase();
 
-          if (symbol === 'VTI' || symbol === 'QQQM') {
+          if (isVanguard || isInvesco) {
             try {
-              const sectors = await fetchSectors(symbol);
+              const sectors = await fetchSectors(
+                symbol,
+                isInvesco ? 'invesco' : 'vanguard',
+              );
 
               if (!shouldUseFallback && sectors.length > 0) {
                 sectors.forEach((sector) => {
@@ -234,7 +251,11 @@ export function PortfolioAllocationChart({
               continue;
             }
 
-            const holdings = await fetchHoldings(stock.symbol);
+            const holdings = await fetchHoldings(
+              stock.symbol,
+              isInvesco ? 'invesco' : undefined,
+              isInvesco ? getCusipFromUsIsin(stock.code) : undefined,
+            );
 
             holdings.forEach((holding) => {
               const holdingValue = stockValue * (holding.weight / 100);
