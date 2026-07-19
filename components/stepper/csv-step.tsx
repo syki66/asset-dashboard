@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Check, FileUp, Upload, X, FilePlus, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { isShsecTransactionCsv } from '@/utils/shsec-adapter';
 
 interface CsvStepProps {
   uploadedFiles: File[];
@@ -11,39 +12,67 @@ interface CsvStepProps {
 
 export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [csvIndex, setCsvIndex] = useState(0);
-  const csvFiles = ['dummy-3y.csv', 'dummy-5y.csv', 'dummy-10y.csv'];
+  const dummyCsvFileNames = ['dummy-3y.csv', 'dummy-5y.csv', 'dummy-10y.csv'];
 
   // 체험용 더미 CSV 데이터 불러오기 (순차적으로)
   const loadDummyCsv = async () => {
-    if (csvIndex >= csvFiles.length) {
+    const fileName = dummyCsvFileNames.find(
+      (name) => !uploadedFiles.some((file) => file.name === name),
+    );
+
+    if (!fileName) {
       toast.error('더 이상 불러올 CSV가 없습니다.');
       return;
     }
     try {
-      const fileName = csvFiles[csvIndex];
       const res = await fetch(`/${fileName}`); // public 폴더에 있는 csv 파일 불러오기
       const blob = await res.blob();
       const file = new File([blob], fileName, { type: 'text/csv' });
-      handleFiles([file]);
-      setCsvIndex((prev) => prev + 1);
+      await handleFiles([file]);
     } catch {
       toast.error('더미 CSV 로드 실패');
     }
   };
 
   // 파일 처리 로직
-  const handleFiles = (files: File[]) => {
-    const validFiles = files.filter((file) => {
+  const handleFiles = async (files: File[]) => {
+    // 실제 파서는 CSV만 읽으므로 확장자 단계에서 먼저 걸러냅니다.
+    const csvFiles = files.filter((file) => {
       const ext = file.name.split('.').pop()?.toLowerCase();
-      return ext === 'csv' || ext === 'xlsx';
+      return ext === 'csv';
     });
 
-    if (validFiles.length !== files.length) {
+    if (csvFiles.length !== files.length) {
+      const unsupportedFileNames = files
+        .filter((file) => !csvFiles.includes(file))
+        .map((file) => file.name)
+        .join(', ');
+
       toast.error('파일 형식 오류', {
-        description: '신한투자증권의 CSV 파일만 업로드 가능합니다.',
+        description: unsupportedFileNames,
       });
-      // toast.error('파일 형식 오류: CSV 또는 XLSX 파일만 업로드 가능합니다.');
+    }
+
+    // 파일을 업로드 목록에 넣기 전에 신한 거래내역의 헤더와 필수 컬럼을 검증합니다.
+    const results = await Promise.all(
+      csvFiles.map(async (file) => ({
+        file,
+        isSupported: isShsecTransactionCsv(await file.text()),
+      })),
+    );
+    const validFiles = results
+      .filter(({ isSupported }) => isSupported)
+      .map(({ file }) => file);
+
+    if (validFiles.length !== csvFiles.length) {
+      const unsupportedFileNames = results
+        .filter(({ isSupported }) => !isSupported)
+        .map(({ file }) => file.name)
+        .join(', ');
+
+      toast.error('지원하지 않는 CSV 형식', {
+        description: unsupportedFileNames,
+      });
     }
 
     if (validFiles.length > 0) {
@@ -52,6 +81,8 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
         description: `${validFiles.length}개의 파일이 업로드되었습니다.`,
       });
     }
+
+    return validFiles.length;
   };
 
   // Drag & Drop 핸들러
@@ -65,13 +96,14 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFiles(Array.from(e.dataTransfer.files));
+      void handleFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      handleFiles(Array.from(e.target.files));
+      void handleFiles(Array.from(e.target.files));
+      e.target.value = '';
     }
   };
 

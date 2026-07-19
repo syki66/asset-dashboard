@@ -1,8 +1,29 @@
 import { TransactionProps } from '@/types';
 import { formatShinhanDate } from './format';
 
+const requiredShsecCsvColumns = [
+  '일자',
+  '구분',
+  '종목번호',
+  '수량',
+  '거래대금',
+  '가격',
+  '최종금액',
+];
+
+export const isShsecTransactionCsv = (csv: string) => {
+  // 신한 거래내역은 두 줄 헤더를 이어 붙여야 전체 컬럼명이 완성됩니다.
+  const lines = csv.trim().replace(/^\uFEFF/, '').split(/\r?\n/);
+
+  if (lines.length < 4 || lines.length % 2 !== 0) return false;
+
+  const columns = (lines[0] + lines[1]).split(',').map((column) => column.trim());
+
+  return requiredShsecCsvColumns.every((column) => columns.includes(column));
+};
+
 export const shsecCsvToJson = (csv: string) => {
-  const lines = csv.trim().split('\r\n'); // 줄별로 나누기
+  const lines = csv.trim().split(/\r?\n/); // 줄별로 나누기
 
   // 두 줄씩 묶어서 합치기
   const data = [];
