@@ -86,6 +86,7 @@ export default function Page() {
     Record<string, PrincipalAdjustment>
   >({});
   const [benchmarkStartYear, setBenchmarkStartYear] = useState<number>();
+  const [isPreparingCalculation, setIsPreparingCalculation] = useState(false);
   const currentStep = steps[activeStep];
   const setupThemeStyle = {
     '--setup-primary': 'oklch(0.62 0.24 255)',
@@ -150,7 +151,9 @@ export default function Page() {
     enabled: false, // refetch를 이용해서 수동으로만 가져올 수 있도록 함
   });
   const isNextDisabled =
-    isLoading || (activeStep === 0 && uploadedFiles.length === 0);
+    isLoading ||
+    isPreparingCalculation ||
+    (activeStep === 0 && uploadedFiles.length === 0);
 
   useEffect(() => {
     let isCancelled = false;
@@ -235,7 +238,11 @@ export default function Page() {
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
-      refetch(); // 제출
+      // 로딩 안내를 500ms 먼저 보여준 뒤 무거운 CSV 계산을 시작합니다.
+      setIsPreparingCalculation(true);
+      window.setTimeout(() => {
+        void refetch().finally(() => setIsPreparingCalculation(false));
+      }, 500);
     } else {
       setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
@@ -446,7 +453,7 @@ export default function Page() {
           </Button>
         </CardFooter>
         </Card>
-        {isLoading && (
+        {(isPreparingCalculation || isLoading) && (
           <LoadingOverlay
             title='계좌 데이터를 계산하는 중입니다.'
             description='거래내역이 많으면 잠시 시간이 걸릴 수 있습니다.'

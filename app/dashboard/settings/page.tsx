@@ -104,12 +104,10 @@ export default function Page() {
     return () => window.clearTimeout(timeoutId);
   }, [isApplyingSelection, selectedAccounts, shouldRedirectToOverview]);
 
-  // 오버레이를 먼저 렌더링한 뒤 선택값을 적용해서, 긴 계산이 시작되기 전에 로딩 화면이 보이게 합니다.
+  // 로딩 안내를 500ms 먼저 보여준 뒤 선택값을 적용해 긴 계산 전에 화면이 보이게 합니다.
   const runWithLoading = (updateSelection: () => void) => {
     setIsApplyingSelection(true);
-    window.setTimeout(() => {
-      updateSelection();
-    }, 80);
+    window.setTimeout(updateSelection, 500);
   };
 
   // 적용 버튼은 실제 적용 상태와 화면에서 고른 임시 선택값이 다를 때만 활성화합니다.
