@@ -30,8 +30,8 @@ type VanguardHoldingsResponse = {
 
 type HoldingsProvider = 'invesco' | 'vanguard';
 
-const isCusip = (value: string | null) =>
-  Boolean(value && /^[A-Z0-9]{9}$/.test(value));
+const isCusip = (value: string | null): value is string =>
+  value !== null && /^[A-Z0-9]{9}$/.test(value);
 
 export async function GET(
   request: Request,
@@ -52,8 +52,9 @@ export async function GET(
   }
 
   if (provider === 'invesco') {
-    const identifier = isCusip(cusip) ? cusip : upperSymbol;
-    const idType = isCusip(cusip) ? 'cusip' : 'ticker';
+    const hasValidCusip = isCusip(cusip);
+    const identifier = hasValidCusip ? cusip : upperSymbol;
+    const idType = hasValidCusip ? 'cusip' : 'ticker';
     const invescoUrl = `https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/${encodeURIComponent(identifier)}/holdings/fund?idType=${idType}&productType=ETF`; // idType이 ticker인 경우 호출 안되는 ETF가 있음 (QQQ는 가능, QQQM은 불가능)
 
     return fetchHoldings(invescoUrl, symbol, 'invesco');

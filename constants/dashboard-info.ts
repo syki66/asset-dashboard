@@ -13,6 +13,9 @@ export const PROFIT_INFO =
 export const RETURN_RATE_INFO =
   '누적수익금을 원금으로 나눈 비율입니다. 원금이 0에 가까운 경우 수익률 해석이 왜곡될 수 있습니다.';
 
+export const MWR_INFO =
+  '입출금 시점과 금액을 반영한 연환산 수익률로, 예금 상품의 금리와 비교할 수 있습니다.\n(0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해 0으로 표시된 값일 수 있습니다.)';
+
 export const DIVIDEND_YIELD_INFO =
   '최근 1년 배당금을 현재 평가금액으로 나눈 비율입니다. 세후 보기에서는 배당세를 차감한 배당금을 사용합니다.';
 

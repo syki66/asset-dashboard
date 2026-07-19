@@ -22,6 +22,7 @@ import { useFeeSettingsStore } from '@/store/fee-settings';
 import {
   BEST_WORST_YEAR_INFO,
   CURRENT_VALUE_INFO,
+  MWR_INFO,
   NET_CURRENT_VALUE_INFO,
   PRINCIPAL_INFO,
   PROFIT_INFO,
@@ -50,18 +51,6 @@ export default function Page() {
   }, [chartLayout]);
 
   const { performance, benchmarkBest, benchmarkWorst, costs } = dashboardData;
-  const mwrInfo = (
-    <div className='space-y-1 text-xs'>
-      <p>
-        입출금 시점과 금액을 반영한 연환산 수익률로, 예금 상품의 금리와 비교할
-        수 있습니다.
-      </p>
-      <p className='text-muted-foreground'>
-        (0%는 실제 수익률이 0%이거나, 현금흐름 구조상 계산이 불가능해 0으로
-        표시된 값일 수 있습니다.)
-      </p>
-    </div>
-  );
   const twrInfo =
     '입출금 영향을 제거해 운용 성과를 보는 연환산 수익률입니다. 현재 데이터는 일별 스냅샷 기준이라 입출금의 하루 중 발생 시점은 반영하지 않는 근사치입니다.';
   const cagrInfo =
@@ -169,7 +158,7 @@ export default function Page() {
       investment: `${performance.mwr}%`,
       benchmarkBest: `${benchmarkBest.mwr}%`,
       benchmarkWorst: `${benchmarkWorst.mwr}%`,
-      info: mwrInfo,
+      info: MWR_INFO,
     },
     {
       metric: '시간가중수익률(TWR)',
@@ -235,7 +224,7 @@ export default function Page() {
       investment: `${performance.netMwr}%`,
       benchmarkBest: `${benchmarkBest.netMwr}%`,
       benchmarkWorst: `${benchmarkWorst.netMwr}%`,
-      info: mwrInfo,
+      info: MWR_INFO,
     },
     {
       metric: '순시간가중수익률(TWR)',

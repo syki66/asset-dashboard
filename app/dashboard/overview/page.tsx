@@ -9,6 +9,7 @@ import {
   CURRENT_VALUE_INFO,
   DIVIDEND_YIELD_INFO,
   KRW_CASH_INFO,
+  MWR_INFO,
   PRINCIPAL_INFO,
   PROFIT_INFO,
   RETURN_RATE_INFO,
@@ -81,16 +82,21 @@ export default function Page() {
               valueClassName: getReturnRateColorClass(returnRate),
               info: RETURN_RATE_INFO,
             },
+            {
+              label: 'MWR',
+              value: `${isPostTax ? dashboardData.performance.netMwr : dashboardData.performance.mwr}%`,
+              info: MWR_INFO,
+            },
           ]}
         />
 
         <DashboardOverviewCard
-          title={isPostTax ? '세후 배당금 (최근 1년)' : '배당금 (최근 1년)'}
+          title='배당금 (최근 1년)'
           icon={DollarSign}
           themeColor={themeColor}
           contentItems={[
             {
-              label: isPostTax ? '세후 배당금' : '배당금',
+              label: '배당금',
               value: formatCurrency(
                 isPostTax
                   ? dashboardData.dividends.netAnnualDividends
@@ -100,7 +106,7 @@ export default function Page() {
               valueClassName: 'text-yellow-600',
             },
             {
-              label: isPostTax ? '세후 배당률' : '배당률',
+              label: '배당률',
               value: `${isPostTax ? dashboardData.dividends.netDividendYield : dashboardData.dividends.dividendYield}%`,
               info: DIVIDEND_YIELD_INFO,
             },
@@ -114,12 +120,19 @@ export default function Page() {
             {
               label: '원화',
               value: formatCurrency(dashboardData.cash.krwCash, 'krw'),
+              valueClassName: 'text-[var(--settings-theme)]',
               info: KRW_CASH_INFO,
             },
             {
               label: '달러',
               value: formatCurrency(dashboardData.cash.usdCash, 'usd'),
+              valueClassName: 'text-[var(--settings-theme)]',
               info: USD_CASH_INFO,
+            },
+            {
+              label: '합계',
+              value: formatCurrency(dashboardData.cash.total, currency),
+              info: '원화와 달러 현금을 조회일 환율로 환산해 합산한 금액입니다.',
             },
           ]}
         />
