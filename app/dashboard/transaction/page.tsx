@@ -50,6 +50,11 @@ export default function Page() {
   }, []);
   const formatQuantity = (value: number) =>
     `${Math.round(value).toLocaleString()}주`;
+  const formatTradeAmount = (value: number) =>
+    formatCurrency(value, currency, {
+      minimumFractionDigits: currency === 'usd' ? 2 : 0,
+      maximumFractionDigits: currency === 'usd' ? 2 : 0,
+    });
 
   return (
     <>
@@ -66,7 +71,7 @@ export default function Page() {
             },
             {
               label: '매수 금액',
-              value: formatCurrency(tradeSummary.buyAmount, currency),
+              value: formatTradeAmount(tradeSummary.buyAmount),
               valueClassName: 'text-rose-500',
             },
           ]}
@@ -83,7 +88,7 @@ export default function Page() {
             },
             {
               label: '매도 금액',
-              value: formatCurrency(tradeSummary.sellAmount, currency),
+              value: formatTradeAmount(tradeSummary.sellAmount),
               valueClassName: 'text-blue-600',
             },
           ]}
@@ -99,7 +104,7 @@ export default function Page() {
             },
             {
               label: '순매매 금액',
-              value: `${tradeSummary.netAmount > 0 ? '+' : ''}${formatCurrency(tradeSummary.netAmount, currency)}`,
+              value: `${tradeSummary.netAmount > 0 ? '+' : ''}${formatTradeAmount(tradeSummary.netAmount)}`,
             },
           ]}
         />

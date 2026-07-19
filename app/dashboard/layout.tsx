@@ -214,6 +214,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     [],
   );
   const [isCurrencyCalculating, setIsCurrencyCalculating] = useState(false);
+  const [pendingCurrency, setPendingCurrency] = useState<'krw' | 'usd' | null>(
+    null,
+  );
+  const [readyCurrency, setReadyCurrency] = useState<'krw' | 'usd' | null>(
+    null,
+  );
   const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
   const currencyCalculationTimeoutRef = useRef<number | null>(null);
   // 계좌 선택 순서가 달라도 같은 조합이면 같은 캐시를 쓰도록 정렬한 키를 만듭니다.
@@ -244,12 +250,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // 선택 계좌와 통화 조합별로 대시보드 변환 결과를 캐시해 불필요한 재계산을 줄입니다.
   useEffect(() => {
     let isCancelled = false;
-    const cacheKey = `${currency}:${selectedAccountKey}`;
+    const calculationCurrency = pendingCurrency ?? currency;
+    const cacheKey = `${calculationCurrency}:${selectedAccountKey}`;
     const cachedDashboardData = dashboardDataCacheRef.current.get(cacheKey);
 
     if (cachedDashboardData) {
       setAllDashboardData(cachedDashboardData);
-      setIsCurrencyCalculating(false);
+      if (pendingCurrency) {
+        setReadyCurrency(calculationCurrency);
+      } else {
+        setIsCurrencyCalculating(false);
+      }
       return;
     }
 
@@ -258,7 +269,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!isCancelled) {
           dashboardDataCacheRef.current.set(cacheKey, []);
           setAllDashboardData([]);
-          setIsCurrencyCalculating(false);
+          if (pendingCurrency) {
+            setReadyCurrency(calculationCurrency);
+          } else {
+            setIsCurrencyCalculating(false);
+          }
         }
         return;
       }
@@ -270,14 +285,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       const mergedAccountData = mergeAccountData(filteredData);
       const convertedDashboardData = convertToDashboardData(
         mergedAccountData,
-        currency,
+        calculationCurrency,
       );
 
       if (!isCancelled) {
         // 계산 결과를 저장해두면 같은 계좌/통화 조합을 다시 선택할 때 즉시 재사용할 수 있습니다.
         dashboardDataCacheRef.current.set(cacheKey, convertedDashboardData);
         setAllDashboardData(convertedDashboardData);
-        setIsCurrencyCalculating(false);
+        if (pendingCurrency) {
+          setReadyCurrency(calculationCurrency);
+        } else {
+          setIsCurrencyCalculating(false);
+        }
       }
     }, 0);
 
@@ -285,7 +304,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       isCancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [currency, selectedAccountKey, selectedAccounts, totalAccountData]);
+  }, [
+    currency,
+    pendingCurrency,
+    selectedAccountKey,
+    selectedAccounts,
+    totalAccountData,
+  ]);
 
   const dashboardDateRange = useMemo(() => {
     const parseDate = (dateString: string) => {
@@ -317,6 +342,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [allDashboardData, selectedDate, setDashboardData]);
 
+  // 계산 결과를 대시보드에 반영한 뒤에만 화면의 통화 단위를 전환합니다.
+  useEffect(() => {
+    if (!readyCurrency) return;
+
+    setCurrency(readyCurrency);
+    setPendingCurrency(null);
+    setReadyCurrency(null);
+    setIsCurrencyCalculating(false);
+  }, [readyCurrency, setCurrency]);
+
   const activeCategory =
     categories.find((c) => pathname.startsWith(c.href))?.id || 'overview';
 
@@ -345,7 +380,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setIsCurrencyCalculating(true);
     currencyCalculationTimeoutRef.current = window.setTimeout(() => {
       currencyCalculationTimeoutRef.current = null;
-      setCurrency(nextCurrency);
+      setPendingCurrency(nextCurrency);
     }, 500);
   };
 
