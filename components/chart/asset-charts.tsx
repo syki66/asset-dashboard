@@ -80,6 +80,7 @@ interface AssetSeries {
   data: AssetDataPoint[];
   unit?: 'currency' | 'percent' | 'number';
   zIndex?: number;
+  tooltipOrder?: number;
 }
 
 interface SeriesToggleGroup {
@@ -799,7 +800,18 @@ export function AssetChart({
           </p>
           <hr className='border-border my-1' />
           <div className='space-y-1 mt-2'>
-            {payload.map((pld, index) => {
+            {[...payload]
+              .sort((a, b) => {
+                const aOrder =
+                  seriesWithColors.find((series) => series.id === a.name)
+                    ?.tooltipOrder ?? Number.MAX_SAFE_INTEGER;
+                const bOrder =
+                  seriesWithColors.find((series) => series.id === b.name)
+                    ?.tooltipOrder ?? Number.MAX_SAFE_INTEGER;
+
+                return aOrder - bOrder;
+              })
+              .map((pld, index) => {
               if (pld.name === 'fillArea') return null;
 
               const series = seriesWithColors.find((s) => s.id === pld.name);
@@ -823,7 +835,7 @@ export function AssetChart({
                   </span>
                 </div>
               );
-            })}
+              })}
           </div>
         </div>
       );

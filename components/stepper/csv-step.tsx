@@ -1,6 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
-import { Check, FileUp, Upload, X, FilePlus, ShieldCheck } from 'lucide-react';
+import {
+  Check,
+  FileUp,
+  Upload,
+  X,
+  FilePlus,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { isShsecTransactionCsv } from '@/utils/shsec-adapter';
@@ -8,11 +17,78 @@ import { isShsecTransactionCsv } from '@/utils/shsec-adapter';
 interface CsvStepProps {
   uploadedFiles: File[];
   setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  // 데모 진입 시 더미 CSV 버튼에 스포트라이트 안내를 표시합니다.
+  showDemoPrompt?: boolean;
 }
 
-export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
+// 데모 스포트라이트 구멍을 실제 버튼과 같은 위치와 모양으로 그리기 위한 값입니다.
+type SpotlightRect = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+  width: number;
+  height: number;
+  borderRadius: number;
+  viewportWidth: number;
+  viewportHeight: number;
+};
+
+export function CsvStep({
+  uploadedFiles,
+  setUploadedFiles,
+  showDemoPrompt = false,
+}: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
+  // 아래 상태와 ref는 데모 스포트라이트가 실제 버튼을 따라가도록 사용합니다.
+  const [spotlightRect, setSpotlightRect] = useState<SpotlightRect>();
+  const dummyButtonRef = useRef<HTMLButtonElement>(null);
   const dummyCsvFileNames = ['dummy-3y.csv', 'dummy-5y.csv', 'dummy-10y.csv'];
+  const showDemoSpotlight = showDemoPrompt && uploadedFiles.length === 0;
+
+  // 데모에서는 실제 버튼의 위치와 곡률을 측정해 버튼만 드러나는 안내 영역을 만듭니다.
+  useEffect(() => {
+    if (!showDemoSpotlight) {
+      setSpotlightRect(undefined);
+      return;
+    }
+
+    const updateSpotlight = () => {
+      const button = dummyButtonRef.current;
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const borderRadius = Number.parseFloat(
+        window.getComputedStyle(button).borderTopLeftRadius,
+      );
+      const effectiveBorderRadius = Number.isFinite(borderRadius)
+        ? Math.min(borderRadius, rect.width / 2, rect.height / 2)
+        : 0;
+
+      setSpotlightRect({
+        top: Math.max(0, rect.top),
+        right: Math.min(window.innerWidth, rect.right),
+        bottom: Math.min(window.innerHeight, rect.bottom),
+        left: Math.max(0, rect.left),
+        width: rect.width,
+        height: rect.height,
+        borderRadius: effectiveBorderRadius,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+      });
+    };
+
+    updateSpotlight();
+    window.addEventListener('resize', updateSpotlight);
+    window.addEventListener('scroll', updateSpotlight, true);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('resize', updateSpotlight);
+      window.removeEventListener('scroll', updateSpotlight, true);
+      document.body.style.overflow = '';
+    };
+  }, [showDemoSpotlight]);
 
   // 체험용 더미 CSV 데이터 불러오기 (순차적으로)
   const loadDummyCsv = async () => {
@@ -114,6 +190,84 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
 
   return (
     <>
+      {showDemoSpotlight &&
+        spotlightRect &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className='pointer-events-none fixed inset-0 z-[200]'>
+            {/* SVG 마스크로 더미 CSV 버튼과 같은 모양의 구멍을 냅니다. */}
+            <svg
+              className='absolute inset-0 h-full w-full'
+              viewBox={`0 0 ${spotlightRect.viewportWidth} ${spotlightRect.viewportHeight}`}
+              preserveAspectRatio='none'
+              aria-hidden='true'
+            >
+              <defs>
+                <mask
+                  id='demo-csv-spotlight-mask'
+                  maskUnits='userSpaceOnUse'
+                >
+                  <rect
+                    width={spotlightRect.viewportWidth}
+                    height={spotlightRect.viewportHeight}
+                    fill='white'
+                  />
+                  <rect
+                    x={spotlightRect.left}
+                    y={spotlightRect.top}
+                    width={spotlightRect.width}
+                    height={spotlightRect.height}
+                    rx={spotlightRect.borderRadius}
+                    ry={spotlightRect.borderRadius}
+                    fill='black'
+                  />
+                </mask>
+              </defs>
+              <rect
+                width={spotlightRect.viewportWidth}
+                height={spotlightRect.viewportHeight}
+                fill='rgb(0 0 0 / 0.55)'
+                mask='url(#demo-csv-spotlight-mask)'
+              />
+            </svg>
+            {/* 버튼 바깥의 네 영역만 클릭을 차단해 안내된 버튼은 그대로 누를 수 있습니다. */}
+            <div
+              className='pointer-events-auto absolute inset-x-0 top-0'
+              style={{ height: spotlightRect.top }}
+            />
+            <div
+              className='pointer-events-auto absolute inset-x-0 bottom-0'
+              style={{ top: spotlightRect.bottom }}
+            />
+            <div
+              className='pointer-events-auto absolute left-0'
+              style={{
+                top: spotlightRect.top,
+                width: spotlightRect.left,
+                height: spotlightRect.bottom - spotlightRect.top,
+              }}
+            />
+            <div
+              className='pointer-events-auto absolute right-0'
+              style={{
+                top: spotlightRect.top,
+                left: spotlightRect.right,
+                height: spotlightRect.bottom - spotlightRect.top,
+              }}
+            />
+            <div
+              className='absolute flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-2 text-sm font-semibold text-white shadow-lg'
+              style={{
+                top: Math.max(12, spotlightRect.top - 48),
+                left: spotlightRect.left + spotlightRect.width / 2 + 8,
+              }}
+            >
+              <Sparkles className='h-4 w-4 text-[oklch(0.78_0.16_82)]' />
+              더미 CSV 불러오기를 눌러주세요
+            </div>
+          </div>,
+          document.body,
+        )}
       <div className='space-y-4'>
         <div
           className={cn(
@@ -154,8 +308,13 @@ export function CsvStep({ uploadedFiles, setUploadedFiles }: CsvStepProps) {
             </Button>
 
             <Button
+              ref={dummyButtonRef}
               variant='secondary'
-              className='cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md'
+              className={cn(
+                'cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md',
+                showDemoSpotlight &&
+                  'ring-2 ring-inset ring-white/70 hover:translate-y-0',
+              )}
               onClick={loadDummyCsv}
             >
               <FilePlus className='mr-2 h-4 w-4' />

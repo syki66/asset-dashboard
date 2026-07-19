@@ -430,6 +430,7 @@ export default function Page() {
                 name: '원금',
                 color: PERFORMANCE_CHART_COLORS.neutral,
                 zIndex: 10,
+                tooltipOrder: 1,
                 data: dashboardData.charts.principal,
               },
               {
@@ -437,6 +438,7 @@ export default function Page() {
                 name: showAfterTax ? '세후 평가금' : '평가금',
                 color: PERFORMANCE_CHART_COLORS.currentValue,
                 zIndex: 30,
+                tooltipOrder: 0,
                 data: showAfterTax
                   ? dashboardData.charts.netCurrentValue
                   : dashboardData.charts.currentValue,
@@ -446,8 +448,9 @@ export default function Page() {
                 name: showAfterTax
                   ? '벤치마크 세후 평가금 (최상)'
                   : '벤치마크 평가금 (최상)',
-                color: PERFORMANCE_CHART_COLORS.benchmarkBest,
+                color: PERFORMANCE_CHART_COLORS.benchmarkAverage,
                 zIndex: 20,
+                tooltipOrder: 2,
                 data: showAfterTax
                   ? dashboardData.charts.benchmarkBestNet
                   : dashboardData.charts.benchmarkBest,
@@ -457,8 +460,9 @@ export default function Page() {
                 name: showAfterTax
                   ? '벤치마크 세후 평가금 (최악)'
                   : '벤치마크 평가금 (최악)',
-                color: PERFORMANCE_CHART_COLORS.benchmarkWorst,
+                color: PERFORMANCE_CHART_COLORS.benchmarkAverage,
                 zIndex: 20,
+                tooltipOrder: 3,
                 data: showAfterTax
                   ? dashboardData.charts.benchmarkWorstNet
                   : dashboardData.charts.benchmarkWorst,
@@ -502,7 +506,7 @@ export default function Page() {
                 name: showAfterTax
                   ? '벤치마크 세후 수익금 (최상)'
                   : '벤치마크 수익금 (최상)',
-                color: PERFORMANCE_CHART_COLORS.benchmarkBest,
+                color: PERFORMANCE_CHART_COLORS.benchmarkAverage,
                 data: showAfterTax
                   ? dashboardData.charts.benchmarkBestNetProfit
                   : dashboardData.charts.benchmarkBestProfit,
@@ -514,7 +518,7 @@ export default function Page() {
                 name: showAfterTax
                   ? '벤치마크 세후 수익금 (최악)'
                   : '벤치마크 수익금 (최악)',
-                color: PERFORMANCE_CHART_COLORS.benchmarkWorst,
+                color: PERFORMANCE_CHART_COLORS.benchmarkAverage,
                 data: showAfterTax
                   ? dashboardData.charts.benchmarkWorstNetProfit
                   : dashboardData.charts.benchmarkWorstProfit,
@@ -573,7 +577,7 @@ export default function Page() {
                   name: showAfterTax
                     ? '벤치마크 순수익률 (최상)'
                     : '벤치마크 수익률 (최상)',
-                  color: PERFORMANCE_CHART_COLORS.benchmarkBest,
+                  color: PERFORMANCE_CHART_COLORS.benchmarkAverage,
                   data: showAfterTax
                     ? dashboardData.charts.benchmarkBestNetReturnRate
                     : dashboardData.charts.benchmarkBestReturnRate,
@@ -584,7 +588,7 @@ export default function Page() {
                   name: showAfterTax
                     ? '벤치마크 순수익률 (최악)'
                     : '벤치마크 수익률 (최악)',
-                  color: PERFORMANCE_CHART_COLORS.benchmarkWorst,
+                  color: PERFORMANCE_CHART_COLORS.benchmarkAverage,
                   data: showAfterTax
                     ? dashboardData.charts.benchmarkWorstNetReturnRate
                     : dashboardData.charts.benchmarkWorstReturnRate,

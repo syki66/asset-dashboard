@@ -8,6 +8,7 @@ import { useChartLayoutStore, useCurrencyStore, useTaxStore } from '@/store/opti
 import {
   CURRENT_VALUE_INFO,
   DIVIDEND_YIELD_INFO,
+  DIVIDENDS_INFO,
   KRW_CASH_INFO,
   MWR_INFO,
   PRINCIPAL_INFO,
@@ -104,6 +105,7 @@ export default function Page() {
                 currency,
               ),
               valueClassName: 'text-yellow-600',
+              info: DIVIDENDS_INFO,
             },
             {
               label: '배당률',
@@ -178,6 +180,7 @@ export default function Page() {
               name: '원금',
               color: OVERVIEW_CHART_COLORS.neutral,
               zIndex: 10,
+              tooltipOrder: 1,
               data: dashboardData.charts.principal,
             },
             {
@@ -185,6 +188,7 @@ export default function Page() {
               name: isPostTax ? '세후 평가금' : '평가금',
               color: OVERVIEW_CHART_COLORS.currentValue,
               zIndex: 30,
+              tooltipOrder: 0,
               data: isPostTax
                 ? dashboardData.charts.netCurrentValue
                 : dashboardData.charts.currentValue,
@@ -192,8 +196,9 @@ export default function Page() {
             {
               id: isPostTax ? 'benchmarkBestNet' : 'benchmarkBest',
               name: '벤치마크 (최상)',
-              color: OVERVIEW_CHART_COLORS.benchmarkBest,
+              color: OVERVIEW_CHART_COLORS.benchmarkAverage,
               zIndex: 20,
+              tooltipOrder: 2,
               data: isPostTax
                 ? dashboardData.charts.benchmarkBestNet
                 : dashboardData.charts.benchmarkBest,
@@ -201,8 +206,9 @@ export default function Page() {
             {
               id: isPostTax ? 'benchmarkWorstNet' : 'benchmarkWorst',
               name: '벤치마크 (최악)',
-              color: OVERVIEW_CHART_COLORS.benchmarkWorst,
+              color: OVERVIEW_CHART_COLORS.benchmarkAverage,
               zIndex: 20,
+              tooltipOrder: 3,
               data: isPostTax
                 ? dashboardData.charts.benchmarkWorstNet
                 : dashboardData.charts.benchmarkWorst,
