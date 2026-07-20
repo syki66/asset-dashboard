@@ -1,14 +1,20 @@
 import { redirect } from 'next/navigation';
+import { getSetupMode } from '@/lib/setup-mode';
+
+const getFirstValue = (value?: string | string[]) =>
+  Array.isArray(value) ? value[0] : value;
 
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ demo?: string | string[] }>;
+  searchParams: Promise<{
+    mode?: string | string[];
+  }>;
 }) {
-  // 데모 링크로 진입한 경우 Setup에서도 데모 안내를 이어갈 수 있도록 쿼리를 유지합니다.
-  const { demo } = await searchParams;
-  const demoValue = Array.isArray(demo) ? demo[0] : demo;
-  const isDemo = demoValue === '' || demoValue === 'true' || demoValue === '1';
+  const { mode } = await searchParams;
+  const setupMode = getSetupMode(getFirstValue(mode));
 
-  redirect(isDemo ? '/setup?demo=true' : '/setup');
+  redirect(
+    setupMode === 'default' ? '/setup' : `/setup?mode=${setupMode}`,
+  );
 }

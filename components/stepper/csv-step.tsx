@@ -3,22 +3,35 @@ import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import {
   Check,
+  CloudDownload,
+  CloudUpload,
   FileUp,
   Upload,
   X,
   FilePlus,
   ShieldCheck,
   Sparkles,
+  Loader2,
+  LockKeyhole,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { isShsecTransactionCsv } from '@/utils/shsec-adapter';
+import { useAuth } from '@/components/auth/auth-provider';
+import { decryptCsvFiles, encryptCsvFiles } from '@/lib/asset-data-crypto';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 interface CsvStepProps {
   uploadedFiles: File[];
   setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>;
   // 데모 진입 시 더미 CSV 버튼에 스포트라이트 안내를 표시합니다.
   showDemoPrompt?: boolean;
+  // admin 모드에서만 Supabase 암호화 저장 영역을 노출합니다.
+  showSecureStorage?: boolean;
 }
 
 // 데모 스포트라이트 구멍을 실제 버튼과 같은 위치와 모양으로 그리기 위한 값입니다.
@@ -34,17 +47,32 @@ type SpotlightRect = {
   viewportHeight: number;
 };
 
+type FileHandlingOptions = {
+  // 복호화 파일은 기존 목록에 추가하지 않고 전체를 교체합니다.
+  replace?: boolean;
+  showSuccessToast?: boolean;
+};
+
+type SecureAction = 'save' | 'load' | 'sign-out';
+
 export function CsvStep({
   uploadedFiles,
   setUploadedFiles,
   showDemoPrompt = false,
+  showSecureStorage = false,
 }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
+  // 암호는 서버나 브라우저 저장소에 보관하지 않고 현재 화면의 메모리에만 유지합니다.
+  const [encryptionPassword, setEncryptionPassword] = useState('');
+  // 저장·불러오기·로그아웃 중 중복 요청과 버튼 입력을 막습니다.
+  const [secureAction, setSecureAction] = useState<SecureAction>();
   // 아래 상태와 ref는 데모 스포트라이트가 실제 버튼을 따라가도록 사용합니다.
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect>();
   const dummyButtonRef = useRef<HTMLButtonElement>(null);
   const dummyCsvFileNames = ['dummy-3y.csv', 'dummy-5y.csv', 'dummy-10y.csv'];
   const showDemoSpotlight = showDemoPrompt && uploadedFiles.length === 0;
+  const router = useRouter();
+  const { user, isLoading: isAuthLoading, isConfigured } = useAuth();
 
   // 데모에서는 실제 버튼의 위치와 곡률을 측정해 버튼만 드러나는 안내 영역을 만듭니다.
   useEffect(() => {
@@ -110,8 +138,14 @@ export function CsvStep({
     }
   };
 
-  // 파일 처리 로직
-  const handleFiles = async (files: File[]) => {
+  // 로컬 선택, 더미 데이터, Supabase 복호화 파일이 모두 이 검증 흐름을 사용합니다.
+  const handleFiles = async (
+    files: File[],
+    {
+      replace = false,
+      showSuccessToast = true,
+    }: FileHandlingOptions = {},
+  ) => {
     // 실제 파서는 CSV만 읽으므로 확장자 단계에서 먼저 걸러냅니다.
     const csvFiles = files.filter((file) => {
       const ext = file.name.split('.').pop()?.toLowerCase();
@@ -151,11 +185,19 @@ export function CsvStep({
       });
     }
 
-    if (validFiles.length > 0) {
-      setUploadedFiles((prev) => [...prev, ...validFiles]);
-      toast.success('파일 업로드 성공', {
-        description: `${validFiles.length}개의 파일이 업로드되었습니다.`,
-      });
+    if (
+      validFiles.length > 0 &&
+      (!replace || validFiles.length === files.length)
+    ) {
+      // 복호화 데이터는 일부 파일만 반영하지 않고 전부 유효할 때 한 번에 교체합니다.
+      setUploadedFiles((prev) =>
+        replace ? validFiles : [...prev, ...validFiles],
+      );
+      if (showSuccessToast) {
+        toast.success('파일 업로드 성공', {
+          description: `${validFiles.length}개의 파일이 업로드되었습니다.`,
+        });
+      }
     }
 
     return validFiles.length;
@@ -186,6 +228,141 @@ export function CsvStep({
   // 업로드 취소
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const requireEncryptionPassword = () => {
+    if (!encryptionPassword) {
+      toast.error('로그인 비밀번호를 입력해 주세요.');
+      return false;
+    }
+
+    return true;
+  };
+
+  // 현재 CSV 묶음을 gzip 압축·AES-GCM 암호화한 뒤 사용자별 한 행으로 upsert합니다.
+  const saveEncryptedCsv = async () => {
+    if (!user) {
+      router.push('/login?next=%2Fsetup%3Fmode%3Dadmin');
+      return;
+    }
+    if (uploadedFiles.length === 0) {
+      toast.error('저장할 CSV 파일이 없습니다.');
+      return;
+    }
+    if (!requireEncryptionPassword()) return;
+
+    setSecureAction('save');
+
+    try {
+      const encryptedPayload = await encryptCsvFiles(
+        uploadedFiles,
+        encryptionPassword,
+        user.id,
+      );
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.from('asset_data').upsert(
+        {
+          user_id: user.id,
+          encrypted_payload: encryptedPayload,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' },
+      );
+
+      if (error) throw error;
+
+      setEncryptionPassword('');
+      toast.success('암호화 CSV 저장 완료', {
+        description: '이 계정의 기존 저장 행을 새 데이터로 덮어썼습니다.',
+      });
+    } catch (error) {
+      toast.error('암호화 CSV 저장 실패', {
+        description:
+          error instanceof Error
+            ? error.message
+            : '잠시 후 다시 시도해 주세요.',
+      });
+    } finally {
+      setSecureAction(undefined);
+    }
+  };
+
+  // 버튼을 누른 시점에만 본인 암호문을 조회하고 브라우저에서 복호화·압축 해제합니다.
+  const loadEncryptedCsv = async () => {
+    if (!user) {
+      router.push('/login?next=%2Fsetup%3Fmode%3Dadmin');
+      return;
+    }
+    if (!requireEncryptionPassword()) return;
+
+    setSecureAction('load');
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from('asset_data')
+        .select('encrypted_payload')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data?.encrypted_payload) {
+        throw new Error('이 계정에 저장된 CSV가 없습니다.');
+      }
+
+      const decryptedFiles = await decryptCsvFiles(
+        data.encrypted_payload,
+        encryptionPassword,
+        user.id,
+      );
+      // 복원된 File 객체를 일반 업로드와 같은 검증 및 이후 계산 흐름에 연결합니다.
+      const validFileCount = await handleFiles(decryptedFiles, {
+        replace: true,
+        showSuccessToast: false,
+      });
+
+      if (validFileCount !== decryptedFiles.length) {
+        throw new Error('저장된 파일에 지원하지 않는 CSV가 포함되어 있습니다.');
+      }
+
+      setEncryptionPassword('');
+      toast.success('암호화 CSV 불러오기 완료', {
+        description: `${validFileCount}개의 CSV가 기존 처리 흐름에 연결되었습니다.`,
+      });
+    } catch (error) {
+      toast.error('암호화 CSV 불러오기 실패', {
+        description:
+          error instanceof Error
+            ? error.message
+            : '잠시 후 다시 시도해 주세요.',
+      });
+    } finally {
+      setSecureAction(undefined);
+    }
+  };
+
+  // 다른 계정에 복호화된 파일이 남지 않도록 로컬 상태를 비우고 페이지를 새로 엽니다.
+  const signOut = async () => {
+    setSecureAction('sign-out');
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signOut();
+
+      if (error) throw error;
+
+      setUploadedFiles([]);
+      setEncryptionPassword('');
+      window.location.assign('/login?next=%2Fsetup%3Fmode%3Dadmin');
+    } catch (error) {
+      toast.error('로그아웃 실패', {
+        description:
+          error instanceof Error
+            ? error.message
+            : '잠시 후 다시 시도해 주세요.',
+      });
+      setSecureAction(undefined);
+    }
   };
 
   return (
@@ -350,6 +527,127 @@ export function CsvStep({
           )}
         </div>
 
+        {/* Supabase 저장 UI는 mode=admin에서만 렌더링됩니다. */}
+        {showSecureStorage && (
+          <div className='rounded-2xl border border-white/15 bg-white/[0.04] p-5 shadow-sm backdrop-blur-md'>
+          <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+            <div className='flex gap-3'>
+              <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.06]'>
+                <LockKeyhole className='h-5 w-5 text-[color:var(--setup-primary,var(--primary))]' />
+              </div>
+              <div>
+                <h4 className='text-sm font-bold'>Supabase 암호화 저장</h4>
+                <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>
+                  gzip 압축 후 암호화하며, 사용자별 한 행만 유지합니다.
+                </p>
+              </div>
+            </div>
+            {user && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='cursor-pointer rounded-xl'
+                disabled={Boolean(secureAction)}
+                onClick={() => void signOut()}
+              >
+                {secureAction === 'sign-out' ? (
+                  <Loader2 className='animate-spin' />
+                ) : (
+                  <LogOut />
+                )}
+                로그아웃
+              </Button>
+            )}
+          </div>
+
+          <div className='mt-4'>
+            {isAuthLoading ? (
+              <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                <Loader2 className='h-4 w-4 animate-spin' />
+                로그인 상태 확인 중
+              </div>
+            ) : !isConfigured ? (
+              <p className='rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive'>
+                Supabase 환경변수를 설정해야 암호화 저장을 사용할 수 있습니다.
+              </p>
+            ) : !user ? (
+              <div className='flex flex-col gap-3 rounded-xl border border-white/15 bg-white/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between'>
+                <p className='text-sm text-muted-foreground'>
+                  로그인하지 않은 사용자는 저장된 암호화 데이터도 조회할 수
+                  없습니다.
+                </p>
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='shrink-0 cursor-pointer rounded-xl bg-white/[0.04]'
+                  onClick={() =>
+                    router.push('/login?next=%2Fsetup%3Fmode%3Dadmin')
+                  }
+                >
+                  <LogIn />
+                  로그인
+                </Button>
+              </div>
+            ) : (
+              <div className='space-y-3'>
+                <div className='rounded-xl border border-white/15 bg-white/[0.04] p-3 text-sm'>
+                  <span className='font-semibold'>{user.email}</span>
+                  <span className='text-muted-foreground'> 계정으로 연결됨</span>
+                </div>
+                <Input
+                  type='password'
+                  autoComplete='current-password'
+                  value={encryptionPassword}
+                  onChange={(event) =>
+                    setEncryptionPassword(event.target.value)
+                  }
+                  placeholder='저장할 때 사용할 로그인 비밀번호'
+                  disabled={Boolean(secureAction)}
+                  className='h-11 rounded-xl border-white/15 bg-white/[0.04]'
+                />
+                <div className='flex flex-col gap-2 sm:flex-row'>
+                  <Button
+                    type='button'
+                    className='cursor-pointer rounded-xl sm:flex-1'
+                    disabled={
+                      Boolean(secureAction) || uploadedFiles.length === 0
+                    }
+                    onClick={() => void saveEncryptedCsv()}
+                  >
+                    {secureAction === 'save' ? (
+                      <Loader2 className='animate-spin' />
+                    ) : (
+                      <CloudUpload />
+                    )}
+                    암호화하여 저장
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='cursor-pointer rounded-xl border-white/15 bg-white/[0.04] sm:flex-1'
+                    disabled={Boolean(secureAction)}
+                    onClick={() => void loadEncryptedCsv()}
+                  >
+                    {secureAction === 'load' ? (
+                      <Loader2 className='animate-spin' />
+                    ) : (
+                      <CloudDownload />
+                    )}
+                    저장 CSV 불러오기
+                  </Button>
+                </div>
+                <p className='text-xs leading-relaxed text-muted-foreground'>
+                  비밀번호는 브라우저 암복호화에만 사용되며 asset_data 행에
+                  저장되지 않습니다. 새 저장은 기존 행을 덮어쓰며, 비밀번호를
+                  바꾸면 이전 데이터는 이전 암호가 있어야 복호화할 수 있습니다.
+                </p>
+              </div>
+            )}
+          </div>
+          </div>
+        )}
+
         <div className='flex gap-3 rounded-xl border border-border bg-[oklch(0.7_0.18_150_/_0.025)] p-4 text-left shadow-sm backdrop-blur-md'>
           <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card'>
             <ShieldCheck className='h-5 w-5 text-[oklch(0.62_0.18_150)]' />
@@ -359,9 +657,20 @@ export function CsvStep({
               데이터 처리 안내
             </h4>
             <p className='text-sm leading-relaxed text-[oklch(0.62_0.18_150)]'>
-              CSV와 계좌 거래내역은 서버에 저장되거나 외부로 업로드되지
-              않습니다. 보유 종목의 가격·히스토리·ETF 구성·섹터 정보를 표시하기
-              위해 필요한 종목 코드/심볼 기준의 공개 시장 데이터만 조회합니다.
+              {showSecureStorage ? (
+                <>
+                  CSV는 기본적으로 브라우저에서만 처리됩니다. 로그인 후 저장
+                  버튼을 누른 경우에만 브라우저에서 암호화된 묶음이 Supabase에
+                  올라가며, 복호화된 CSV와 암호는 저장되지 않습니다.
+                </>
+              ) : (
+                <>
+                  CSV와 계좌 거래내역은 서버에 저장되거나 외부로 업로드되지
+                  않습니다. 보유 종목의 가격·히스토리·ETF 구성·섹터 정보를
+                  표시하기 위해 필요한 종목 코드/심볼 기준의 공개 시장 데이터만
+                  조회합니다.
+                </>
+              )}
             </p>
           </div>
         </div>

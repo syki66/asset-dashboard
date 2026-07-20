@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { Suspense, useEffect, useState, type CSSProperties } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,7 +26,7 @@ import { shsecCsvToJson, createShsecTransactions } from '@/utils/shsec-adapter';
 import { createAccountData } from '@/utils/converter';
 import { createBenchmarkData } from '@/utils/generator';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
 import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import {
@@ -39,6 +39,8 @@ import {
 import { cn } from '@/lib/utils';
 import type { PrincipalAdjustment } from '@/types';
 import { bestRateTable, worstRateTable } from '@/constants/keywords';
+import { useAuth } from '@/components/auth/auth-provider';
+import { getSetupMode } from '@/lib/setup-mode';
 
 const steps = [
   {
@@ -87,7 +89,26 @@ const createDemoBestInterestRates = () =>
     interestRate: Number((interestRate * 4).toFixed(2)),
   }));
 
+function SetupPageFallback() {
+  return (
+    <div className='flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))]'>
+      <div className='flex items-center gap-3 rounded-2xl border border-white/20 bg-white/30 px-5 py-4 text-sm font-semibold shadow-lg backdrop-blur-xl'>
+        <Loader2 className='h-5 w-5 animate-spin' />
+        접근 권한 확인 중
+      </div>
+    </div>
+  );
+}
+
 export default function Page() {
+  return (
+    <Suspense fallback={<SetupPageFallback />}>
+      <SetupPageContent />
+    </Suspense>
+  );
+}
+
+function SetupPageContent() {
   const [activeStep, setActiveStep] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [principalAdjustments, setPrincipalAdjustments] = useState<
@@ -95,8 +116,10 @@ export default function Page() {
   >({});
   const [benchmarkStartYear, setBenchmarkStartYear] = useState<number>();
   const [isPreparingCalculation, setIsPreparingCalculation] = useState(false);
-  // 데모 전용 CSV 안내와 벤치마크 초기값 적용 여부를 제어합니다.
-  const [isDemo, setIsDemo] = useState(false);
+  const searchParams = useSearchParams();
+  const setupMode = getSetupMode(searchParams.get('mode') ?? undefined);
+  const isDemo = setupMode === 'demo';
+  const isAdmin = setupMode === 'admin';
   const currentStep = steps[activeStep];
   const setupThemeStyle = {
     '--setup-primary': 'oklch(0.62 0.24 255)',
@@ -106,6 +129,13 @@ export default function Page() {
   } as CSSProperties;
 
   const router = useRouter();
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin && !isAuthLoading && !user) {
+      router.replace('/login?next=%2Fsetup%3Fmode%3Dadmin');
+    }
+  }, [isAdmin, isAuthLoading, router, user]);
 
   // 데모 때문에 불러옴
   const setBestInterestRates = useInterestRateStore(
@@ -115,17 +145,12 @@ export default function Page() {
     (state) => state.setWorstInterestRates,
   );
 
-  // 데모 쿼리를 판별해 최상금리만 데모값으로 바꾸고 최하금리는 원래 값을 유지합니다.
   useEffect(() => {
-    const demo = new URLSearchParams(window.location.search).get('demo');
-    const nextIsDemo = demo === '' || demo === 'true' || demo === '1';
-
-    setIsDemo(nextIsDemo);
-    if (nextIsDemo) {
-      setBestInterestRates(createDemoBestInterestRates());
-    }
+    setBestInterestRates(
+      isDemo ? createDemoBestInterestRates() : bestRateTable,
+    );
     setWorstInterestRates(worstRateTable);
-  }, [setBestInterestRates, setWorstInterestRates]);
+  }, [isDemo, setBestInterestRates, setWorstInterestRates]);
 
   const setTotalAccountData = useAccountStore(
     (state) => state.setTotalAccountData,
@@ -316,6 +341,10 @@ export default function Page() {
     }
   }, [isSuccess, isError, router]);
 
+  if (isAdmin && (isAuthLoading || !user)) {
+    return <SetupPageFallback />;
+  }
+
   return (
     <div
       className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))] p-6'
@@ -373,6 +402,7 @@ export default function Page() {
                     uploadedFiles={uploadedFiles}
                     setUploadedFiles={setUploadedFiles}
                     showDemoPrompt={isDemo}
+                    showSecureStorage={isAdmin}
                   />
                 </div>
               )}
