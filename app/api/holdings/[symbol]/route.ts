@@ -30,6 +30,8 @@ type VanguardHoldingsResponse = {
 
 type HoldingsProvider = 'invesco' | 'vanguard';
 
+const REVALIDATE_SECONDS = 60 * 60 * 24;
+
 const isCusip = (value: string | null): value is string =>
   value !== null && /^[A-Z0-9]{9}$/.test(value);
 
@@ -73,6 +75,7 @@ async function fetchHoldings(
       headers: {
         Accept: 'application/json',
       },
+      next: { revalidate: REVALIDATE_SECONDS },
     });
 
     if (!response.ok) {

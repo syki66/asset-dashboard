@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const BASE_URL = 'https://query2.finance.yahoo.com/v1/finance/search';
+const REVALIDATE_SECONDS = 60 * 60 * 24;
 
 // US 종목 코드를 받아서 티커를 반환
 export async function GET(
@@ -13,7 +14,9 @@ export async function GET(
   const fetchUrl = `${BASE_URL}?q=${ISIN}&newsCount=0`;
 
   try {
-    const response = await fetch(fetchUrl);
+    const response = await fetch(fetchUrl, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
 
     if (!response.ok) {
       return NextResponse.json(

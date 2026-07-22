@@ -232,7 +232,7 @@ export function CsvStep({
 
   const requireEncryptionPassword = () => {
     if (!encryptionPassword) {
-      toast.error('로그인 비밀번호를 입력해 주세요.');
+      toast.error('암호화 비밀번호를 입력해 주세요.');
       return false;
     }
 
@@ -602,7 +602,7 @@ export function CsvStep({
                   onChange={(event) =>
                     setEncryptionPassword(event.target.value)
                   }
-                  placeholder='저장할 때 사용할 로그인 비밀번호'
+                  placeholder='암호화 비밀번호'
                   disabled={Boolean(secureAction)}
                   className='h-11 rounded-xl border-white/15 bg-white/[0.04]'
                 />
@@ -638,9 +638,10 @@ export function CsvStep({
                   </Button>
                 </div>
                 <p className='text-xs leading-relaxed text-muted-foreground'>
-                  비밀번호는 브라우저 암복호화에만 사용되며 asset_data 행에
-                  저장되지 않습니다. 새 저장은 기존 행을 덮어쓰며, 비밀번호를
+                  암호화 비밀번호는 브라우저 암복호화에만 사용되며 asset_data
+                  행에 저장되지 않습니다. 새 저장은 기존 행을 덮어쓰며, 암호를
                   바꾸면 이전 데이터는 이전 암호가 있어야 복호화할 수 있습니다.
+                  암호를 분실하면 서버에서도 복구할 수 없습니다.
                 </p>
               </div>
             )}

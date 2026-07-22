@@ -42,7 +42,10 @@ describe('GET /api/holdings/[symbol]', () => {
     ]);
     expect(mockedFetch).toHaveBeenCalledWith(
       expect.stringContaining('/profile/api/VOO/portfolio-holding/stock'),
-      expect.objectContaining({ headers: { Accept: 'application/json' } }),
+      expect.objectContaining({
+        headers: { Accept: 'application/json' },
+        next: { revalidate: 60 * 60 * 24 },
+      }),
     );
   });
 

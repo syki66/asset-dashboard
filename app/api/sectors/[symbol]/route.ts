@@ -29,6 +29,8 @@ type VanguardSectorsResponse = {
 
 type SectorProvider = 'invesco' | 'vanguard';
 
+const REVALIDATE_SECONDS = 60 * 60 * 24;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ symbol: string }> },
@@ -66,6 +68,7 @@ async function fetchSectors(
       headers: {
         Accept: 'application/json',
       },
+      next: { revalidate: REVALIDATE_SECONDS },
     });
 
     if (!response.ok) {

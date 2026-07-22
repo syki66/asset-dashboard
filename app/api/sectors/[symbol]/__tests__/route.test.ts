@@ -46,7 +46,10 @@ describe('GET /api/sectors/[symbol]', () => {
       ]);
       expect(mockedFetch).toHaveBeenCalledWith(
         expect.stringContaining(`/vmf/api/${symbol}/diversification`),
-        expect.objectContaining({ headers: { Accept: 'application/json' } }),
+        expect.objectContaining({
+          headers: { Accept: 'application/json' },
+          next: { revalidate: 60 * 60 * 24 },
+        }),
       );
     },
   );
@@ -74,7 +77,10 @@ describe('GET /api/sectors/[symbol]', () => {
       ]);
       expect(mockedFetch).toHaveBeenCalledWith(
         expect.stringContaining(`/shareclasses/${symbol}/weightedHoldings`),
-        expect.objectContaining({ headers: { Accept: 'application/json' } }),
+        expect.objectContaining({
+          headers: { Accept: 'application/json' },
+          next: { revalidate: 60 * 60 * 24 },
+        }),
       );
     },
   );
