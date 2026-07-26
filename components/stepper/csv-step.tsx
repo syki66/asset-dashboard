@@ -445,10 +445,10 @@ export function CsvStep({
           </div>,
           document.body,
         )}
-      <div className='space-y-3 lg:space-y-4'>
+      <div className='space-y-5 lg:space-y-4'>
         <div
           className={cn(
-            'rounded-xl border border-dashed p-3 text-center shadow-sm backdrop-blur-md transition-all duration-200 sm:p-5 lg:rounded-2xl lg:p-8',
+            'rounded-xl border border-dashed p-4 text-center shadow-sm backdrop-blur-md transition-all duration-200 sm:p-5 lg:rounded-2xl lg:p-8',
             isDragging
               ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))]/5 shadow-[color:var(--setup-primary,var(--primary))]/10'
               : 'border-white/15 bg-transparent hover:border-[color:var(--setup-primary,var(--primary))]/35 hover:bg-white/[0.03]',
@@ -474,7 +474,7 @@ export function CsvStep({
             onChange={handleFileChange}
             multiple
           />
-          <div className='mt-4 flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:mt-5'>
+          <div className='mt-5 flex flex-col items-stretch justify-center gap-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 lg:mt-5'>
             <Button
               variant='outline'
               className='w-full cursor-pointer rounded-xl border-white/15 bg-white/[0.04] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.1] hover:text-foreground hover:shadow-md sm:w-auto'
@@ -654,10 +654,10 @@ export function CsvStep({
             <ShieldCheck className='h-5 w-5 text-[oklch(0.62_0.18_150)]' />
           </div>
           <div className='space-y-1'>
-            <h4 className='text-base font-bold text-[oklch(0.62_0.18_150)] lg:text-sm'>
+            <h4 className='text-sm font-bold text-[oklch(0.62_0.18_150)]'>
               데이터 처리 안내
             </h4>
-            <p className='text-base leading-relaxed text-[oklch(0.62_0.18_150)] lg:text-sm'>
+            <p className='text-sm leading-relaxed text-[oklch(0.62_0.18_150)]'>
               {showSecureStorage ? (
                 <>
                   CSV는 기본적으로 브라우저에서만 처리됩니다. 로그인 후 저장

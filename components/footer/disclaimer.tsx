@@ -1,6 +1,6 @@
 export function Disclaimer() {
   return (
-    <div className="mt-6 break-words border-t pt-3 text-xs leading-5 text-muted-foreground sm:leading-relaxed lg:mt-8 lg:break-normal lg:pt-4 lg:leading-4">
+    <div className="mx-3.5 mt-6 break-words border-t pt-3 text-xs leading-5 text-muted-foreground sm:leading-relaxed lg:mx-0 lg:mt-8 lg:break-normal lg:pt-4 lg:leading-4">
       <p className="mb-2">
         <strong>면책 조항:</strong> 이 대시보드의 계산 결과는 사용자가 업로드한 거래내역과 설정값을 바탕으로 한 참고용 추정치입니다. 세금, 수수료, 환율, 해외주식 과세 등은 실제 증권사 및 세무 기준과 다를 수 있습니다.
       </p>

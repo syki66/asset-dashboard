@@ -494,7 +494,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   aria-label='조회 설정 닫기'
                   onClick={() => setIsMobileControlsOpen(false)}
                 />
-                <div className='relative z-10 flex max-h-[calc(100dvh-5rem)] w-full flex-col gap-3 overflow-y-auto overscroll-contain rounded-2xl border border-white/15 bg-card/95 p-3 shadow-2xl backdrop-blur-xl lg:contents'>
+                <div className='relative z-10 flex max-h-[calc(100dvh-5rem)] w-full flex-col gap-6 overflow-y-auto overscroll-contain rounded-2xl border border-white/15 bg-card/95 p-3 shadow-2xl backdrop-blur-xl lg:contents'>
                   <div className='flex items-center justify-between lg:hidden'>
                     <div>
                       <h2 className='text-base font-bold text-foreground'>

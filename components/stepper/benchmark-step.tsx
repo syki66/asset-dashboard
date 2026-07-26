@@ -25,8 +25,8 @@ interface BenchmarkStepProps {
 
 export const BenchmarkStep = ({ startYear }: BenchmarkStepProps) => {
   return (
-    <div className='space-y-3 lg:space-y-4'>
-      <div className='space-y-3 lg:space-y-4 lg:rounded-2xl lg:p-4 lg:shadow-sm'>
+    <div className='space-y-5 lg:space-y-4'>
+      <div className='space-y-5 lg:space-y-4 lg:rounded-2xl lg:p-4 lg:shadow-sm'>
         <div className='liquid-glass-surface rounded-xl p-3 lg:p-4'>
           <div className='inline-flex items-center rounded-full bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-muted-foreground'>
             현재 지원
@@ -34,7 +34,7 @@ export const BenchmarkStep = ({ startYear }: BenchmarkStepProps) => {
           <h3 className='mt-3 text-base font-semibold text-foreground'>
             예금 벤치마크
           </h3>
-          <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
+          <p className='mt-1 text-sm text-muted-foreground'>
             월별 최상/최하 예금 금리를 기준으로 포트폴리오 성과와 비교합니다.
             단위는 %이며, 월 헤더를 클릭해 해당 월을 활성화하거나 비활성화할 수 있습니다.
             최상/최하 입력칸을 비우면 해당 시나리오만 직전 월 금리를 사용합니다.

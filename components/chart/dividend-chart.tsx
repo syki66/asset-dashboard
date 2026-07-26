@@ -272,7 +272,7 @@ export function DividendChart({
               }
               className='w-full sm:w-auto'
             >
-              <TabsList className='grid w-full grid-cols-6 rounded-lg border border-white/15 bg-white/10 shadow-sm backdrop-blur-xs lg:w-auto [&>button]:px-1 [&>button]:text-xs sm:[&>button]:px-3 lg:[&>button]:text-sm'>
+              <TabsList className='grid w-full grid-cols-6 rounded-lg border border-white/15 bg-white/10 shadow-sm backdrop-blur-xs lg:w-auto [&>button]:px-1 [&>button]:text-xs sm:[&>button]:px-3 lg:[&>button]:text-xs'>
                 <TabsTrigger value='ytd' className='interactive-lift rounded-md font-semibold'>
                   YTD
                 </TabsTrigger>

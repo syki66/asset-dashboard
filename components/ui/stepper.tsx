@@ -56,6 +56,14 @@ export function Stepper({
                     <span>{index + 1}</span>
                   )}
                 </button>
+                <div
+                  className={cn(
+                    'mt-2 text-center text-[10px] font-medium leading-tight sm:hidden',
+                    isCurrent ? 'text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {step.label}
+                </div>
                 <div className='mt-3 hidden text-center sm:block'>
                   <div
                     className={cn(

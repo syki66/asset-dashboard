@@ -139,15 +139,15 @@ export function PrincipalAdjustmentStep({
   }
 
   return (
-    <div className='space-y-3 lg:space-y-4'>
+    <div className='space-y-5 lg:space-y-4'>
       <div className='rounded-xl border border-[color:var(--setup-primary,var(--primary))]/20 bg-[color:var(--setup-primary,var(--primary))]/5 p-3 shadow-sm backdrop-blur-md lg:p-4'>
         <div className='flex items-start gap-3'>
           <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.08]'>
             <Calculator className='h-4 w-4 text-[color:var(--setup-primary,var(--primary))]' />
           </div>
           <div>
-            <h4 className='text-base font-bold lg:text-sm'>파일별 원금 보정</h4>
-            <p className='mt-1 text-base leading-6 text-muted-foreground lg:text-sm'>
+            <h4 className='text-sm font-bold'>파일별 원금 보정</h4>
+            <p className='mt-1 text-sm leading-6 text-muted-foreground'>
               원금에 더하거나 뺄 보정금액을 입력합니다. 보정 금액은 각 계좌의
               첫 거래일에 가상 입출금으로
               처리되며, 양수는 원금 증가, 음수는 원금 차감으로 적용됩니다.
@@ -157,7 +157,7 @@ export function PrincipalAdjustmentStep({
         </div>
       </div>
 
-      <div className='grid gap-3 lg:grid-cols-2 lg:gap-4'>
+      <div className='grid gap-5 lg:grid-cols-2 lg:gap-4'>
         {uploadedFiles.map((file) => {
           const fileKey = getFileKey(file);
           const adjustment = principalAdjustments[fileKey] ?? {

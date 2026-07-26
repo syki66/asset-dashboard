@@ -632,7 +632,7 @@ export function PortfolioAllocationChart({
             <div className='flex flex-1 flex-col gap-2 overflow-hidden lg:gap-3'>
               <div className='portfolio-scroll-fade min-h-0 flex-1'>
                 <div className='portfolio-scrollbar h-full overflow-y-auto pr-1 lg:pr-2'>
-                  <div className='space-y-2 lg:space-y-4'>
+                  <div className='space-y-1.5 lg:space-y-4'>
                 {chartData.map((item, index) => {
                   const percentage = ((item.value / totalValue) * 100).toFixed(
                     2,
@@ -648,17 +648,17 @@ export function PortfolioAllocationChart({
                   return (
                     <div
                       key={item.name}
-                      className='group flex cursor-pointer items-center justify-between rounded-lg p-1.5 text-base transition-colors hover:bg-[var(--theme-hover)] lg:p-2 lg:text-sm'
+                      className='group flex cursor-pointer items-center justify-between rounded-lg p-1 text-sm transition-colors hover:bg-[var(--theme-hover)] lg:p-2'
                     >
-                      <div className='flex items-center gap-2 lg:gap-3'>
+                      <div className='flex items-center gap-1.5 lg:gap-3'>
                         <div
-                          className='w-2 h-8 rounded-full shrink-0'
+                          className='h-7 w-1.5 shrink-0 rounded-full lg:h-8 lg:w-2'
                           style={{ backgroundColor: color }}
                         />
-                        <span className='font-mono text-muted-foreground w-6 text-right'>
+                        <span className='w-5 text-right font-mono text-muted-foreground lg:w-6'>
                           {index + 1}
                         </span>
-                        <div>
+                        <div className='ml-2 lg:ml-0'>
                           <p className='font-semibold'>{item.name}</p>
                           <p
                             className='text-xs text-muted-foreground truncate max-w-[120px]'

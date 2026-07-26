@@ -77,7 +77,7 @@ export default function Page() {
           themeColor={themeColor}
         />
       </div>
-      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
+      <div className='mt-12 flex flex-wrap items-center justify-between gap-2 px-3.5 lg:mt-8 lg:flex-nowrap lg:gap-0 lg:px-0'>
         <h2 className='text-xl font-bold'>포트폴리오 차트</h2>
         <ChartLayoutToggleButton
           layout={chartLayout}
@@ -89,7 +89,7 @@ export default function Page() {
       </div>
       <div
         className={cn(
-          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          'mt-4 grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
           chartLayout === 'compact'
             ? 'lg:grid-cols-2 xl:grid-cols-2'
             : 'grid-cols-1',
@@ -116,7 +116,7 @@ export default function Page() {
           onSummaryChange={handleSectorSummaryChange}
         />
       </div>
-      <div className='mt-7 lg:mt-8'>
+      <div className='mt-12 px-3.5 lg:mt-8 lg:px-0'>
         <h2 className='text-xl font-bold'>주식 현황</h2>
       </div>
       <div className='mt-4 min-w-0 lg:min-w-[auto]'>

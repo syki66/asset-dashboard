@@ -22,6 +22,7 @@ import {
   PORTFOLIO_CHART_COLORS,
   OVERVIEW_CHART_COLORS,
 } from '@/constants/chart-colors';
+import { useEffect } from 'react';
 
 export default function Page() {
   const themeColor = 'var(--overview-theme)';
@@ -30,6 +31,13 @@ export default function Page() {
   const tax = useTaxStore((state) => state.tax);
   const chartLayout = useChartLayoutStore((state) => state.chartLayout);
   const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const frameId = window.requestAnimationFrame(() => window.scrollTo(0, 0));
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   const isPostTax = tax === 'post';
   const currentValue = isPostTax
@@ -143,7 +151,7 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
+      <div className='mt-12 flex flex-wrap items-center justify-between gap-2 px-3.5 lg:mt-8 lg:flex-nowrap lg:gap-0 lg:px-0'>
         <h2 className='text-xl font-bold'>포트폴리오 요약</h2>
         <ChartLayoutToggleButton
           layout={chartLayout}
@@ -154,7 +162,7 @@ export default function Page() {
         />
       </div>
       <div
-        className={`mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto] ${
+        className={`mt-4 grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto] ${
           chartLayout === 'expanded'
             ? 'grid-cols-1'
             : 'lg:grid-cols-2 xl:grid-cols-2'

@@ -258,7 +258,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid min-w-0 gap-3 lg:min-w-[auto] lg:grid-cols-1 lg:gap-x-0 lg:gap-y-4 xl:grid-cols-3 xl:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
+      <div className='grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:grid-cols-1 lg:gap-x-0 lg:gap-y-4 xl:grid-cols-3 xl:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <div className='min-w-0 lg:min-w-[auto] lg:col-span-2 xl:col-span-2'>
           <ComparisonTable
             title={`예금 벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
@@ -354,7 +354,7 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 xl:grid-cols-[minmax(18rem,24rem)_1fr] [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
+      <div className='mt-6 grid min-w-0 gap-x-3 gap-y-6 lg:mt-4 lg:min-w-[auto] lg:gap-4 xl:grid-cols-[minmax(18rem,24rem)_1fr] [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardOverviewCard
           title='Best / Worst Year'
           icon={TrendingUpDown}
@@ -403,13 +403,13 @@ export default function Page() {
           chartHeightClassName='h-40'
         />
       </div>
-      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
+      <div className='mt-12 flex flex-wrap items-center justify-between gap-2 px-3.5 lg:mt-8 lg:flex-nowrap lg:gap-0 lg:px-0'>
         <h2 className='text-xl font-bold'>상세 차트</h2>
         {renderChartLayoutButton(detailChartLayout, setDetailChartLayout)}
       </div>
       <div
         className={cn(
-          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          'mt-4 grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
           detailChartLayout === 'compact'
             ? 'lg:grid-cols-2 xl:grid-cols-2'
             : 'grid-cols-1',
@@ -541,19 +541,19 @@ export default function Page() {
         </div>
         <div
           className={cn(
-            'mt-7 lg:mt-8',
+            'mt-6 lg:mt-8',
             detailChartLayout === 'compact'
               ? 'lg:col-span-2 xl:col-span-2'
               : undefined,
           )}
         >
-          <div className='mb-4 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap lg:gap-0'>
+          <div className='mb-4 flex flex-wrap items-center justify-between gap-2 px-3.5 lg:flex-nowrap lg:gap-0 lg:px-0'>
             <h2 className='text-xl font-bold'>수익률 차트</h2>
             {renderChartLayoutButton(returnChartLayout, setReturnChartLayout)}
           </div>
           <div
             className={cn(
-              'grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+              'grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
               returnChartLayout === 'compact'
                 ? 'lg:grid-cols-2 xl:grid-cols-2'
                 : 'grid-cols-1',

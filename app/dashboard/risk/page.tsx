@@ -115,10 +115,10 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-7 lg:mt-8'>
+      <div className='mt-12 px-3.5 lg:mt-8 lg:px-0'>
         <h2 className='text-xl font-bold'>상세 낙폭 차트</h2>
       </div>
-      <div className='mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
+      <div className='mt-4 grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <AssetChart
           themeColor={themeColor}
           calendarCategory='risk'
@@ -139,7 +139,7 @@ export default function Page() {
           showInflationAdjustToggle={false}
         />
       </div>
-      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
+      <div className='mt-12 flex flex-wrap items-center justify-between gap-2 px-3.5 lg:mt-8 lg:flex-nowrap lg:gap-0 lg:px-0'>
         <h2 className='text-xl font-bold'>90거래일 롤링 지표</h2>
         <ChartLayoutToggleButton
           layout={rollingChartLayout}
@@ -153,7 +153,7 @@ export default function Page() {
       </div>
       <div
         className={cn(
-          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          'mt-4 grid min-w-0 gap-x-3 gap-y-6 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
           rollingChartLayout === 'compact'
             ? 'lg:grid-cols-2 xl:grid-cols-2'
             : 'grid-cols-1',

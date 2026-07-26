@@ -126,7 +126,7 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-7 lg:mt-8'>
+      <div className='mt-12 px-3.5 lg:mt-8 lg:px-0'>
         <h2 className='text-xl font-bold'>주식 매매 내역</h2>
       </div>
       <div className='mt-4 min-w-0 lg:min-w-[auto]'>

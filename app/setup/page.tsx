@@ -120,7 +120,6 @@ function SetupPageContent() {
   const setupMode = getSetupMode(searchParams.get('mode') ?? undefined);
   const isDemo = setupMode === 'demo';
   const isAdmin = setupMode === 'admin';
-  const currentStep = steps[activeStep];
   const setupThemeStyle = {
     '--setup-primary': 'oklch(0.62 0.24 255)',
     '--setup-secondary': 'oklch(0.66 0.22 155)',
@@ -136,6 +135,10 @@ function SetupPageContent() {
       router.replace('/login?next=%2Fsetup%3Fmode%3Dadmin');
     }
   }, [isAdmin, isAuthLoading, router, user]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [activeStep]);
 
   // 데모 때문에 불러옴
   const setBestInterestRates = useInterestRateStore(
@@ -332,7 +335,7 @@ function SetupPageContent() {
       toast.success('계좌 불러오기 성공', {
         description: '계좌 데이터를 성공적으로 불러왔습니다.',
       });
-      router.push('/dashboard/settings?redirect=overview');
+      router.push('/dashboard/settings?redirect=overview', { scroll: true });
     }
     if (isError) {
       toast.error('계좌 불러오기 실패', {
@@ -354,8 +357,8 @@ function SetupPageContent() {
       <div className='relative w-full max-w-6xl lg:max-w-5xl'>
         <Card className='liquid-glass-surface relative w-full overflow-hidden rounded-2xl shadow-2xl shadow-black/10'>
           <div className='absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--setup-primary),var(--setup-secondary),var(--setup-accent),var(--setup-danger))]' />
-          <CardHeader className='bg-white/[0.1] px-4 py-4 sm:px-5 sm:py-4 lg:px-8 lg:py-7'>
-            <div className='flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4'>
+          <CardHeader className='bg-white/[0.1] px-4 py-5 sm:px-5 sm:py-4 lg:px-8 lg:py-7'>
+            <div>
               <div>
                 <div className='mb-2 inline-flex items-center gap-2 rounded-full bg-[color:var(--setup-primary)]/12 px-2.5 py-1 text-xs font-semibold text-[color:var(--setup-primary)] shadow-sm lg:mb-3 lg:px-3'>
                   <CheckCircle2 className='h-3.5 w-3.5' />
@@ -369,28 +372,20 @@ function SetupPageContent() {
                   대시보드를 계산합니다.
                 </CardDescription>
               </div>
-              <div className='w-full rounded-xl bg-white/[0.18] px-3 py-2 text-left shadow-sm lg:w-auto lg:px-4 lg:py-3 lg:text-right'>
-                <p className='text-xs font-medium text-muted-foreground'>
-                  현재 단계
-                </p>
-                <p className='mt-1 text-base font-bold text-[color:var(--setup-primary)] lg:text-sm'>
-                  {activeStep + 1} / {steps.length} · {currentStep.label}
-                </p>
-              </div>
             </div>
           </CardHeader>
 
-          <CardContent className='px-3 py-4 sm:px-5 sm:py-4 lg:px-8 lg:py-7'>
+          <CardContent className='px-3 py-6 sm:px-5 sm:py-4 lg:px-8 lg:py-7'>
             <Stepper
               steps={steps}
               activeStep={activeStep}
               onStepClick={handleStepClick}
-              className='mb-5 lg:mb-8'
+              className='mb-8 lg:mb-8'
             />
 
             <div className='min-h-0 p-0 sm:min-h-[360px] sm:p-1 lg:rounded-2xl lg:bg-white/[0.12] lg:p-6 lg:shadow-inner lg:shadow-black/5'>
               {activeStep === 0 && (
-                <div className='space-y-3 lg:space-y-5'>
+                <div className='space-y-6 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>파일 불러오기</h3>
                     <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
@@ -408,7 +403,7 @@ function SetupPageContent() {
               )}
 
               {activeStep === 1 && (
-                <div className='space-y-3 lg:space-y-5'>
+                <div className='space-y-6 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>조회할 날짜 선택</h3>
                     <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
@@ -420,7 +415,7 @@ function SetupPageContent() {
               )}
 
               {activeStep === 2 && (
-                <div className='space-y-3 lg:space-y-5'>
+                <div className='space-y-6 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>원금 보정</h3>
                     <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
@@ -439,9 +434,9 @@ function SetupPageContent() {
               )}
 
               {activeStep === 3 && (
-                <div className='space-y-3 lg:space-y-5'>
-                  <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-4'>
-                    <div>
+                <div className='space-y-8 lg:space-y-5'>
+                  <div className='flex items-start justify-between gap-3 lg:gap-4'>
+                    <div className='min-w-0'>
                       <h3 className='text-xl font-bold'>수수료와 세금 설정</h3>
                       <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
                         세후 평가금액과 비용 추정에 사용할 기본값을 조정합니다.
@@ -452,7 +447,7 @@ function SetupPageContent() {
                       variant='outline'
                       size='sm'
                       onClick={resetFeeSettings}
-                      className='interactive-lift w-full shrink-0 cursor-pointer self-stretch rounded-xl border-transparent bg-white/[0.08] text-foreground hover:bg-white/[0.14] hover:text-foreground sm:w-auto sm:self-start lg:self-auto'
+                      className='interactive-lift h-auto w-auto shrink-0 cursor-pointer flex-col gap-1 self-center rounded-xl border-transparent bg-white/[0.08] px-3 py-2 text-foreground hover:bg-white/[0.14] hover:text-foreground lg:h-8 lg:flex-row lg:gap-2 lg:px-3 lg:py-0'
                     >
                       <RotateCcw className='h-3.5 w-3.5' />
                       기본값
@@ -463,7 +458,7 @@ function SetupPageContent() {
               )}
 
               {activeStep === 4 && (
-                <div className='space-y-3 lg:space-y-5'>
+                <div className='space-y-6 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>벤치마크 설정</h3>
                     <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
@@ -476,7 +471,7 @@ function SetupPageContent() {
             </div>
           </CardContent>
 
-          <CardFooter className='flex items-center justify-between gap-2 bg-white/[0.1] px-4 py-3 sm:px-5 lg:gap-0 lg:px-8 lg:py-5'>
+          <CardFooter className='flex items-center justify-between gap-2 bg-white/[0.1] px-4 py-4 sm:px-5 lg:gap-0 lg:px-8 lg:py-5'>
             <Button
               variant='outline'
               onClick={handlePrevious}

@@ -27,10 +27,15 @@ export function SeriesToggleButtons({
     return null;
   }
 
+  const useScrollableMobileLayout = series.length >= 4;
+
   return (
     <div
       className={cn(
-        'flex touch-pan-x touch-pan-y flex-nowrap justify-start gap-2 overflow-x-auto overscroll-x-contain py-1 [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-3 lg:overflow-visible lg:overscroll-auto lg:py-0 [&::-webkit-scrollbar]:hidden',
+        'flex py-1 lg:flex-wrap lg:justify-center lg:gap-3 lg:overflow-visible lg:overscroll-auto lg:py-0',
+        useScrollableMobileLayout
+          ? 'touch-pan-x touch-pan-y flex-nowrap justify-start gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+          : 'flex-wrap justify-center gap-3 overflow-visible',
         className,
       )}
     >

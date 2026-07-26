@@ -177,7 +177,7 @@ export function FeeSettingsStep() {
 
   return (
     <div>
-      <div className='grid gap-6 sm:gap-4 lg:grid-cols-2'>
+      <div className='grid gap-8 lg:grid-cols-2 lg:gap-4'>
         {feeSettingGroups.map((group) => (
           <section
             key={group.title}
