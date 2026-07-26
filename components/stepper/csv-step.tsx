@@ -433,13 +433,23 @@ export function CsvStep({
               }}
             />
             <div
-              className='absolute flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 whitespace-normal rounded-lg bg-black/85 px-3 py-2 text-center text-sm font-semibold text-white shadow-lg lg:max-w-none lg:whitespace-nowrap lg:text-left'
+              className='absolute flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-2 text-center text-sm font-semibold text-white shadow-lg lg:hidden'
+              style={{
+                top: Math.max(12, spotlightRect.top - 48),
+                left: spotlightRect.left + spotlightRect.width / 2,
+              }}
+            >
+              <Sparkles className='h-4 w-4 shrink-0 text-[oklch(0.78_0.16_82)]' />
+              더미 CSV 불러오기를 눌러주세요
+            </div>
+            <div
+              className='absolute hidden max-w-none -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-2 text-left text-sm font-semibold text-white shadow-lg lg:flex'
               style={{
                 top: Math.max(12, spotlightRect.top - 48),
                 left: spotlightRect.left + spotlightRect.width / 2 + 8,
               }}
             >
-              <Sparkles className='h-4 w-4 text-[oklch(0.78_0.16_82)]' />
+              <Sparkles className='h-4 w-4 shrink-0 text-[oklch(0.78_0.16_82)]' />
               더미 CSV 불러오기를 눌러주세요
             </div>
           </div>,
