@@ -258,8 +258,8 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid md:grid-cols-1 xl:grid-cols-3 gap-y-4 xl:gap-4'>
-        <div className='col-span-2'>
+      <div className='grid min-w-0 gap-3 lg:min-w-[auto] lg:grid-cols-1 lg:gap-x-0 lg:gap-y-4 xl:grid-cols-3 xl:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
+        <div className='min-w-0 lg:min-w-[auto] lg:col-span-2 xl:col-span-2'>
           <ComparisonTable
             title={`예금 벤치마크 비교 ${showAfterTax ? '(세후)' : ''}`}
             icon={<ChartLine className='h-5 w-5 theme-performance' />}
@@ -271,6 +271,11 @@ export default function Page() {
           title='세금 및 제비용'
           icon={Landmark}
           themeColor={themeColor}
+          titleClassName='text-lg'
+          itemClassName='py-0.5 lg:py-1'
+          itemLabelClassName='text-base lg:text-sm'
+          itemValueClassName='text-base'
+          mobileItemLayout='horizontal'
           contentItems={[
             {
               label: '해외주식 양도소득세',
@@ -349,33 +354,39 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-4 grid gap-4 xl:grid-cols-[minmax(18rem,24rem)_1fr]'>
+      <div className='mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 xl:grid-cols-[minmax(18rem,24rem)_1fr] [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardOverviewCard
           title='Best / Worst Year'
           icon={TrendingUpDown}
           themeColor={themeColor}
+          contentClassName="relative grid grid-cols-2 gap-x-3 gap-y-2 space-y-0 after:pointer-events-none after:absolute after:inset-y-0 after:left-1/2 after:w-px after:bg-border/60 after:content-[''] lg:flex lg:grid-cols-none lg:space-y-2.5 lg:after:hidden"
           contentItems={[
             {
               label: 'Best Year',
               value: bestYear.year,
+              className: 'order-1 lg:order-none',
               info: BEST_WORST_YEAR_INFO,
             },
             {
               label: showAfterTax ? '순수익금' : '수익금',
               value: formatCurrency(bestYear.profit, currency),
               valueClassName: 'theme-performance',
+              className: 'order-3 lg:order-none',
               info: BEST_WORST_YEAR_INFO,
             },
             {
               label: 'Worst Year',
               value: worstYear.year,
               hasDivider: true,
+              className: 'order-2 mt-0 lg:order-none lg:mt-auto',
+              dividerClassName: 'hidden lg:block',
               info: BEST_WORST_YEAR_INFO,
             },
             {
               label: showAfterTax ? '순수익금' : '수익금',
               value: formatCurrency(worstYear.profit, currency),
               valueClassName: 'theme-performance',
+              className: 'order-4 lg:order-none',
               info: BEST_WORST_YEAR_INFO,
             },
           ]}
@@ -392,14 +403,16 @@ export default function Page() {
           chartHeightClassName='h-40'
         />
       </div>
-      <div className='mt-8 flex items-center justify-between'>
+      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
         <h2 className='text-xl font-bold'>상세 차트</h2>
         {renderChartLayoutButton(detailChartLayout, setDetailChartLayout)}
       </div>
       <div
         className={cn(
-          'mt-4 grid gap-4',
-          detailChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          detailChartLayout === 'compact'
+            ? 'lg:grid-cols-2 xl:grid-cols-2'
+            : 'grid-cols-1',
         )}
       >
         <div className='h-full'>
@@ -528,18 +541,22 @@ export default function Page() {
         </div>
         <div
           className={cn(
-            'mt-8',
-            detailChartLayout === 'compact' ? 'lg:col-span-2' : undefined,
+            'mt-7 lg:mt-8',
+            detailChartLayout === 'compact'
+              ? 'lg:col-span-2 xl:col-span-2'
+              : undefined,
           )}
         >
-          <div className='mb-4 flex items-center justify-between'>
+          <div className='mb-4 flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap lg:gap-0'>
             <h2 className='text-xl font-bold'>수익률 차트</h2>
             {renderChartLayoutButton(returnChartLayout, setReturnChartLayout)}
           </div>
           <div
             className={cn(
-              'grid gap-4',
-              returnChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+              'grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+              returnChartLayout === 'compact'
+                ? 'lg:grid-cols-2 xl:grid-cols-2'
+                : 'grid-cols-1',
             )}
           >
             <AssetChart

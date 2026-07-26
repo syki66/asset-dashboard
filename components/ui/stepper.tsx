@@ -36,7 +36,7 @@ export function Stepper({
                 <button
                   type='button'
                   className={cn(
-                    'flex h-11 w-11 items-center justify-center rounded-full border text-sm font-bold shadow-sm transition-all duration-200',
+                    'flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold shadow-sm transition-all duration-200 sm:h-11 sm:w-11 sm:text-sm',
                     isCompleted
                       ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))] text-white shadow-[color:var(--setup-primary,var(--primary))]/20'
                       : isCurrent
@@ -56,10 +56,10 @@ export function Stepper({
                     <span>{index + 1}</span>
                   )}
                 </button>
-                <div className='mt-3 text-center'>
+                <div className='mt-3 hidden text-center sm:block'>
                   <div
                     className={cn(
-                      'text-sm font-semibold leading-snug',
+                      'text-base font-semibold leading-snug lg:text-sm',
                       isCurrent ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
@@ -75,7 +75,7 @@ export function Stepper({
               {index < steps.length - 1 && (
                 <div
                   className={cn(
-                    'mx-2 mt-5 h-0.5 flex-[0.8] rounded-full sm:mx-3',
+                    'mx-1 mt-4 h-0.5 flex-[0.8] rounded-full sm:mx-3 sm:mt-5',
                     index < activeStep
                       ? 'bg-[color:var(--setup-primary,var(--primary))]'
                       : 'bg-slate-400/35',

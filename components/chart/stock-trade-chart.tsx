@@ -437,7 +437,7 @@ export function StockTradeChart({
       const labelText = label ?? '';
 
       return (
-        <div className='liquid-glass-surface glassmorphism-tooltip min-w-[13.75rem]'>
+        <div className='liquid-glass-surface glassmorphism-tooltip w-[min(13.75rem,calc(100vw-2rem))] min-w-0 max-w-[calc(100vw-2rem)] lg:w-auto lg:min-w-[13.75rem] lg:max-w-none'>
           <p className='text-center font-bold text-base mb-2'>
             {aggregationMode === 'yearly'
               ? `${labelText}년`
@@ -562,8 +562,8 @@ export function StockTradeChart({
         } as React.CSSProperties
       }
     >
-      <CardHeader>
-        <div className='flex items-start justify-between'>
+      <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
+        <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-0'>
           <div className='flex flex-col gap-1'>
             <CardTitle className='text-lg flex items-center gap-2'>
               <TrendingUp style={{ color: themeColor }} className='h-5 w-5' />
@@ -571,14 +571,14 @@ export function StockTradeChart({
             </CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
-          <div className='flex items-center gap-2 flex-wrap justify-end'>
-            <div className='flex gap-1 border border-border rounded-md p-1'>
+          <div className='flex w-full items-center justify-between gap-1 sm:w-auto sm:flex-wrap sm:justify-end sm:gap-2'>
+            <div className='grid h-10 w-[5.75rem] shrink-0 grid-cols-2 gap-0.5 rounded-md border border-border p-0.5 sm:h-auto sm:w-auto sm:flex sm:gap-1 sm:p-1'>
               <Button
                 variant={viewMode === 'quantity' ? 'default' : 'ghost'}
                 size='sm'
                 onClick={() => setViewMode('quantity')}
                 className={cn(
-                  'interactive-lift h-7 cursor-pointer',
+                  'interactive-lift h-full cursor-pointer px-1 sm:h-7 sm:px-3 sm:text-xs',
                   viewMode !== 'quantity' &&
                     'hover:!bg-[var(--trade-theme-hover)] hover:!text-current',
                 )}
@@ -591,7 +591,7 @@ export function StockTradeChart({
                 size='sm'
                 onClick={() => setViewMode('price')}
                 className={cn(
-                  'interactive-lift h-7 cursor-pointer',
+                  'interactive-lift h-full cursor-pointer px-1 sm:h-7 sm:px-3 sm:text-xs',
                   viewMode !== 'price' &&
                     'hover:!bg-[var(--trade-theme-hover)] hover:!text-current',
                 )}
@@ -600,23 +600,24 @@ export function StockTradeChart({
                 가격
               </Button>
             </div>
+            <div className='grid grid-cols-[5.25rem_5.75rem] gap-1 sm:contents'>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant='outline'
-                  className='interactive-lift group !cursor-pointer liquid-glass-surface h-9 w-[6.75rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm'
+                  className='interactive-lift group liquid-glass-surface h-10 w-full !cursor-pointer justify-between gap-1 border-white/15 pl-2 pr-1 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm sm:h-9 sm:w-[6.75rem] sm:gap-2 sm:px-3'
                   style={{
                     ...liquidDropdownStyle,
                     '--date-button-hover': themeColor,
                   } as React.CSSProperties}
                 >
                   {selectedPeriod === 'all' ? '전체기간' : `${selectedPeriod}년`}
-                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white group-data-[state=open]:text-white' />
+                  <ChevronDown className='h-3 w-3 text-muted-foreground group-hover:text-white group-data-[state=open]:text-white sm:h-4 sm:w-4' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align='end'
-                className='liquid-glass-surface w-[6.75rem] border-white/15 p-1'
+                className='liquid-glass-surface w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] border-white/15 p-1 sm:w-[6.75rem] sm:min-w-[6.75rem]'
                 style={{
                   ...liquidDropdownStyle,
                   '--trade-theme-hover': tradeThemeHoverColor,
@@ -651,23 +652,32 @@ export function StockTradeChart({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant='outline'
-                  className='interactive-lift group !cursor-pointer liquid-glass-surface h-9 w-[7.5rem] justify-between border-white/15 px-3 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm'
+                  className='interactive-lift group liquid-glass-surface h-10 w-full !cursor-pointer justify-between gap-1 border-white/15 pl-2 pr-1 text-sm font-medium hover:!bg-[var(--date-button-hover)] hover:!text-white data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm sm:h-9 sm:w-[7.5rem] sm:gap-2 sm:px-3'
                   style={{
                     ...liquidDropdownStyle,
                     '--date-button-hover': themeColor,
                   } as React.CSSProperties}
                 >
-                  {aggregationMode === 'daily'
-                    ? '일별 합산'
-                    : aggregationMode === 'monthly'
-                      ? '월별 합산'
-                      : '연도별 합산'}
-                  <ChevronDown className='h-4 w-4 text-muted-foreground group-hover:text-white group-data-[state=open]:text-white' />
+                  <span className='sm:hidden'>
+                    {aggregationMode === 'daily'
+                      ? '일별합산'
+                      : aggregationMode === 'monthly'
+                        ? '월별합산'
+                        : '연도합산'}
+                  </span>
+                  <span className='hidden sm:inline'>
+                    {aggregationMode === 'daily'
+                      ? '일별 합산'
+                      : aggregationMode === 'monthly'
+                        ? '월별 합산'
+                        : '연도별 합산'}
+                  </span>
+                  <ChevronDown className='h-3 w-3 text-muted-foreground group-hover:text-white group-data-[state=open]:text-white sm:h-4 sm:w-4' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align='end'
-                className='liquid-glass-surface w-[7.5rem] border-white/15 p-1'
+                className='liquid-glass-surface w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] border-white/15 p-1 sm:w-[7.5rem] sm:min-w-[7.5rem]'
                 style={{
                   ...liquidDropdownStyle,
                   '--trade-theme-hover': tradeThemeHoverColor,
@@ -706,10 +716,11 @@ export function StockTradeChart({
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='px-2 pb-4 sm:px-4'>
         <div className='h-80'>
           <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (

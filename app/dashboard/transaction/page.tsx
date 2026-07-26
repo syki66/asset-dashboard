@@ -58,7 +58,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='mb-7 grid min-w-0 grid-cols-2 gap-3 lg:mb-8 lg:min-w-[auto] lg:grid-cols-4 lg:gap-4 xl:grid-cols-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardOverviewCard
           title='총 매수'
           icon={ArrowUpRight}
@@ -126,10 +126,10 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-8'>
+      <div className='mt-7 lg:mt-8'>
         <h2 className='text-xl font-bold'>주식 매매 내역</h2>
       </div>
-      <div className='mt-4'>
+      <div className='mt-4 min-w-0 lg:min-w-[auto]'>
         <StockTradeChart
           title='주식 매수/매도 수량'
           description='각 날짜별로 매수(+)한 주식과 매도(-)한 주식을 확인합니다.'

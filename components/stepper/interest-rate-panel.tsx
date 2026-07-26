@@ -302,15 +302,15 @@ export function InterestRatePanel({
           return (
             <div
               key={year}
-              className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-sm"
+              className="space-y-2 rounded-xl border border-white/10 bg-white/[0.035] p-2 shadow-sm lg:space-y-3 lg:rounded-2xl lg:p-3"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <h4 className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-base font-semibold text-foreground">
                   {year}년
                 </h4>
                 <div className="h-px flex-1 bg-white/15"></div>
                 {stats.activeCount > 0 && (
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground lg:flex-nowrap lg:gap-4">
                     <span>활성 {stats.activeCount}개월</span>
                     <span>최상 평균 {stats.bestAvg}%</span>
                     <span>최하 평균 {stats.worstAvg}%</span>
@@ -318,8 +318,8 @@ export function InterestRatePanel({
                 )}
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                <div className="grid grid-cols-[2.75rem_repeat(12,minmax(0,1fr))] gap-1.5 text-[0.6875rem]">
+              <div className="touch-pan-x overflow-x-auto overscroll-x-contain rounded-xl border border-white/10 bg-white/[0.03] p-1 sm:p-2 lg:touch-auto lg:overflow-visible lg:overscroll-auto lg:p-3">
+                <div className="grid min-w-[44rem] grid-cols-[2.75rem_repeat(12,minmax(3rem,1fr))] gap-1.5 text-[0.6875rem] lg:min-w-[auto] lg:grid-cols-[2.75rem_repeat(12,minmax(0,1fr))]">
                   <div />
                   {monthColumns.map((rate, index) => {
                     const month = index + 1;

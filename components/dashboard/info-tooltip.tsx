@@ -29,7 +29,7 @@ export function InfoTooltip({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'inline-flex items-center justify-center text-muted-foreground/60 hover:text-muted-foreground/80 transition-colors outline-none focus:ring-0',
+            'inline-flex h-8 w-8 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors outline-none hover:text-muted-foreground/80 focus:ring-0 lg:h-auto lg:w-auto lg:shrink',
             className,
           )}
           onMouseEnter={() => setOpen(true)}
@@ -41,11 +41,11 @@ export function InfoTooltip({
       <PopoverContent
         side={side}
         align='start'
-        className='w-auto min-w-[120px] p-0 border-none bg-transparent shadow-none pointer-events-none'
+        className='pointer-events-none w-auto min-w-[120px] max-w-[calc(100vw-1rem)] border-none bg-transparent p-0 shadow-none lg:max-w-none'
         style={{ background: 'transparent', backdropFilter: 'none' }}
       >
         <div
-          className='liquid-glass-surface glassmorphism-tooltip'
+          className='liquid-glass-surface glassmorphism-tooltip max-w-[calc(100vw-2rem)] lg:max-w-none'
           style={{
             backgroundColor: 'oklch(0.98 0.01 200 / 0.1)',
             backdropFilter: 'blur(2px)',

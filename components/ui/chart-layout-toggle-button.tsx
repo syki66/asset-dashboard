@@ -27,7 +27,7 @@ export function ChartLayoutToggleButton({
       size='sm'
       onClick={onToggle}
       className={cn(
-        'interactive-lift flex cursor-pointer items-center gap-2 shadow-sm backdrop-blur-sm',
+        'interactive-lift hidden cursor-pointer items-center gap-2 shadow-sm backdrop-blur-sm lg:inline-flex lg:text-xs',
         className,
       )}
       style={

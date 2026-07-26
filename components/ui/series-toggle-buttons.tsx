@@ -28,14 +28,19 @@ export function SeriesToggleButtons({
   }
 
   return (
-    <div className={cn('flex flex-wrap justify-center gap-3', className)}>
+    <div
+      className={cn(
+        'flex touch-pan-x touch-pan-y flex-nowrap justify-start gap-2 overflow-x-auto overscroll-x-contain py-1 [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-3 lg:overflow-visible lg:overscroll-auto lg:py-0 [&::-webkit-scrollbar]:hidden',
+        className,
+      )}
+    >
       {series.map((s) => (
         <Button
           key={s.id}
           variant="outline"
           size="sm"
           className={cn(
-            'interactive-lift flex h-8 cursor-pointer items-center justify-center rounded-full border bg-background/40 shadow-sm backdrop-blur-sm hover:bg-white/10',
+            'interactive-lift flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full border bg-background/40 shadow-sm backdrop-blur-sm hover:bg-white/10 sm:h-8 lg:text-xs',
             {
               'border-dashed text-muted-foreground hover:border-white/30 hover:text-muted-foreground':
                 !activeSeries.includes(s.id),

@@ -129,9 +129,9 @@ export function PrincipalAdjustmentStep({
 
   if (uploadedFiles.length === 0) {
     return (
-      <div className='rounded-2xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-center shadow-sm backdrop-blur-md'>
+      <div className='rounded-xl border border-dashed border-white/15 bg-white/[0.04] p-3 text-center shadow-sm backdrop-blur-md sm:p-5 lg:rounded-2xl lg:p-8'>
         <WalletCards className='mx-auto h-8 w-8 text-muted-foreground' />
-        <p className='mt-3 text-sm font-semibold text-foreground'>
+        <p className='mt-3 text-base font-semibold text-foreground lg:text-sm'>
           먼저 CSV 파일을 업로드해 주세요.
         </p>
       </div>
@@ -139,15 +139,15 @@ export function PrincipalAdjustmentStep({
   }
 
   return (
-    <div className='space-y-4'>
-      <div className='rounded-xl border border-[color:var(--setup-primary,var(--primary))]/20 bg-[color:var(--setup-primary,var(--primary))]/5 p-4 shadow-sm backdrop-blur-md'>
+    <div className='space-y-3 lg:space-y-4'>
+      <div className='rounded-xl border border-[color:var(--setup-primary,var(--primary))]/20 bg-[color:var(--setup-primary,var(--primary))]/5 p-3 shadow-sm backdrop-blur-md lg:p-4'>
         <div className='flex items-start gap-3'>
           <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.08]'>
             <Calculator className='h-4 w-4 text-[color:var(--setup-primary,var(--primary))]' />
           </div>
           <div>
-            <h4 className='text-sm font-bold'>파일별 원금 보정</h4>
-            <p className='mt-1 text-sm leading-6 text-muted-foreground'>
+            <h4 className='text-base font-bold lg:text-sm'>파일별 원금 보정</h4>
+            <p className='mt-1 text-base leading-6 text-muted-foreground lg:text-sm'>
               원금에 더하거나 뺄 보정금액을 입력합니다. 보정 금액은 각 계좌의
               첫 거래일에 가상 입출금으로
               처리되며, 양수는 원금 증가, 음수는 원금 차감으로 적용됩니다.
@@ -157,7 +157,7 @@ export function PrincipalAdjustmentStep({
         </div>
       </div>
 
-      <div className='space-y-3'>
+      <div className='grid gap-3 lg:grid-cols-2 lg:gap-4'>
         {uploadedFiles.map((file) => {
           const fileKey = getFileKey(file);
           const adjustment = principalAdjustments[fileKey] ?? {
@@ -168,28 +168,28 @@ export function PrincipalAdjustmentStep({
           return (
             <div
               key={fileKey}
-              className='rounded-2xl border border-white/15 bg-white/[0.04] p-4 shadow-sm backdrop-blur-md'
+              className='rounded-xl border border-white/15 bg-white/[0.04] p-3 shadow-sm backdrop-blur-md lg:rounded-2xl lg:p-4'
             >
-              <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+              <div className='flex items-center justify-between gap-3'>
                 <div className='min-w-0'>
                   <div className='flex items-center gap-2'>
                     <WalletCards className='h-4 w-4 shrink-0 text-[color:var(--setup-primary,var(--primary))]' />
-                    <h4 className='truncate text-sm font-bold'>{file.name}</h4>
+                    <h4 className='truncate text-base font-bold lg:text-sm'>{file.name}</h4>
                   </div>
                 </div>
                 <Button
                   type='button'
-                  variant='ghost'
+                  variant='outline'
                   size='sm'
                   onClick={() => handleResetPrincipalAdjustment(fileKey)}
-                  className='h-8 shrink-0 cursor-pointer rounded-lg text-xs'
+                  className='interactive-lift h-8 shrink-0 cursor-pointer rounded-lg border-white/15 bg-white/[0.04] text-xs shadow-sm hover:bg-white/[0.1] hover:text-foreground'
                 >
                   <RotateCcw className='h-3.5 w-3.5' />
                   초기화
                 </Button>
               </div>
 
-              <div className='mt-4 grid gap-3 md:grid-cols-2'>
+              <div className='mt-3 grid grid-cols-2 gap-3 lg:mt-4'>
                 <div className='space-y-2'>
                   <Label htmlFor={`${fileKey}-krw`} className='text-xs font-semibold'>
                     원화 보정액

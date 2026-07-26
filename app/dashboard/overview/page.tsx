@@ -44,16 +44,17 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid min-w-0 grid-cols-2 gap-3 lg:min-w-[auto] lg:grid-cols-4 lg:gap-4 xl:grid-cols-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardOverviewCard
           title='총 자산'
           icon={Trophy}
           themeColor={themeColor}
+          className='order-1'
           contentItems={[
             {
               label: '평가금액',
               value: formatCurrency(currentValue, currency),
-              valueClassName: 'asset-value-wave',
+              valueClassName: 'asset-value-wave lg:text-lg',
               info: CURRENT_VALUE_INFO,
             },
             {
@@ -70,6 +71,7 @@ export default function Page() {
           title='투자 성과'
           icon={TrendingUp}
           themeColor={themeColor}
+          className='order-3 lg:order-2'
           contentItems={[
             {
               label: '수익금',
@@ -95,6 +97,7 @@ export default function Page() {
           title='배당금 (최근 1년)'
           icon={DollarSign}
           themeColor={themeColor}
+          className='order-2 lg:order-3'
           contentItems={[
             {
               label: '배당금',
@@ -118,6 +121,7 @@ export default function Page() {
           title='현금 보유'
           icon={PiggyBank}
           themeColor={themeColor}
+          className='order-4'
           contentItems={[
             {
               label: '원화',
@@ -139,7 +143,7 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-8 flex items-center justify-between'>
+      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
         <h2 className='text-xl font-bold'>포트폴리오 요약</h2>
         <ChartLayoutToggleButton
           layout={chartLayout}
@@ -150,8 +154,10 @@ export default function Page() {
         />
       </div>
       <div
-        className={`mt-4 grid gap-4 ${
-          chartLayout === 'expanded' ? 'grid-cols-1' : 'lg:grid-cols-2'
+        className={`mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto] ${
+          chartLayout === 'expanded'
+            ? 'grid-cols-1'
+            : 'lg:grid-cols-2 xl:grid-cols-2'
         }`}
       >
         <AssetChart

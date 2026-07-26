@@ -27,14 +27,14 @@ const feeSettingGroups: {
         description: '국내 주식 거래 수수료',
       },
       {
-        key: 'krRegulatoryFeeRate',
-        label: '유관기관수수료',
-        description: '거래소/예탁원 등 유관기관 제비용',
-      },
-      {
         key: 'krTransferTaxRate',
         label: '증권거래세',
         description: '국내 주식 매도 시 적용',
+      },
+      {
+        key: 'krRegulatoryFeeRate',
+        label: '유관기관수수료',
+        description: '거래소/예탁원 등 유관기관 제비용',
       },
     ],
   },
@@ -48,14 +48,14 @@ const feeSettingGroups: {
         description: '미국 주식 거래 수수료',
       },
       {
-        key: 'usSecFeeRate',
-        label: 'SEC Fee',
-        description: '미국 주식 매도 시 부과되는 제비용',
-      },
-      {
         key: 'usCapitalGainsTaxRate',
         label: '양도소득세',
         description: '양도차익이 양수일 때 적용',
+      },
+      {
+        key: 'usSecFeeRate',
+        label: 'SEC Fee',
+        description: '미국 주식 매도 시 부과되는 제비용',
       },
     ],
   },
@@ -81,13 +81,13 @@ const feeSettingGroups: {
     items: [
       {
         key: 'usDividendTaxRate',
-        label: '미국 배당 원천징수',
-        description: '미국 배당금 세후 계산',
+        label: '미국 배당세',
+        description: '미국 주식 배당금에 적용되는 원천징수 세율',
       },
       {
         key: 'krDividendTaxRate',
-        label: '국내 배당/이자 세금',
-        description: '국내 배당 및 예금 이자 세후 계산',
+        label: '국내 이자세',
+        description: '국내 배당금과 예금 이자에 적용되는 세율',
       },
     ],
   },
@@ -177,36 +177,36 @@ export function FeeSettingsStep() {
 
   return (
     <div>
-      <div className='grid gap-4 lg:grid-cols-2'>
+      <div className='grid gap-6 sm:gap-4 lg:grid-cols-2'>
         {feeSettingGroups.map((group) => (
           <section
             key={group.title}
-            className='rounded-2xl border border-white/15 bg-white/[0.035] p-4 shadow-sm'
+            className='border-0 bg-transparent p-0 shadow-none sm:rounded-2xl sm:border sm:border-white/15 sm:bg-white/[0.035] sm:p-3 sm:shadow-sm lg:p-4'
           >
-            <div className='mb-4'>
-              <h4 className='text-sm font-bold text-foreground'>
+            <div className='mb-3 lg:mb-4'>
+              <h4 className='text-base font-bold text-foreground lg:text-sm'>
                 {group.title}
               </h4>
               <p className='mt-1 text-xs text-muted-foreground'>
                 {group.description}
               </p>
             </div>
-            <div className='space-y-3'>
+            <div className='grid grid-cols-2 gap-2 lg:block lg:space-y-3'>
               {group.items.map((item) => (
                 <label
                   key={item.key}
-                  className='grid gap-2 rounded-xl border border-white/15 bg-white/[0.04] p-3 shadow-[0_4px_14px_rgba(15,23,42,0.04)] transition-colors duration-200 hover:bg-white/[0.1]'
+                  className='grid gap-2 rounded-xl border border-white/15 bg-white/[0.04] p-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)] transition-colors duration-200 hover:bg-white/[0.1] sm:p-3'
                 >
-                  <div className='flex items-center justify-between gap-3'>
+                  <div className='flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between'>
                     <div className='min-w-0'>
-                      <div className='text-sm font-semibold text-foreground'>
+                      <div className='text-base font-semibold text-foreground lg:text-sm'>
                         {item.label}
                       </div>
                       <div className='mt-0.5 text-xs text-muted-foreground'>
                         {item.description}
                       </div>
                     </div>
-                    <div className='flex w-32 shrink-0 items-center gap-1'>
+                    <div className='flex w-full shrink-0 items-center gap-1 lg:w-32'>
                       <Input
                         type='number'
                         min={0}

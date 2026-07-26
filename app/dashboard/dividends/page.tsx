@@ -33,7 +33,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid min-w-0 grid-cols-2 gap-3 lg:min-w-[auto] lg:grid-cols-4 lg:gap-4 xl:grid-cols-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardCard
           title={showAfterTax ? '세후 배당금' : '배당금'}
           value={formatCurrency(
@@ -92,7 +92,7 @@ export default function Page() {
           themeColor={themeColor}
         />
       </div>
-      <div className='mt-8'>
+      <div className='mt-7 lg:mt-8'>
         <h2 className='text-xl font-bold'>배당금 내역</h2>
       </div>
       <div className='mt-4'>
@@ -111,7 +111,7 @@ export default function Page() {
           }
         />
       </div>
-      <div className='mt-8 flex items-center justify-between'>
+      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
         <h2 className='text-xl font-bold'>상세 차트</h2>
         <ChartLayoutToggleButton
           layout={chartLayout}
@@ -123,8 +123,10 @@ export default function Page() {
       </div>
       <div
         className={cn(
-          'mt-4 grid gap-4',
-          chartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          chartLayout === 'compact'
+            ? 'lg:grid-cols-2 xl:grid-cols-2'
+            : 'grid-cols-1',
         )}
       >
         <AssetChart

@@ -166,6 +166,34 @@
   }
 }
 
+@media (width < 64rem) {
+  html {
+    max-width: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+}
+
+@media (hover: none) {
+  .interactive-lift:not(:disabled):hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-lift,
+  .asset-value-wave,
+  .asset-value-wave::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* ================================
    Components Layer: 재사용 UI & 테마
 ================================ */

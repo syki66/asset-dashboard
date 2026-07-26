@@ -33,7 +33,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+      <div className='grid min-w-0 grid-cols-2 gap-3 lg:min-w-[auto] lg:gap-4 xl:grid-cols-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardCard
           title='보유 종목'
           value={dashboardData.stocks.length.toLocaleString()}
@@ -77,7 +77,7 @@ export default function Page() {
           themeColor={themeColor}
         />
       </div>
-      <div className='mt-8 flex items-center justify-between'>
+      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
         <h2 className='text-xl font-bold'>포트폴리오 차트</h2>
         <ChartLayoutToggleButton
           layout={chartLayout}
@@ -89,8 +89,10 @@ export default function Page() {
       </div>
       <div
         className={cn(
-          'mt-4 grid gap-4',
-          chartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          chartLayout === 'compact'
+            ? 'lg:grid-cols-2 xl:grid-cols-2'
+            : 'grid-cols-1',
         )}
       >
         <PortfolioAllocationChart
@@ -114,10 +116,10 @@ export default function Page() {
           onSummaryChange={handleSectorSummaryChange}
         />
       </div>
-      <div className='mt-8'>
+      <div className='mt-7 lg:mt-8'>
         <h2 className='text-xl font-bold'>주식 현황</h2>
       </div>
-      <div className='mt-4'>
+      <div className='mt-4 min-w-0 lg:min-w-[auto]'>
         <HoldingsView stocks={dashboardData.stocks} themeColor={themeColor} />
       </div>
     </>

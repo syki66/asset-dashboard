@@ -226,7 +226,7 @@ export function DividendChart({
             : `${labelText}년`;
 
       return (
-        <div className='liquid-glass-surface glassmorphism-tooltip'>
+        <div className='liquid-glass-surface glassmorphism-tooltip max-w-[calc(100vw-2rem)] lg:max-w-none'>
           <p className='text-center font-bold text-base mb-2'>
             {formattedLabel}
           </p>
@@ -253,8 +253,8 @@ export function DividendChart({
 
   return (
     <Card className='chart-card w-full glass-card'>
-      <CardHeader>
-        <div className='flex items-start justify-between'>
+      <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
+        <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-0'>
           <div className='flex flex-col gap-1'>
             <CardTitle className='text-lg flex items-center gap-2'>
               <Icon style={{ color: themeColor }} className='h-5 w-5' />
@@ -270,8 +270,9 @@ export function DividendChart({
               style={
                 { '--active-tab-color': themeColor } as React.CSSProperties
               }
+              className='w-full sm:w-auto'
             >
-              <TabsList className='grid grid-cols-6 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
+              <TabsList className='grid w-full grid-cols-6 rounded-lg border border-white/15 bg-white/10 shadow-sm backdrop-blur-xs lg:w-auto [&>button]:px-1 [&>button]:text-xs sm:[&>button]:px-3 lg:[&>button]:text-sm'>
                 <TabsTrigger value='ytd' className='interactive-lift rounded-md font-semibold'>
                   YTD
                 </TabsTrigger>
@@ -295,7 +296,7 @@ export function DividendChart({
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='px-2 pb-4 sm:px-4'>
         <div className={chartHeightClassName}>
           <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (

@@ -1,13 +1,13 @@
 export function Disclaimer() {
   return (
-    <div className="mt-8 text-xs text-muted-foreground border-t pt-4">
+    <div className="mt-6 break-words border-t pt-3 text-xs leading-5 text-muted-foreground sm:leading-relaxed lg:mt-8 lg:break-normal lg:pt-4 lg:leading-4">
       <p className="mb-2">
         <strong>면책 조항:</strong> 이 대시보드의 계산 결과는 사용자가 업로드한 거래내역과 설정값을 바탕으로 한 참고용 추정치입니다. 세금, 수수료, 환율, 해외주식 과세 등은 실제 증권사 및 세무 기준과 다를 수 있습니다.
       </p>
       <p>
         제공된 정보는 투자 권유나 세무·법률 자문이 아니며, 투자 판단과 신고에 대한 최종 확인 및 책임은 사용자 본인에게 있습니다. 과거 수익률은 미래 수익을 보장하지 않습니다.
       </p>
-      <div className="mt-4 space-y-1">
+      <div className="mt-3 space-y-1 lg:mt-4">
         <strong className="block mb-1">주의사항</strong>
         <p>
           업로드한 CSV와 계좌 거래내역은 서버에 저장되거나 외부로 업로드되지 않습니다. 앱은 브라우저에서 거래내역을 계산하고, 보유 종목의 가격·히스토리·ETF 구성·섹터 정보를 표시하기 위해 필요한 종목 코드/심볼 기준의 공개 시장 데이터만 조회합니다.

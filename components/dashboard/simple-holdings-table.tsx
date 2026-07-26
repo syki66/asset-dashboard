@@ -66,7 +66,7 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
               </TableCell>
               <TableCell>
                 <div className="font-medium">{stock.shortName}</div>
-                <div className="text-sm text-muted-foreground">{formattedQuantity} 주</div>
+                <div className="text-base text-muted-foreground lg:text-sm">{formattedQuantity} 주</div>
               </TableCell>
               <TableCell className="text-right">
                 <div className="font-medium">
@@ -79,7 +79,7 @@ export function SimpleHoldingsTable({ stocks, themeColor }: SimpleHoldingsTableP
                     {currencyUnit}
                   </span>
                 </div>
-                <div className={`text-sm ${profit >= 0 ? 'text-rose-500' : 'text-blue-600'}`}>
+                <div className={`text-base lg:text-sm ${profit >= 0 ? 'text-rose-500' : 'text-blue-600'}`}>
                   {profit >= 0 ? '+' : ''}{formattedProfit}
                   <span
                     className={`text-xs font-normal ${

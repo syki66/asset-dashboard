@@ -25,7 +25,7 @@ export function LoadingOverlay({
         aria-hidden='true'
       />
       <div
-        className={`liquid-glass-surface glassmorphism-tooltip relative w-fit ${
+        className={`liquid-glass-surface glassmorphism-tooltip relative w-fit max-w-[calc(100%_-_2rem)] lg:max-w-none ${
           compact ? 'flex items-center gap-1.5 p-2' : 'text-center'
         }`}
       >

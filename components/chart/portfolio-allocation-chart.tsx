@@ -162,12 +162,27 @@ export function PortfolioAllocationChart({
   const [currentRebalanceStartDate, setCurrentRebalanceStartDate] = useState<
     string | null
   >(null);
+  const [isDesktopChart, setIsDesktopChart] = useState(true);
   const currency = useCurrencyStore((state) => state.currency);
   const currencyUnit = currency === 'usd' ? 'USD' : '원';
   const formatAmount = (value: number) =>
     value.toLocaleString(undefined, {
       maximumFractionDigits: 0,
     });
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+
+    const desktopMediaQuery = window.matchMedia('(min-width: 1024px)');
+    const updateChartSize = () => setIsDesktopChart(desktopMediaQuery.matches);
+
+    updateChartSize();
+    desktopMediaQuery.addEventListener('change', updateChartSize);
+
+    return () => {
+      desktopMediaQuery.removeEventListener('change', updateChartSize);
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -420,7 +435,7 @@ export function PortfolioAllocationChart({
   if (isLoading) {
     return (
       <Card className='chart-card glass-card'>
-        <CardHeader>
+        <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
           <CardTitle className='text-lg flex items-center gap-2'>
             <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
             {title}
@@ -443,7 +458,7 @@ export function PortfolioAllocationChart({
   if (chartData.length === 0) {
     return (
       <Card className='chart-card glass-card'>
-        <CardHeader>
+        <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
           <CardTitle className='text-lg flex items-center gap-2'>
             <PieChartIcon style={{ color: themeColor }} className='h-5 w-5' />
             {title}
@@ -467,7 +482,7 @@ export function PortfolioAllocationChart({
       const color = isOthers ? '#94a3b8' : colors[index % colors.length];
 
       return (
-        <div className='liquid-glass-surface glassmorphism-tooltip'>
+        <div className='liquid-glass-surface glassmorphism-tooltip max-w-[calc(100vw-2rem)] lg:max-w-none'>
           <div className='mb-1 flex items-center gap-2 text-base font-bold text-foreground'>
             <span
               className='size-2.5 rounded-full'
@@ -513,7 +528,7 @@ export function PortfolioAllocationChart({
         } as React.CSSProperties
       }
     >
-      <CardHeader>
+      <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
         <div className='flex items-start justify-between gap-4'>
           <div>
             <CardTitle className='flex items-center gap-2 text-lg'>
@@ -527,9 +542,9 @@ export function PortfolioAllocationChart({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='px-2 pb-4 sm:px-4'>
         <div
-          className={`flex flex-col md:flex-row gap-8 ${
+          className={`flex flex-col gap-3 lg:flex-row lg:gap-8 ${
             isCompact ? 'h-[420px]' : 'h-[500px]'
           }`}
         >
@@ -545,7 +560,7 @@ export function PortfolioAllocationChart({
                   cx='50%'
                   cy='50%'
                   innerRadius={0}
-                  outerRadius={150}
+                  outerRadius={isDesktopChart ? 150 : '72%'}
                   paddingAngle={0}
                   dataKey='value'
                   animationBegin={0}
@@ -567,39 +582,57 @@ export function PortfolioAllocationChart({
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign='bottom'
-                  height={allocationMode === 'sectors' ? 64 : 44}
+                  height={
+                    isDesktopChart
+                      ? allocationMode === 'sectors'
+                        ? 64
+                        : 44
+                      : 36
+                  }
                   payload={legendPayload}
                   wrapperStyle={{
                     paddingTop: isCompact ? '8px' : '0',
                     lineHeight: '1.5',
                   }}
-                  formatter={(value) => {
-                    const payload = legendItems.find(
-                      (item) => item.name === String(value),
-                    );
+                  content={() => (
+                    <div className='flex w-full touch-pan-x touch-pan-y flex-nowrap items-center justify-start gap-3 overflow-x-auto overscroll-x-contain px-1 py-1 [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:overflow-visible lg:overscroll-auto [&::-webkit-scrollbar]:hidden'>
+                      {legendItems.map((item, index) => {
+                        const isOthers = item.name === '기타';
+                        const color = isOthers
+                          ? '#94a3b8'
+                          : colors[index % colors.length];
+                        const percentage = (
+                          (item.value / totalValue) *
+                          100
+                        ).toFixed(1);
 
-                    if (!payload) return null;
-
-                    const percentage = (
-                      (payload.value / totalValue) *
-                      100
-                    ).toFixed(1);
-                    return (
-                      <span className='text-xs font-medium mr-2'>
-                        {value} ({percentage}%)
-                      </span>
-                    );
-                  }}
+                        return (
+                          <div
+                            key={`${item.name}-${index}`}
+                            className='flex shrink-0 items-center gap-1.5 text-xs font-medium'
+                          >
+                            <span
+                              className='h-2.5 w-2.5 rounded-full'
+                              style={{ backgroundColor: color }}
+                            />
+                            <span>
+                              {item.name} ({percentage}%)
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {!isCompact && (
-            <div className='flex flex-1 flex-col gap-3 overflow-hidden'>
+            <div className='flex flex-1 flex-col gap-2 overflow-hidden lg:gap-3'>
               <div className='portfolio-scroll-fade min-h-0 flex-1'>
-                <div className='portfolio-scrollbar h-full overflow-y-auto pr-2'>
-                  <div className='space-y-4'>
+                <div className='portfolio-scrollbar h-full overflow-y-auto pr-1 lg:pr-2'>
+                  <div className='space-y-2 lg:space-y-4'>
                 {chartData.map((item, index) => {
                   const percentage = ((item.value / totalValue) * 100).toFixed(
                     2,
@@ -615,9 +648,9 @@ export function PortfolioAllocationChart({
                   return (
                     <div
                       key={item.name}
-                      className='flex items-center justify-between text-sm group hover:bg-[var(--theme-hover)] p-2 rounded-lg transition-colors cursor-pointer'
+                      className='group flex cursor-pointer items-center justify-between rounded-lg p-1.5 text-base transition-colors hover:bg-[var(--theme-hover)] lg:p-2 lg:text-sm'
                     >
-                      <div className='flex items-center gap-3'>
+                      <div className='flex items-center gap-2 lg:gap-3'>
                         <div
                           className='w-2 h-8 rounded-full shrink-0'
                           style={{ backgroundColor: color }}

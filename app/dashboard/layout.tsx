@@ -34,6 +34,8 @@ import {
   LayoutGrid,
   Maximize2,
   ChevronDown,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/ui/sidebar';
@@ -57,6 +59,7 @@ const categories = [
   {
     id: 'overview' as const,
     name: '개요',
+    mobileName: '개요',
     subtitle: '주요 지표 한눈에 보기',
     description:
       '자산 포트폴리오의 전반적인 요약과 주요 정보를 한눈에 확인합니다.',
@@ -71,6 +74,7 @@ const categories = [
   {
     id: 'performance' as const,
     name: '수익성 분석',
+    mobileName: '성과',
     subtitle: '성과 지표 및 벤치마크',
     description:
       '기간별 수익률, 연도별 성과, 벤치마크 비교 등 다양한 성과 지표를 분석합니다.',
@@ -85,6 +89,7 @@ const categories = [
   {
     id: 'dividends' as const,
     name: '이자 및 배당',
+    mobileName: '배당',
     subtitle: '배당금 및 수익률 추이',
     description:
       '수령한 배당금 내역과 배당 수익률 추이를 시각적으로 분석합니다.',
@@ -99,6 +104,7 @@ const categories = [
   {
     id: 'risk' as const,
     name: '리스크 관리',
+    mobileName: '위험',
     subtitle: '손실 및 변동성 분석',
     description:
       '최대 낙폭, 변동성 및 샤프지수 등 리스크 관련 지표를 통해 포트폴리오의 위험 수준을 점검합니다.',
@@ -113,6 +119,7 @@ const categories = [
   {
     id: 'portfolio' as const,
     name: '포트폴리오',
+    mobileName: '구성',
     subtitle: '보유 종목 및 섹터 분석',
     description:
       '보유 종목과 섹터 비중, 집중도 등을 통해 포트폴리오 구성을 상세하게 분석합니다.',
@@ -127,6 +134,7 @@ const categories = [
   {
     id: 'transaction' as const,
     name: '거래 내역',
+    mobileName: '거래',
     subtitle: '매수·매도 기록',
     description: '모든 매수·매도 거래 내역과 기간별 흐름을 확인할 수 있습니다.',
     icon: ArrowUpDown,
@@ -140,6 +148,7 @@ const categories = [
   {
     id: 'settings' as const,
     name: '설정',
+    mobileName: '설정',
     subtitle: '표시 계좌 선택',
     description:
       '대시보드에 합산해 표시할 계좌를 선택하거나 거래내역 CSV를 다시 등록합니다.',
@@ -220,6 +229,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [readyCurrency, setReadyCurrency] = useState<'krw' | 'usd' | null>(
     null,
   );
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
   const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
   const currencyCalculationTimeoutRef = useRef<number | null>(null);
   // 계좌 선택 순서가 달라도 같은 조합이면 같은 캐시를 쓰도록 정렬한 키를 만듭니다.
@@ -246,6 +257,47 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!isMobileControlsOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMobileControlsOpen(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMobileControlsOpen]);
+
+  useEffect(() => {
+    setIsMobileControlsOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const desktopMediaQuery = window.matchMedia('(min-width: 1024px)');
+    const updateViewport = () => {
+      const isDesktop = desktopMediaQuery.matches;
+      setIsDesktopViewport(isDesktop);
+      if (!isDesktop) {
+        setChartLayout('expanded');
+      }
+    };
+
+    updateViewport();
+    desktopMediaQuery.addEventListener('change', updateViewport);
+
+    return () => {
+      desktopMediaQuery.removeEventListener('change', updateViewport);
+    };
+  }, [setChartLayout]);
 
   // 선택 계좌와 통화 조합별로 대시보드 변환 결과를 캐시해 불필요한 재계산을 줄입니다.
   useEffect(() => {
@@ -389,52 +441,107 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className={cn('min-h-screen flex', pageBgClass)}>
+    <div
+      className={cn(
+        'flex min-h-screen min-w-0 flex-col overflow-x-clip lg:min-w-[auto] lg:flex-row lg:overflow-x-visible',
+        pageBgClass,
+      )}
+    >
       <Sidebar
         menuItems={menuItems}
         activeThemeColor={`var(--${activeCategory}-theme)`}
       />
 
-      <div className='w-72 shrink-0' />
-      <div className={cn('flex-1 p-4 pl-0')}>
-        <div className='w-full rounded-2xl border border-border bg-card p-8 shadow-[0_0.5rem_2rem_rgb(0_0_0_/_0.07)] flex flex-col'>
-          <header className='relative z-0 text-card-foreground lg:sticky lg:top-4 lg:z-40 lg:px-6 lg:py-3'>
+      <div className='hidden w-72 shrink-0 lg:block' />
+      <div className='min-w-0 flex-1 p-2 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:min-w-[auto] lg:p-4 lg:pl-0'>
+        <div className='flex w-full min-w-0 flex-col bg-transparent p-0 sm:p-1 lg:min-w-[auto] lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-8 lg:shadow-[0_0.5rem_2rem_rgb(0_0_0_/_0.07)]'>
+          <header
+            className={cn(
+              'relative px-3 py-4 text-card-foreground lg:sticky lg:top-4 lg:z-40 lg:px-6 lg:py-3',
+              isMobileControlsOpen ? 'z-[70]' : 'z-0',
+            )}
+          >
             <div
-              className='liquid-glass-surface pointer-events-none absolute inset-0 z-0'
+              className='liquid-glass-surface pointer-events-none absolute inset-0 z-0 hidden lg:block'
               aria-hidden='true'
             />
-            <div className='relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between'>
-              <div>
-                <h1 className={cn('text-4xl font-bold mb-2', textThemeClass)}>
+            <div className='relative z-10 flex min-w-0 flex-col gap-4 lg:min-w-[auto] lg:flex-row lg:items-start lg:justify-between lg:gap-6'>
+              <div className='min-w-0 lg:min-w-[auto]'>
+                <h1
+                  className={cn(
+                    'mb-1 text-2xl font-bold sm:text-3xl lg:mb-2 lg:text-4xl',
+                    textThemeClass,
+                  )}
+                >
                   {title}
                 </h1>
-                <p className='text-muted-foreground text-lg'>{description}</p>
+                <p className='text-base leading-relaxed text-muted-foreground lg:text-lg lg:leading-7'>
+                  {description}
+                </p>
               </div>
 
-              <div className='flex flex-col lg:flex-row items-end lg:items-stretch gap-4 shrink-0'>
+              <div
+                className={cn(
+                  'lg:static lg:z-auto lg:flex lg:w-auto lg:min-w-[auto] lg:shrink-0 lg:flex-row lg:items-stretch lg:gap-4 lg:p-0',
+                  isMobileControlsOpen
+                    ? 'fixed inset-0 z-[70] flex items-end p-2 pb-[calc(env(safe-area-inset-bottom)+4.5rem)]'
+                    : 'hidden',
+                )}
+              >
+                <button
+                  type='button'
+                  className='absolute inset-0 bg-transparent backdrop-blur-[2px] lg:hidden'
+                  aria-label='조회 설정 닫기'
+                  onClick={() => setIsMobileControlsOpen(false)}
+                />
+                <div className='relative z-10 flex max-h-[calc(100dvh-5rem)] w-full flex-col gap-3 overflow-y-auto overscroll-contain rounded-2xl border border-white/15 bg-card/95 p-3 shadow-2xl backdrop-blur-xl lg:contents'>
+                  <div className='flex items-center justify-between lg:hidden'>
+                    <div>
+                      <h2 className='text-base font-bold text-foreground'>
+                        조회 설정
+                      </h2>
+                      <p className='mt-0.5 text-xs text-muted-foreground'>
+                        표시 방식과 조회 날짜를 변경합니다.
+                      </p>
+                    </div>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='icon'
+                      className='interactive-lift h-9 w-9 cursor-pointer rounded-xl border-white/15 bg-white/[0.06]'
+                      aria-label='조회 설정 닫기'
+                      onClick={() => setIsMobileControlsOpen(false)}
+                    >
+                      <X className='h-4 w-4' />
+                    </Button>
+                  </div>
                 {/* Global Options Card */}
-                <div className='relative w-fit shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-card/10 shadow-md'>
-                  <div className='flex h-full flex-col justify-center p-2 backdrop-blur-md'>
-                    <div className='flex flex-col gap-2'>
-                      <div className='flex flex-wrap items-center gap-2'>
+                <div className='relative order-2 w-full shrink-0 overflow-hidden rounded-xl border border-white/10 bg-card/10 shadow-sm lg:order-1 lg:w-fit lg:rounded-2xl lg:shadow-md'>
+                  <div className='flex h-full flex-col justify-center p-1.5 backdrop-blur-md lg:p-2'>
+                    <div className='mb-2 flex items-center gap-2 text-sm font-bold text-foreground lg:hidden'>
+                      <SlidersHorizontal className='h-4 w-4' />
+                      공통 옵션
+                    </div>
+                    <div className='grid grid-cols-4 items-center gap-1.5 lg:flex lg:flex-col lg:gap-2'>
+                      <div className='contents lg:flex lg:items-center lg:gap-2'>
                         <Tabs
                           value={tax}
                           onValueChange={(v) => setTax(v as 'pre' | 'post')}
-                          className='w-[92px]'
+                          className='w-full lg:w-[92px]'
                         >
                           <TabsList
                             style={activeTabStyle}
-                            className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                            className='grid h-9 w-full grid-cols-2 overflow-y-hidden rounded-lg border border-white/10 bg-white/[0.04] p-0.5 shadow-sm backdrop-blur-xs sm:h-7'
                           >
                             <TabsTrigger
                               value='pre'
-                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
+                              className='interactive-lift h-8 min-h-0 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm sm:h-5 sm:text-[11px]'
                             >
                               세전
                             </TabsTrigger>
                             <TabsTrigger
                               value='post'
-                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm'
+                              className='interactive-lift h-8 min-h-0 cursor-pointer rounded-md p-0 text-[11px] leading-none data-[state=active]:shadow-sm sm:h-5 sm:text-[11px]'
                             >
                               세후
                             </TabsTrigger>
@@ -443,26 +550,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                         <Tabs
                           value={chartLayout}
-                          onValueChange={(v) =>
-                            setChartLayout(v as 'expanded' | 'compact')
-                          }
-                          className='w-[80px]'
+                          onValueChange={(v) => {
+                            if (!isDesktopViewport) return;
+                            setChartLayout(v as 'expanded' | 'compact');
+                          }}
+                          className='w-full lg:w-[80px]'
                         >
                           <TabsList
                             style={activeTabStyle}
-                            className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                            className='grid h-9 w-full grid-cols-2 overflow-y-hidden rounded-lg border border-white/10 bg-white/[0.04] p-0.5 shadow-sm backdrop-blur-xs sm:h-7'
                           >
                             <TabsTrigger
                               value='expanded'
-                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
-                              title='펼쳐보기'
+                              disabled={!isDesktopViewport}
+                              className='interactive-lift h-8 min-h-0 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm sm:h-5'
+                              title={
+                                isDesktopViewport
+                                  ? '펼쳐보기'
+                                  : '모바일에서는 펼쳐보기로 고정됩니다'
+                              }
                             >
                               <Maximize2 className='h-4 w-4' />
                             </TabsTrigger>
                             <TabsTrigger
                               value='compact'
-                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm'
-                              title='모아보기'
+                              disabled={!isDesktopViewport}
+                              className='interactive-lift h-8 min-h-0 cursor-pointer rounded-md p-0 text-[10px] leading-none data-[state=active]:shadow-sm sm:h-5'
+                              title={
+                                isDesktopViewport
+                                  ? '모아보기'
+                                  : '모바일에서는 사용할 수 없습니다'
+                              }
                             >
                               <LayoutGrid className='h-4 w-4' />
                             </TabsTrigger>
@@ -470,37 +588,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </Tabs>
                       </div>
 
-                      <div className='flex items-center gap-2'>
+                      <div className='contents lg:flex lg:w-full lg:items-center lg:justify-start lg:gap-2'>
                         <Tabs
                           value={currency}
                           onValueChange={(v) =>
                             handleCurrencyChange(v as 'krw' | 'usd')
                           }
-                          className='w-[92px] shrink-0'
+                          className='w-full lg:w-[92px] lg:shrink-0'
                         >
                           <TabsList
                             style={activeTabStyle}
-                            className='h-7 w-full grid grid-cols-2 bg-white/[0.04] border border-white/10 p-0.5 rounded-lg shadow-sm backdrop-blur-xs'
+                            className='grid h-9 w-full grid-cols-2 overflow-y-hidden rounded-lg border border-white/10 bg-white/[0.04] p-0.5 shadow-sm backdrop-blur-xs sm:h-7'
                           >
                             <TabsTrigger
                               value='krw'
-                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
+                              className='interactive-lift h-8 min-h-0 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm sm:h-5 sm:text-[11px]'
                             >
                               ₩
                             </TabsTrigger>
                             <TabsTrigger
                               value='usd'
-                              className='interactive-lift h-5 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm'
+                              className='interactive-lift h-8 min-h-0 cursor-pointer rounded-md p-0 text-[11px] font-semibold leading-none data-[state=active]:shadow-sm sm:h-5 sm:text-[11px]'
                             >
                               $
                             </TabsTrigger>
                           </TabsList>
                         </Tabs>
 
-                        <div className='flex-1 flex justify-center'>
+                        <div className='flex h-9 min-w-0 items-stretch justify-center lg:h-auto lg:flex-1 lg:items-center'>
                           <span
                             style={activeBadgeStyle}
-                            className='rounded-full px-2 py-1 text-xs font-semibold text-white'
+                            className='flex h-full w-full min-w-0 items-center justify-center truncate rounded-lg px-1.5 text-[11px] font-semibold text-white sm:text-xs lg:h-auto lg:w-auto lg:rounded-full lg:px-2 lg:py-1'
                           >
                             {dashboardData.fxRate.toLocaleString()}원
                           </span>
@@ -519,9 +637,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 {/* Status Card */}
                 <Popover>
-                  <div className='relative flex min-w-[200px] shrink-0 flex-col items-start justify-center gap-2 rounded-2xl border border-white/10 bg-card/10 p-4 text-sm shadow-md backdrop-blur-md'>
-                    <PopoverAnchor className='pointer-events-none absolute inset-0' />
-                    <div className='flex items-center gap-2'>
+                  <div className='relative order-1 flex w-full min-w-0 shrink-0 flex-col items-start justify-center gap-1.5 rounded-xl border border-white/10 bg-card/10 p-3 text-base shadow-sm backdrop-blur-md sm:text-sm lg:order-2 lg:w-auto lg:min-w-[200px] lg:gap-2 lg:rounded-2xl lg:p-4 lg:shadow-md'>
+                    {isDesktopViewport && (
+                      <PopoverAnchor className='pointer-events-none absolute inset-0' />
+                    )}
+                    <div className='flex flex-wrap items-center gap-2 lg:flex-nowrap'>
                       <RefreshCw
                         className={cn(
                           'h-4 w-4',
@@ -531,28 +651,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <span className='font-medium text-foreground'>
                         파일 업데이트:
                       </span>
-                      <span className='text-muted-foreground cursor-help relative group'>
+                      <span className='group relative text-muted-foreground lg:cursor-help'>
                         {timeAgo(dashboardData.lastUpdated)}
-                        <div className='absolute bottom-full right-0 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10'>
+                        <span className='lg:hidden'>
+                          {' ('}
+                          {formatDateKr(dashboardData.lastUpdated)})
+                        </span>
+                        <div className='pointer-events-none absolute bottom-full right-0 z-10 mb-2 hidden whitespace-nowrap rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100 lg:block'>
                           {formatDateKr(dashboardData.lastUpdated)}
                         </div>
                       </span>
                     </div>
-                    <div className='flex items-center gap-2'>
+                    <div className='relative flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-nowrap'>
+                      {!isDesktopViewport && (
+                        <PopoverAnchor className='pointer-events-none absolute inset-x-0 top-0 h-px' />
+                      )}
                       <CalendarDays
                         className={cn(
                           'h-4 w-4',
                           activeTheme?.text ?? 'text-primary',
                         )}
                       />
-                      <span className='font-medium text-foreground'>계좌:</span>
+                      <span className='font-medium text-foreground'>조회일:</span>
                       <PopoverTrigger asChild>
                         <Button
                           variant='ghost'
                           size='sm'
                           style={dateButtonStyle}
                           className={cn(
-                            'interactive-lift group h-6 cursor-pointer rounded-md border border-white/15 bg-white/[0.06] px-2 py-0 text-xs font-medium text-foreground shadow-sm hover:bg-[var(--date-button-hover)] hover:text-white data-[state=open]:!cursor-pointer data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm focus-visible:ring-2',
+                            'interactive-lift group h-10 cursor-pointer rounded-md border border-white/15 bg-white/[0.06] px-2 py-0 text-xs font-medium text-foreground shadow-sm hover:bg-[var(--date-button-hover)] hover:text-white data-[state=open]:!cursor-pointer data-[state=open]:!bg-[var(--date-button-hover)] data-[state=open]:!text-white data-[state=open]:hover:!bg-[var(--date-button-hover)] data-[state=open]:hover:!text-white data-[state=open]:hover:!transform-none data-[state=open]:hover:!shadow-sm focus-visible:ring-2 sm:h-6 sm:text-xs',
                           )}
                         >
                           <span>{formatDateKr(dashboardData.date)}</span>
@@ -561,9 +688,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       </PopoverTrigger>
                     </div>
                     <PopoverContent
-                      className='w-auto border-white/10 !bg-transparent p-0 shadow-none'
-                      align='end'
-                      sideOffset={24}
+                      className='z-[90] w-auto border-white/10 !bg-transparent p-0 shadow-none'
+                      align={isDesktopViewport ? 'end' : 'center'}
+                      side={isDesktopViewport ? 'bottom' : 'top'}
+                      sideOffset={isDesktopViewport ? 24 : 8}
                       style={{
                         background: 'transparent',
                         boxShadow: 'none',
@@ -595,16 +723,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </PopoverContent>
                   </div>
                 </Popover>
+                </div>
               </div>
             </div>
           </header>
 
-          <main className='flex-1 pt-8'>
+          <main className='min-w-0 flex-1 pt-5 lg:min-w-[auto] lg:pt-8'>
             {children}
             <Disclaimer />
           </main>
         </div>
       </div>
+      <Button
+        type='button'
+        variant='ghost'
+        style={{ color: `var(--${activeCategory}-theme)` }}
+        className={cn(
+          'interactive-lift liquid-glass-surface fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-[60] h-12 w-12 cursor-pointer rounded-full p-0 lg:hidden',
+          isMobileControlsOpen && 'hidden',
+        )}
+        aria-label='조회 설정 열기'
+        aria-expanded={isMobileControlsOpen}
+        onClick={() => setIsMobileControlsOpen(true)}
+      >
+        <SlidersHorizontal className='h-4 w-4' />
+      </Button>
     </div>
   );
 }

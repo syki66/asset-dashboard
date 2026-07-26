@@ -195,12 +195,12 @@ export default function Page() {
   }, [totalAccountData]);
 
   return (
-    <div className='relative mb-8'>
+    <div className='relative mb-6 lg:mb-8'>
       <Card className='dashboard-card relative overflow-hidden rounded-2xl border border-white/10 bg-card/10 shadow-xl'>
-        <CardHeader className='pb-4 border-b border-white/5'>
-          <div className='flex items-center justify-between gap-4'>
-            <div>
-              <CardTitle className='text-2xl font-bold text-foreground flex items-center gap-2'>
+        <CardHeader className='border-b border-white/5 p-3.5 pb-4 sm:p-4 lg:p-6 lg:pb-4'>
+          <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:items-center lg:gap-4'>
+            <div className='min-w-0 lg:min-w-[auto]'>
+              <CardTitle className='flex items-center gap-2 text-xl font-bold text-foreground sm:text-2xl lg:text-lg'>
                 <Sparkles className='h-5 w-5' style={{ color: themeColor }} />{' '}
                 대시보드 설정
               </CardTitle>
@@ -211,19 +211,21 @@ export default function Page() {
               </CardDescription>
             </div>
 
-            <div className='flex flex-wrap items-center justify-end gap-4'>
+            <div className='flex w-full flex-row items-center gap-2 sm:w-auto sm:flex-wrap sm:justify-end lg:gap-4'>
               <Button
                 variant='outline'
                 size='sm'
                 onClick={() => router.push('/setup')}
-                className='interactive-lift h-11 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm hover:bg-white/10 hover:text-foreground'
+                className='interactive-lift h-11 w-auto shrink-0 cursor-pointer rounded-lg border-white/10 px-2 text-xs font-semibold shadow-sm hover:bg-white/10 hover:text-foreground sm:px-3 lg:h-[46px]'
               >
-                <FileUp className='mr-1.5 h-3.5 w-3.5' />
-                계좌 재등록
+                <FileUp className='h-3.5 w-3.5 sm:mr-1.5' />
+                <span className='sm:hidden'>재등록</span>
+                <span className='hidden sm:inline'>계좌 재등록</span>
               </Button>
-              <div className='dashboard-card flex flex-wrap items-center justify-end gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1.5 shadow-sm'>
-                <div className='px-1 text-xs font-semibold text-muted-foreground'>
-                  선택됨:{' '}
+              <div className='dashboard-card ml-auto flex w-auto min-w-0 flex-none flex-nowrap items-center justify-end gap-1 rounded-lg border border-white/10 bg-white/[0.035] p-1.5 shadow-sm sm:flex-wrap sm:gap-2'>
+                <div className='shrink-0 whitespace-nowrap px-0.5 text-[11px] font-semibold text-muted-foreground sm:px-1 sm:text-xs'>
+                  <span className='sm:hidden'>선택 </span>
+                  <span className='hidden sm:inline'>선택됨: </span>
                   <span className='font-bold' style={{ color: themeColor }}>
                     {draftSelectedAccounts.length}
                   </span>{' '}
@@ -233,17 +235,24 @@ export default function Page() {
                   variant='outline'
                   size='sm'
                   onClick={handleSelectAllAccounts}
-                  className='interactive-lift h-8 cursor-pointer rounded-lg border-white/10 text-xs font-semibold shadow-sm hover:bg-white/10 hover:text-foreground'
+                  className='interactive-lift h-8 shrink-0 cursor-pointer rounded-lg border-white/10 px-1.5 text-[11px] font-semibold shadow-sm hover:bg-white/10 hover:text-foreground sm:px-3 sm:text-xs'
                 >
-                  {draftSelectedAccounts.length === totalAccountData?.length
-                    ? '전체 선택 해제'
-                    : '전체 선택'}
+                  <span className='sm:hidden'>
+                    {draftSelectedAccounts.length === totalAccountData?.length
+                      ? '전체 해제'
+                      : '전체 선택'}
+                  </span>
+                  <span className='hidden sm:inline'>
+                    {draftSelectedAccounts.length === totalAccountData?.length
+                      ? '전체 선택 해제'
+                      : '전체 선택'}
+                  </span>
                 </Button>
                 <Button
                   size='sm'
                   onClick={handleApplySelectedAccounts}
                   disabled={!hasSelectionChanges || isApplyingSelection}
-                  className='interactive-lift h-8 cursor-pointer rounded-lg text-xs font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50'
+                  className='interactive-lift h-8 shrink-0 cursor-pointer rounded-lg px-1.5 text-[11px] font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-xs'
                   style={{ backgroundColor: themeColor }}
                 >
                   적용
@@ -253,26 +262,26 @@ export default function Page() {
           </div>
         </CardHeader>
 
-        <CardContent className='pt-6'>
+        <CardContent className='p-3.5 pt-4 sm:p-4 sm:pt-4 lg:p-6 lg:pt-6'>
           {accountCards.length === 0 ? (
-            <div className='flex flex-col items-center justify-center p-12 text-center border border-dashed border-white/10 rounded-2xl bg-white/5'>
-              <div className='p-4 rounded-full bg-white/5 text-muted-foreground mb-4 border border-white/10'>
+            <div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/5 p-4 text-center sm:p-8 lg:rounded-2xl lg:p-12'>
+              <div className='mb-3 rounded-full border border-white/10 bg-white/5 p-3 text-muted-foreground lg:mb-4 lg:p-4'>
                 <FolderOpen className='h-8 w-8' />
               </div>
               <h3 className='text-lg font-bold text-foreground mb-1'>
                 연동된 계좌 정보가 없습니다
               </h3>
-              <p className='text-sm text-muted-foreground max-w-sm'>
+              <p className='max-w-sm text-base text-muted-foreground lg:text-sm'>
                 대시보드를 활성화하기 위해 먼저 메인 화면에서 거래 내역 또는
                 계좌 데이터를 업로드해 주세요.
               </p>
             </div>
           ) : (
-            <div className='space-y-6'>
+            <div className='space-y-3 lg:space-y-6'>
               {/* selection UI moved to header */}
 
               {/* Account Grid */}
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              <div className='grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-6 xl:grid-cols-3'>
                 {accountCards.map((card) => {
                   const isSelected = draftSelectedAccounts.includes(card.name);
                   return (
@@ -280,7 +289,7 @@ export default function Page() {
                       key={card.name}
                       onClick={() => handleAccountToggle(card.name)}
                       className={cn(
-                        'dashboard-card interactive-lift group relative flex min-h-[220px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border bg-card/10 p-6 shadow-md',
+                        'dashboard-card interactive-lift group relative flex min-h-0 cursor-pointer flex-col justify-between overflow-hidden rounded-xl border bg-card/10 p-3.5 shadow-md sm:p-4 lg:min-h-[220px] lg:rounded-2xl lg:p-6',
                         isSelected
                           ? 'border-[color:var(--settings-theme)]/50 bg-[color:var(--settings-theme)]/5 shadow-[color:var(--settings-theme)]/10'
                           : 'border-white/10 hover:border-white/20 hover:bg-card/20',
@@ -288,10 +297,10 @@ export default function Page() {
                     >
                       <div>
                         {/* Card Header Info */}
-                        <div className='flex items-center gap-3 mb-4'>
+                        <div className='mb-2 flex items-center gap-2 lg:mb-4 lg:gap-3'>
                           <div
                             className={cn(
-                              'relative p-2.5 rounded-xl border transition-colors',
+                              'relative rounded-lg border p-2 transition-colors lg:rounded-xl lg:p-2.5',
                               isSelected
                                 ? 'border-[color:var(--settings-theme)]/20 bg-[color:var(--settings-theme)]/10 text-[color:var(--settings-theme)]'
                                 : 'bg-white/5 border-white/10 text-muted-foreground',
@@ -308,7 +317,7 @@ export default function Page() {
                             )}
                           </div>
 
-                          <div className='flex min-w-0 flex-1 items-center justify-between gap-2'>
+                          <div className='flex min-w-0 flex-1 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between'>
                             <h3 className='font-bold text-base text-foreground group-hover:text-primary transition-colors break-all'>
                               {card.name.replace(/\.csv$/i, '')}
                             </h3>
@@ -319,11 +328,11 @@ export default function Page() {
                         </div>
 
                         {/* Stats block */}
-                        <div className='my-4 rounded-xl border border-white/15 bg-white/[0.035] p-3.5 text-sm shadow-lg shadow-black/10 ring-1 ring-white/5'>
+                        <div className='my-2 text-base lg:my-4 lg:rounded-xl lg:border lg:border-white/15 lg:bg-white/[0.035] lg:p-3.5 lg:text-sm lg:shadow-lg lg:shadow-black/10 lg:ring-1 lg:ring-white/5'>
                           <div className='space-y-2'>
                           {/* Principal row */}
                           {(card.krwPrincipal > 0 || card.usdPrincipal > 0) && (
-                            <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.025] px-2.5 py-2 shadow-sm shadow-black/5'>
+                            <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.025] px-2 py-1.5 shadow-sm shadow-black/5 lg:px-2.5 lg:py-2'>
                               <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
                                 <TrendingUp className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
                                 원금
@@ -345,7 +354,7 @@ export default function Page() {
 
                           {/* Cash balance row */}
                           {(card.krwCash > 0 || card.usdCash > 0) && (
-                            <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.025] px-2.5 py-2 shadow-sm shadow-black/5'>
+                            <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.025] px-2 py-1.5 shadow-sm shadow-black/5 lg:px-2.5 lg:py-2'>
                               <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
                                 <Coins className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
                                 예수금
@@ -366,7 +375,7 @@ export default function Page() {
                           )}
 
                           {/* Stocks holdings count row */}
-                          <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.025] px-2.5 py-2 shadow-sm shadow-black/5'>
+                          <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.025] px-2 py-1.5 shadow-sm shadow-black/5 lg:px-2.5 lg:py-2'>
                             <span className='text-muted-foreground text-xs flex items-center gap-1.5'>
                               <BarChart3 className='h-3.5 w-3.5 text-muted-foreground/75' />{' '}
                               보유 종목
@@ -399,7 +408,7 @@ export default function Page() {
                       </div>
 
                       {/* Footer timestamps */}
-                      <div className='mt-auto rounded-xl border border-white/15 bg-white/[0.035] p-3.5 text-[10px] text-muted-foreground shadow-lg shadow-black/10 ring-1 ring-white/5'>
+                      <div className='mt-auto border-t border-white/10 pt-2 text-[10px] text-muted-foreground lg:rounded-xl lg:border lg:border-white/15 lg:bg-white/[0.035] lg:p-3.5 lg:shadow-lg lg:shadow-black/10 lg:ring-1 lg:ring-white/5'>
                         <div className='space-y-1.5'>
                         <div className='flex items-center gap-1.5'>
                           <Calendar className='h-3 w-3 text-muted-foreground/50' />

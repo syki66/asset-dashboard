@@ -433,7 +433,7 @@ export function CsvStep({
               }}
             />
             <div
-              className='absolute flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-2 text-sm font-semibold text-white shadow-lg'
+              className='absolute flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 whitespace-normal rounded-lg bg-black/85 px-3 py-2 text-center text-sm font-semibold text-white shadow-lg lg:max-w-none lg:whitespace-nowrap lg:text-left'
               style={{
                 top: Math.max(12, spotlightRect.top - 48),
                 left: spotlightRect.left + spotlightRect.width / 2 + 8,
@@ -445,10 +445,10 @@ export function CsvStep({
           </div>,
           document.body,
         )}
-      <div className='space-y-4'>
+      <div className='space-y-3 lg:space-y-4'>
         <div
           className={cn(
-            'rounded-2xl border border-dashed p-8 text-center shadow-sm backdrop-blur-md transition-all duration-200',
+            'rounded-xl border border-dashed p-3 text-center shadow-sm backdrop-blur-md transition-all duration-200 sm:p-5 lg:rounded-2xl lg:p-8',
             isDragging
               ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))]/5 shadow-[color:var(--setup-primary,var(--primary))]/10'
               : 'border-white/15 bg-transparent hover:border-[color:var(--setup-primary,var(--primary))]/35 hover:bg-white/[0.03]',
@@ -457,13 +457,13 @@ export function CsvStep({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <div className='mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] shadow-sm'>
-            <FileUp className='h-7 w-7 text-[color:var(--setup-primary,var(--primary))]' />
+          <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] shadow-sm lg:h-14 lg:w-14 lg:rounded-2xl'>
+            <FileUp className='h-6 w-6 text-[color:var(--setup-primary,var(--primary))] lg:h-7 lg:w-7' />
           </div>
-          <h3 className='mt-4 text-lg font-bold'>
+          <h3 className='mt-3 text-lg font-bold lg:mt-4'>
             파일을 끌어다 놓거나 클릭하여 업로드
           </h3>
-          <p className='mt-1 text-sm text-muted-foreground'>
+          <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
             신한투자증권의 CSV 파일만 지원됩니다
           </p>
           <input
@@ -474,10 +474,10 @@ export function CsvStep({
             onChange={handleFileChange}
             multiple
           />
-          <div className='mt-5 flex flex-wrap items-center justify-center gap-2'>
+          <div className='mt-4 flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:mt-5'>
             <Button
               variant='outline'
-              className='cursor-pointer rounded-xl border-white/15 bg-white/[0.04] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.1] hover:text-foreground hover:shadow-md'
+              className='w-full cursor-pointer rounded-xl border-white/15 bg-white/[0.04] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.1] hover:text-foreground hover:shadow-md sm:w-auto'
               onClick={() => document.getElementById('file-upload')?.click()}
             >
               <Upload className='mr-2 h-4 w-4' />
@@ -488,7 +488,7 @@ export function CsvStep({
               ref={dummyButtonRef}
               variant='secondary'
               className={cn(
-                'cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md',
+                'w-full cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md sm:w-auto',
                 showDemoSpotlight &&
                   'ring-2 ring-inset ring-white/70 hover:translate-y-0',
               )}
@@ -500,23 +500,23 @@ export function CsvStep({
           </div>
 
           {uploadedFiles.length > 0 && (
-            <div className='mx-auto mt-6 max-w-2xl space-y-2 rounded-2xl border border-white/15 bg-white/[0.04] p-4 text-left shadow-sm'>
-              <h4 className='text-sm font-bold'>업로드된 파일</h4>
+            <div className='mx-auto mt-4 max-w-2xl space-y-1.5 text-left lg:mt-6 lg:space-y-2 lg:rounded-2xl lg:border lg:border-white/15 lg:bg-white/[0.04] lg:p-4 lg:shadow-sm'>
+              <h4 className='text-base font-bold lg:text-sm'>업로드된 파일</h4>
               {uploadedFiles.map((file, index) => (
                 <div
                   key={index}
-                  className='flex items-center justify-between rounded-xl border border-white/15 bg-white/[0.04] p-2.5 shadow-sm'
+                  className='flex items-center justify-between rounded-xl border border-white/15 bg-white/[0.04] p-2 shadow-sm lg:p-2.5'
                 >
                   <div className='flex min-w-0 items-center gap-2'>
                     <Check className='h-4 w-4 shrink-0 text-green-500' />
-                    <span className='truncate text-sm font-medium'>
+                    <span className='truncate text-base font-medium lg:text-sm'>
                       {file.name}
                     </span>
                   </div>
                   <Button
-                    variant='ghost'
+                    variant='outline'
                     size='icon'
-                    className='h-7 w-7 cursor-pointer rounded-lg'
+                    className='interactive-lift h-7 w-7 cursor-pointer rounded-lg border-white/15 bg-white/[0.04] shadow-sm hover:bg-white/[0.1] hover:text-foreground'
                     onClick={() => removeFile(index)}
                   >
                     <X className='h-4 w-4' />
@@ -529,15 +529,15 @@ export function CsvStep({
 
         {/* Supabase 저장 UI는 mode=admin에서만 렌더링됩니다. */}
         {showSecureStorage && (
-          <div className='rounded-2xl border border-white/15 bg-white/[0.04] p-5 shadow-sm backdrop-blur-md'>
-          <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+          <div className='rounded-xl border border-white/15 bg-white/[0.04] p-3 shadow-sm backdrop-blur-md sm:p-4 lg:rounded-2xl lg:p-5'>
+          <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-4'>
             <div className='flex gap-3'>
               <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.06]'>
                 <LockKeyhole className='h-5 w-5 text-[color:var(--setup-primary,var(--primary))]' />
               </div>
               <div>
-                <h4 className='text-sm font-bold'>Supabase 암호화 저장</h4>
-                <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>
+                <h4 className='text-base font-bold lg:text-sm'>Supabase 암호화 저장</h4>
+                <p className='mt-1 text-base leading-relaxed text-muted-foreground lg:text-sm'>
                   gzip 압축 후 암호화하며, 사용자별 한 행만 유지합니다.
                 </p>
               </div>
@@ -561,19 +561,19 @@ export function CsvStep({
             )}
           </div>
 
-          <div className='mt-4'>
+          <div className='mt-3 lg:mt-4'>
             {isAuthLoading ? (
-              <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <div className='flex items-center gap-2 text-base text-muted-foreground lg:text-sm'>
                 <Loader2 className='h-4 w-4 animate-spin' />
                 로그인 상태 확인 중
               </div>
             ) : !isConfigured ? (
-              <p className='rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive'>
+              <p className='rounded-xl border border-destructive/25 bg-destructive/10 p-2.5 text-base text-destructive lg:p-3 lg:text-sm'>
                 Supabase 환경변수를 설정해야 암호화 저장을 사용할 수 있습니다.
               </p>
             ) : !user ? (
-              <div className='flex flex-col gap-3 rounded-xl border border-white/15 bg-white/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between'>
-                <p className='text-sm text-muted-foreground'>
+              <div className='flex flex-col gap-2 rounded-xl border border-white/15 bg-white/[0.04] p-2.5 sm:flex-row sm:items-center sm:justify-between lg:gap-3 lg:p-4'>
+                <p className='text-base text-muted-foreground lg:text-sm'>
                   로그인하지 않은 사용자는 저장된 암호화 데이터도 조회할 수
                   없습니다.
                 </p>
@@ -591,8 +591,8 @@ export function CsvStep({
               </div>
             ) : (
               <div className='space-y-3'>
-                <div className='rounded-xl border border-white/15 bg-white/[0.04] p-3 text-sm'>
-                  <span className='font-semibold'>{user.email}</span>
+                <div className='rounded-xl border border-white/15 bg-white/[0.04] p-2 text-base lg:p-3 lg:text-sm'>
+                  <span className='break-all font-semibold lg:break-normal'>{user.email}</span>
                   <span className='text-muted-foreground'> 계정으로 연결됨</span>
                 </div>
                 <Input
@@ -649,15 +649,15 @@ export function CsvStep({
           </div>
         )}
 
-        <div className='flex gap-3 rounded-xl border border-border bg-[oklch(0.7_0.18_150_/_0.025)] p-4 text-left shadow-sm backdrop-blur-md'>
+        <div className='flex gap-3 rounded-xl border border-border bg-[oklch(0.7_0.18_150_/_0.025)] p-3 text-left shadow-sm backdrop-blur-md lg:p-4'>
           <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card'>
             <ShieldCheck className='h-5 w-5 text-[oklch(0.62_0.18_150)]' />
           </div>
           <div className='space-y-1'>
-            <h4 className='text-sm font-bold text-[oklch(0.62_0.18_150)]'>
+            <h4 className='text-base font-bold text-[oklch(0.62_0.18_150)] lg:text-sm'>
               데이터 처리 안내
             </h4>
-            <p className='text-sm leading-relaxed text-[oklch(0.62_0.18_150)]'>
+            <p className='text-base leading-relaxed text-[oklch(0.62_0.18_150)] lg:text-sm'>
               {showSecureStorage ? (
                 <>
                   CSV는 기본적으로 브라우저에서만 처리됩니다. 로그인 후 저장

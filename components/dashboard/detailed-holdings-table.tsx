@@ -31,7 +31,7 @@ export function DetailedHoldingsTable({ stocks, themeColor }: DetailedHoldingsTa
   };
 
   return (
-    <Table>
+    <Table className='min-w-[58rem] whitespace-nowrap lg:min-w-[auto] lg:whitespace-normal'>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead>종목명</TableHead>

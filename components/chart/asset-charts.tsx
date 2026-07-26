@@ -794,7 +794,7 @@ export function AssetChart({
         : '';
 
       return (
-        <div className='liquid-glass-surface glassmorphism-tooltip'>
+        <div className='liquid-glass-surface glassmorphism-tooltip max-w-[calc(100vw-2rem)] lg:max-w-none'>
           <p className='text-center font-bold text-base mb-2'>
             {formattedLabel}
           </p>
@@ -848,8 +848,8 @@ export function AssetChart({
   if (series.length === 0) {
     return (
       <Card className='chart-card w-full glass-card'>
-        <CardHeader>
-          <CardTitle className='text-lg flex items-center gap-2'>
+        <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
+          <CardTitle className='flex h-7 items-center gap-2 text-lg'>
             {Icon ? (
               <Icon style={{ color: themeColor }} className='h-5 w-5' />
             ) : (
@@ -870,59 +870,65 @@ export function AssetChart({
 
   return (
     <Card className='chart-card w-full h-full glass-card flex flex-col'>
-      <CardHeader>
-        <div className='flex flex-col gap-1'>
-          <div className='flex items-center justify-between gap-4'>
-            <CardTitle className='text-lg flex items-center gap-2'>
+      <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
+        <div className='flex items-start justify-between gap-2 lg:gap-4'>
+          <div className='min-w-0 flex-1'>
+            <CardTitle className='flex h-7 min-w-0 items-center gap-2 text-lg leading-snug'>
               {Icon ? (
                 <Icon style={{ color: themeColor }} className='h-5 w-5' />
               ) : (
-                <TrendingUp style={{ color: themeColor }} className='h-5 w-5' />
+                <TrendingUp
+                  style={{ color: themeColor }}
+                  className='h-5 w-5'
+                />
               )}
               {title}
             </CardTitle>
-            <div className='flex shrink-0 items-center gap-4'>
-              {(showLogScaleToggle === undefined || showLogScaleToggle) && (
-                <div className='flex items-center space-x-2'>
-                  <Switch
-                    id='log-scale'
-                    checked={useLogScale}
-                    onCheckedChange={setUseLogScale}
-                    style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                  />
-                  <Label htmlFor='log-scale' className='text-sm font-medium'>
-                    {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
-                  </Label>
-                </div>
-              )}
-              {(showInflationAdjustToggle === undefined ||
-                showInflationAdjustToggle) && (
-                <div className='flex items-center space-x-2'>
-                  <Switch
-                    id='inflation-adjust'
-                    checked={adjustForInflation}
-                    onCheckedChange={setAdjustForInflation}
-                    style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                  />
-                  <Label
-                    htmlFor='inflation-adjust'
-                    className='text-sm font-medium'
-                  >
-                    인플레이션 보정
-                  </Label>
-                </div>
-              )}
-            </div>
+            {(description || logScaleDescription) && (
+              <CardDescription className='mt-1'>
+                {[description, logScaleDescription].filter(Boolean).join(' ')}
+              </CardDescription>
+            )}
           </div>
-          {(description || logScaleDescription) && (
-            <CardDescription>
-              {[description, logScaleDescription].filter(Boolean).join(' ')}
-            </CardDescription>
-          )}
+          <div className='flex max-w-[65%] shrink-0 flex-row items-center gap-2 sm:w-auto sm:max-w-none sm:flex-wrap sm:gap-x-3 sm:gap-y-2 lg:flex-nowrap lg:gap-4'>
+            {(showLogScaleToggle === undefined || showLogScaleToggle) && (
+              <div className='flex items-center space-x-1.5 sm:space-x-2'>
+                <Switch
+                  id='log-scale'
+                  checked={useLogScale}
+                  onCheckedChange={setUseLogScale}
+                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                />
+                <Label
+                  htmlFor='log-scale'
+                  className='whitespace-nowrap text-right text-xs font-medium sm:text-sm'
+                >
+                  {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
+                </Label>
+              </div>
+            )}
+            {(showInflationAdjustToggle === undefined ||
+              showInflationAdjustToggle) && (
+              <div className='flex items-center space-x-1.5 sm:space-x-2'>
+                <Switch
+                  id='inflation-adjust'
+                  checked={adjustForInflation}
+                  onCheckedChange={setAdjustForInflation}
+                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
+                />
+                <Label
+                  htmlFor='inflation-adjust'
+                  className='whitespace-nowrap text-right text-xs font-medium sm:text-sm'
+                >
+                  인플레이션 보정
+                </Label>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className='flex flex-1 flex-col'>
-        <div className='mb-4 flex flex-col gap-4'>
+      <CardContent className='flex flex-1 flex-col px-2 pb-4 sm:px-4'>
+        <div className='mx-1.5 mb-3 flex flex-col gap-3 sm:mx-0 lg:mb-4 lg:gap-4'>
           <div className='flex flex-wrap items-center gap-2'>
             <Tabs
               defaultValue='all'
@@ -933,64 +939,64 @@ export function AssetChart({
                 { '--active-tab-color': themeColor } as React.CSSProperties
               }
             >
-              <TabsList className='grid w-full grid-cols-10 bg-white/10 border border-white/15 rounded-lg shadow-sm backdrop-blur-xs'>
+              <TabsList className='grid w-full grid-cols-5 rounded-lg border border-white/15 bg-white/10 shadow-sm backdrop-blur-xs sm:grid-cols-10 [&>button]:text-xs'>
                 <TabsTrigger
                   value='1m'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   1개월
                 </TabsTrigger>
                 <TabsTrigger
                   value='3m'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   3개월
                 </TabsTrigger>
                 <TabsTrigger
                   value='6m'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   6개월
                 </TabsTrigger>
                 <TabsTrigger
                   value='ytd'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   YTD
                 </TabsTrigger>
                 <TabsTrigger
                   value='1y'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   1년
                 </TabsTrigger>
                 <TabsTrigger
                   value='3y'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   3년
                 </TabsTrigger>
                 <TabsTrigger
                   value='5y'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   5년
                 </TabsTrigger>
                 <TabsTrigger
                   value='10y'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   10년
                 </TabsTrigger>
                 <TabsTrigger
                   value='all'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   전체
                 </TabsTrigger>
                 <TabsTrigger
                   value='custom'
-                  className='interactive-lift rounded-md text-xs font-semibold'
+                  className='interactive-lift rounded-md px-1 text-[11px] font-semibold sm:px-3 sm:text-xs'
                 >
                   직접 설정
                 </TabsTrigger>
@@ -998,13 +1004,13 @@ export function AssetChart({
             </Tabs>
           </div>
           {timeRange === 'custom' && (
-            <div className='flex flex-wrap items-center justify-end gap-2'>
+            <div className='flex items-center gap-1.5 sm:flex-wrap sm:justify-end sm:gap-2'>
               <Popover open={startPickerOpen} onOpenChange={setStartPickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant='outline'
                     size='sm'
-                    className='min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]'
+                    className='min-w-0 flex-1 justify-center px-1.5 hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)] sm:w-auto sm:min-w-[8.75rem] sm:flex-none sm:justify-start sm:px-3 lg:text-xs'
                     style={calendarButtonStyle}
                   >
                     <CalendarDays className='h-4 w-4' />
@@ -1021,13 +1027,15 @@ export function AssetChart({
                   />
                 </PopoverContent>
               </Popover>
-              <span className='text-sm text-muted-foreground'>-</span>
+              <span className='shrink-0 text-sm text-muted-foreground'>
+                -
+              </span>
               <Popover open={endPickerOpen} onOpenChange={setEndPickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant='outline'
                     size='sm'
-                    className='min-w-[8.75rem] justify-start hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)]'
+                    className='min-w-0 flex-1 justify-center px-1.5 hover:bg-[var(--chart-calendar-hover)] hover:text-[var(--chart-calendar-theme)] sm:w-auto sm:min-w-[8.75rem] sm:flex-none sm:justify-start sm:px-3 lg:text-xs'
                     style={calendarButtonStyle}
                   >
                     <CalendarDays className='h-4 w-4' />
@@ -1160,7 +1168,7 @@ export function AssetChart({
           series={toggleButtonSeries}
           activeSeries={activeToggleSeries}
           onToggle={handleToggleButtonClick}
-          className='mt-4'
+          className='mx-1.5 mt-4 sm:mx-0'
         />
       </CardContent>
     </Card>

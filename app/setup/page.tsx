@@ -91,8 +91,8 @@ const createDemoBestInterestRates = () =>
 
 function SetupPageFallback() {
   return (
-    <div className='flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))]'>
-      <div className='flex items-center gap-3 rounded-2xl border border-white/20 bg-white/30 px-5 py-4 text-sm font-semibold shadow-lg backdrop-blur-xl'>
+    <div className='flex min-h-dvh items-center justify-center bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))] p-3 lg:min-h-screen lg:p-0'>
+      <div className='flex items-center gap-3 rounded-2xl border border-white/20 bg-white/30 px-5 py-4 text-base font-semibold shadow-lg backdrop-blur-xl lg:text-sm'>
         <Loader2 className='h-5 w-5 animate-spin' />
         접근 권한 확인 중
       </div>
@@ -347,53 +347,53 @@ function SetupPageContent() {
 
   return (
     <div
-      className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))] p-6'
+      className='relative flex min-h-dvh items-center justify-center overflow-x-hidden bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))] p-2 sm:p-3 lg:min-h-screen lg:overflow-hidden lg:p-6'
       style={setupThemeStyle}
     >
       <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_14%,oklch(0.62_0.24_255/0.22),transparent_28%),radial-gradient(circle_at_84%_18%,oklch(0.66_0.22_155/0.2),transparent_30%),radial-gradient(circle_at_70%_88%,oklch(0.78_0.16_82/0.18),transparent_32%),radial-gradient(circle_at_16%_88%,oklch(0.62_0.2_18/0.1),transparent_30%)]' />
-      <div className='relative w-full max-w-5xl'>
+      <div className='relative w-full max-w-6xl lg:max-w-5xl'>
         <Card className='liquid-glass-surface relative w-full overflow-hidden rounded-2xl shadow-2xl shadow-black/10'>
           <div className='absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--setup-primary),var(--setup-secondary),var(--setup-accent),var(--setup-danger))]' />
-          <CardHeader className='bg-white/[0.1] px-8 py-7'>
-            <div className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
+          <CardHeader className='bg-white/[0.1] px-4 py-4 sm:px-5 sm:py-4 lg:px-8 lg:py-7'>
+            <div className='flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4'>
               <div>
-                <div className='mb-3 inline-flex items-center gap-2 rounded-full bg-[color:var(--setup-primary)]/12 px-3 py-1 text-xs font-semibold text-[color:var(--setup-primary)] shadow-sm'>
+                <div className='mb-2 inline-flex items-center gap-2 rounded-full bg-[color:var(--setup-primary)]/12 px-2.5 py-1 text-xs font-semibold text-[color:var(--setup-primary)] shadow-sm lg:mb-3 lg:px-3'>
                   <CheckCircle2 className='h-3.5 w-3.5' />
                   초기 설정
                 </div>
-                <CardTitle className='bg-[linear-gradient(90deg,var(--setup-primary),var(--setup-secondary),var(--setup-accent))] bg-clip-text text-3xl font-bold tracking-normal text-transparent'>
+                <CardTitle className='bg-[linear-gradient(90deg,var(--setup-primary),var(--setup-secondary),var(--setup-accent))] bg-clip-text text-2xl font-bold tracking-normal text-transparent sm:text-3xl'>
                   대시보드 사전 설정
                 </CardTitle>
-                <CardDescription className='mt-2 text-sm leading-6 text-muted-foreground'>
+                <CardDescription className='mt-2 text-base leading-6 text-muted-foreground lg:text-sm'>
                   거래 데이터와 비교 기준을 설정하면 전체 계좌 기준으로
                   대시보드를 계산합니다.
                 </CardDescription>
               </div>
-              <div className='rounded-xl bg-white/[0.18] px-4 py-3 text-right shadow-sm'>
+              <div className='w-full rounded-xl bg-white/[0.18] px-3 py-2 text-left shadow-sm lg:w-auto lg:px-4 lg:py-3 lg:text-right'>
                 <p className='text-xs font-medium text-muted-foreground'>
                   현재 단계
                 </p>
-                <p className='mt-1 text-sm font-bold text-[color:var(--setup-primary)]'>
+                <p className='mt-1 text-base font-bold text-[color:var(--setup-primary)] lg:text-sm'>
                   {activeStep + 1} / {steps.length} · {currentStep.label}
                 </p>
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className='px-8 py-7'>
+          <CardContent className='px-3 py-4 sm:px-5 sm:py-4 lg:px-8 lg:py-7'>
             <Stepper
               steps={steps}
               activeStep={activeStep}
               onStepClick={handleStepClick}
-              className='mb-8'
+              className='mb-5 lg:mb-8'
             />
 
-            <div className='min-h-[360px] rounded-2xl bg-white/[0.12] p-6 shadow-inner shadow-black/5'>
+            <div className='min-h-0 p-0 sm:min-h-[360px] sm:p-1 lg:rounded-2xl lg:bg-white/[0.12] lg:p-6 lg:shadow-inner lg:shadow-black/5'>
               {activeStep === 0 && (
-                <div className='space-y-5'>
+                <div className='space-y-3 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>파일 불러오기</h3>
-                    <p className='mt-1 text-sm text-muted-foreground'>
+                    <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
                       신한투자증권 거래내역 CSV를 업로드합니다.
                     </p>
                   </div>
@@ -408,10 +408,10 @@ function SetupPageContent() {
               )}
 
               {activeStep === 1 && (
-                <div className='space-y-5'>
+                <div className='space-y-3 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>조회할 날짜 선택</h3>
-                    <p className='mt-1 text-sm text-muted-foreground'>
+                    <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
                       선택한 날짜의 계좌 상태를 기준으로 대시보드를 조회합니다.
                     </p>
                   </div>
@@ -420,10 +420,10 @@ function SetupPageContent() {
               )}
 
               {activeStep === 2 && (
-                <div className='space-y-5'>
+                <div className='space-y-3 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>원금 보정</h3>
-                    <p className='mt-1 text-sm text-muted-foreground'>
+                    <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
                       입출금 내역만으로 계산된 원금과 실제 원금이 다를 때
                       보정합니다.
                     </p>
@@ -439,11 +439,11 @@ function SetupPageContent() {
               )}
 
               {activeStep === 3 && (
-                <div className='space-y-5'>
-                  <div className='flex items-start justify-between gap-4'>
+                <div className='space-y-3 lg:space-y-5'>
+                  <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-4'>
                     <div>
                       <h3 className='text-xl font-bold'>수수료와 세금 설정</h3>
-                      <p className='mt-1 text-sm text-muted-foreground'>
+                      <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
                         세후 평가금액과 비용 추정에 사용할 기본값을 조정합니다.
                       </p>
                     </div>
@@ -452,7 +452,7 @@ function SetupPageContent() {
                       variant='outline'
                       size='sm'
                       onClick={resetFeeSettings}
-                      className='shrink-0 cursor-pointer rounded-xl border-transparent bg-white/[0.08] text-foreground hover:bg-white/[0.14] hover:text-foreground'
+                      className='interactive-lift w-full shrink-0 cursor-pointer self-stretch rounded-xl border-transparent bg-white/[0.08] text-foreground hover:bg-white/[0.14] hover:text-foreground sm:w-auto sm:self-start lg:self-auto'
                     >
                       <RotateCcw className='h-3.5 w-3.5' />
                       기본값
@@ -463,10 +463,10 @@ function SetupPageContent() {
               )}
 
               {activeStep === 4 && (
-                <div className='space-y-5'>
+                <div className='space-y-3 lg:space-y-5'>
                   <div>
                     <h3 className='text-xl font-bold'>벤치마크 설정</h3>
-                    <p className='mt-1 text-sm text-muted-foreground'>
+                    <p className='mt-1 text-base text-muted-foreground lg:text-sm'>
                       포트폴리오 성과와 비교할 기준을 설정합니다.
                     </p>
                   </div>
@@ -476,12 +476,12 @@ function SetupPageContent() {
             </div>
           </CardContent>
 
-          <CardFooter className='flex items-center justify-between bg-white/[0.1] px-8 py-5'>
+          <CardFooter className='flex items-center justify-between gap-2 bg-white/[0.1] px-4 py-3 sm:px-5 lg:gap-0 lg:px-8 lg:py-5'>
             <Button
               variant='outline'
               onClick={handlePrevious}
               disabled={activeStep === 0}
-              className='cursor-pointer rounded-xl border-transparent bg-white/[0.18] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/25 hover:text-foreground hover:shadow-md disabled:cursor-not-allowed'
+              className='flex-1 cursor-pointer rounded-xl border-transparent bg-white/[0.18] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/25 hover:text-foreground hover:shadow-md disabled:cursor-not-allowed sm:flex-none lg:flex-initial'
             >
               <ArrowLeft className='mr-2 h-4 w-4' />
               이전
@@ -491,7 +491,8 @@ function SetupPageContent() {
               disabled={isNextDisabled}
               className={cn(
                 'cursor-pointer rounded-xl bg-[color:var(--setup-primary)] px-5 font-semibold text-white shadow-md shadow-[color:var(--setup-primary)]/20 transition-all hover:-translate-y-0.5 hover:bg-[color:var(--setup-primary)]/90 hover:shadow-lg disabled:cursor-not-allowed',
-                activeStep === steps.length - 1 && 'min-w-[132px]',
+                'flex-1 sm:flex-none lg:flex-initial',
+                activeStep === steps.length - 1 && 'sm:min-w-[132px]',
               )}
             >
               {activeStep === steps.length - 1 ? (

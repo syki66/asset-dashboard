@@ -16,7 +16,12 @@ interface TooltipContentProps {
 
 export function TooltipContent({ title, items, className }: TooltipContentProps) {
   return (
-    <div className={cn('min-w-[140px]', className)}>
+    <div
+      className={cn(
+        'w-[min(14rem,calc(100vw-2rem))] min-w-0 max-w-[calc(100vw-2rem)] lg:w-auto lg:min-w-[140px] lg:max-w-none',
+        className,
+      )}
+    >
       {title && (
         <p className='text-center font-bold text-sm mb-2'>
           {title}
@@ -25,9 +30,13 @@ export function TooltipContent({ title, items, className }: TooltipContentProps)
       {title && <hr className='border-border my-1' />}
       <div className={cn('space-y-1', title && 'mt-2')}>
         {items.map((item, index) => (
-          <div key={index} className='flex items-center justify-between text-xs gap-4'>
-            <span className='opacity-80'>{item.label}</span>
-            <span className='font-semibold'>{item.value}</span>
+          <div key={index} className='flex min-w-0 items-center justify-between gap-4 text-xs lg:min-w-[auto]'>
+            <span className='min-w-0 truncate opacity-80 lg:min-w-[auto] lg:overflow-visible lg:text-clip lg:whitespace-normal'>
+              {item.label}
+            </span>
+            <span className='shrink-0 whitespace-nowrap font-semibold lg:shrink lg:whitespace-normal'>
+              {item.value}
+            </span>
           </div>
         ))}
       </div>

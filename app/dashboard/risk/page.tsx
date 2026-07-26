@@ -40,11 +40,12 @@ export default function Page() {
 
   return (
     <>
-      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
+      <div className='grid min-w-0 grid-cols-[1fr_1.2fr] gap-3 lg:min-w-[auto] lg:grid-cols-2 lg:gap-4 xl:grid-cols-3 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <DashboardOverviewCard
           title='최대 손실 낙폭(MDD)'
           icon={ShieldAlert}
           themeColor={themeColor}
+          className='col-span-2 lg:col-span-1'
           contentItems={[
             {
               label: '최대 손실 낙폭(MDD)',
@@ -114,10 +115,10 @@ export default function Page() {
           ]}
         />
       </div>
-      <div className='mt-8'>
+      <div className='mt-7 lg:mt-8'>
         <h2 className='text-xl font-bold'>상세 낙폭 차트</h2>
       </div>
-      <div className='grid gap-4 mt-4'>
+      <div className='mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]'>
         <AssetChart
           themeColor={themeColor}
           calendarCategory='risk'
@@ -138,7 +139,7 @@ export default function Page() {
           showInflationAdjustToggle={false}
         />
       </div>
-      <div className='mt-8 flex items-center justify-between'>
+      <div className='mt-7 flex flex-wrap items-center justify-between gap-2 lg:mt-8 lg:flex-nowrap lg:gap-0'>
         <h2 className='text-xl font-bold'>90거래일 롤링 지표</h2>
         <ChartLayoutToggleButton
           layout={rollingChartLayout}
@@ -152,8 +153,10 @@ export default function Page() {
       </div>
       <div
         className={cn(
-          'mt-4 grid gap-4',
-          rollingChartLayout === 'compact' ? 'lg:grid-cols-2' : 'grid-cols-1',
+          'mt-4 grid min-w-0 gap-3 lg:min-w-[auto] lg:gap-4 [&>*]:min-w-0 lg:[&>*]:min-w-[auto]',
+          rollingChartLayout === 'compact'
+            ? 'lg:grid-cols-2 xl:grid-cols-2'
+            : 'grid-cols-1',
         )}
       >
         <AssetChart

@@ -94,11 +94,11 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const isBusy = isAuthLoading || isSubmitting || Boolean(user);
 
   return (
-    <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))] p-6'>
+    <main className='relative flex min-h-dvh items-start justify-center overflow-x-hidden overflow-y-auto bg-[linear-gradient(135deg,oklch(0.94_0.05_250),oklch(0.96_0.04_160)_42%,oklch(0.96_0.04_82))] p-2 sm:items-center sm:p-3 lg:min-h-screen lg:overflow-hidden lg:p-6'>
       <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_14%,oklch(0.62_0.24_255/0.22),transparent_28%),radial-gradient(circle_at_84%_18%,oklch(0.66_0.22_155/0.2),transparent_30%),radial-gradient(circle_at_70%_88%,oklch(0.78_0.16_82/0.18),transparent_32%)]' />
       <Card className='liquid-glass-surface relative w-full max-w-md overflow-hidden rounded-2xl shadow-2xl shadow-black/10'>
         <div className='absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,oklch(0.62_0.24_255),oklch(0.66_0.22_155),oklch(0.78_0.16_82))]' />
-        <CardHeader className='space-y-3 px-7 pt-8'>
+        <CardHeader className='space-y-3 px-4 pt-5 sm:px-5 sm:pt-6 lg:px-7 lg:pt-8'>
           <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
             <LockKeyhole className='h-6 w-6' />
           </div>
@@ -112,9 +112,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           </div>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent className='space-y-4 px-7 py-2'>
+          <CardContent className='space-y-3 px-4 py-1 sm:px-5 lg:space-y-4 lg:px-7 lg:py-2'>
             {!isConfigured && (
-              <div className='rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'>
+              <div className='rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-base text-destructive lg:text-sm'>
                 Supabase 환경변수를 먼저 설정해 주세요.
               </div>
             )}
@@ -149,7 +149,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
               />
             </div>
           </CardContent>
-          <CardFooter className='flex flex-col gap-3 px-7 pb-7 pt-6'>
+          <CardFooter className='flex flex-col gap-2 px-4 pb-4 pt-4 sm:px-5 sm:pb-5 lg:gap-3 lg:px-7 lg:pb-7 lg:pt-6'>
             <Button
               type='submit'
               className='h-11 w-full cursor-pointer rounded-xl'
