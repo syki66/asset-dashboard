@@ -34,8 +34,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { koreaCpiIndexes } from '@/constants/korea-cpi-indexes';
 import { useCurrencyStore } from '@/store/options';
@@ -871,9 +869,9 @@ export function AssetChart({
   return (
     <Card className='chart-card w-full h-full glass-card flex flex-col'>
       <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
-        <div className='flex items-start justify-between gap-2 lg:gap-4'>
-          <div className='min-w-0 flex-1'>
-            <CardTitle className='flex h-7 min-w-0 items-center gap-2 text-lg leading-snug'>
+        <div className='min-w-0'>
+          <div className='flex h-7 items-center justify-between gap-2 lg:gap-4'>
+            <CardTitle className='flex min-w-0 items-center gap-2 text-lg leading-snug'>
               {Icon ? (
                 <Icon style={{ color: themeColor }} className='h-5 w-5' />
               ) : (
@@ -884,47 +882,79 @@ export function AssetChart({
               )}
               {title}
             </CardTitle>
-            {(description || logScaleDescription) && (
-              <CardDescription className='mt-1'>
-                {[description, logScaleDescription].filter(Boolean).join(' ')}
-              </CardDescription>
-            )}
-          </div>
-          <div className='flex max-w-[65%] shrink-0 flex-row items-center gap-2 sm:w-auto sm:max-w-none sm:flex-wrap sm:gap-x-3 sm:gap-y-2 lg:flex-nowrap lg:gap-4'>
-            {(showLogScaleToggle === undefined || showLogScaleToggle) && (
-              <div className='flex items-center space-x-1.5 sm:space-x-2'>
-                <Switch
-                  id='log-scale'
-                  checked={useLogScale}
-                  onCheckedChange={setUseLogScale}
-                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                />
-                <Label
-                  htmlFor='log-scale'
-                  className='whitespace-nowrap text-right text-xs font-medium sm:text-sm'
+            <div className='flex max-w-[65%] shrink-0 flex-row items-center gap-1 sm:w-auto sm:max-w-none sm:gap-2'>
+              {(showLogScaleToggle === undefined || showLogScaleToggle) && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  aria-pressed={useLogScale}
+                  onClick={() => setUseLogScale((current) => !current)}
+                  className='interactive-lift h-7 shrink-0 cursor-pointer gap-1 rounded-md border-white/15 bg-white/[0.04] px-2 text-[10px] font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground lg:h-[26px] lg:text-xs'
+                  style={
+                    useLogScale
+                      ? {
+                          backgroundColor: themeColor,
+                          borderColor: themeColor,
+                          color: '#fff',
+                        }
+                      : undefined
+                  }
                 >
-                  {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
-                </Label>
-              </div>
-            )}
-            {(showInflationAdjustToggle === undefined ||
-              showInflationAdjustToggle) && (
-              <div className='flex items-center space-x-1.5 sm:space-x-2'>
-                <Switch
-                  id='inflation-adjust'
-                  checked={adjustForInflation}
-                  onCheckedChange={setAdjustForInflation}
-                  style={{ '--switch-bg': themeColor } as React.CSSProperties}
-                />
-                <Label
-                  htmlFor='inflation-adjust'
-                  className='whitespace-nowrap text-right text-xs font-medium sm:text-sm'
+                  <span className='whitespace-nowrap'>
+                    {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
+                  </span>
+                  <span
+                    className={
+                      useLogScale
+                        ? 'text-[9px] text-white/80 lg:text-[11px]'
+                        : 'text-[9px] text-muted-foreground lg:text-[11px]'
+                    }
+                  >
+                    {useLogScale ? 'ON' : 'OFF'}
+                  </span>
+                </Button>
+              )}
+              {(showInflationAdjustToggle === undefined ||
+                showInflationAdjustToggle) && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  aria-pressed={adjustForInflation}
+                  onClick={() =>
+                    setAdjustForInflation((current) => !current)
+                  }
+                  className='interactive-lift h-7 shrink-0 cursor-pointer gap-1 rounded-md border-white/15 bg-white/[0.04] px-2 text-[10px] font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground lg:h-[26px] lg:text-xs'
+                  style={
+                    adjustForInflation
+                      ? {
+                          backgroundColor: themeColor,
+                          borderColor: themeColor,
+                          color: '#fff',
+                        }
+                      : undefined
+                  }
                 >
-                  인플레이션 보정
-                </Label>
-              </div>
-            )}
+                  <span className='whitespace-nowrap'>물가 보정</span>
+                  <span
+                    className={
+                      adjustForInflation
+                        ? 'text-[9px] text-white/80 lg:text-[11px]'
+                        : 'text-[9px] text-muted-foreground lg:text-[11px]'
+                    }
+                  >
+                    {adjustForInflation ? 'ON' : 'OFF'}
+                  </span>
+                </Button>
+              )}
+            </div>
           </div>
+          {(description || logScaleDescription) && (
+            <CardDescription className='mt-1'>
+              {[description, logScaleDescription].filter(Boolean).join(' ')}
+            </CardDescription>
+          )}
         </div>
       </CardHeader>
       <CardContent className='flex flex-1 flex-col px-2 pb-4 sm:px-4'>

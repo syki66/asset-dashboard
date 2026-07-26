@@ -135,8 +135,6 @@ export default function Page() {
           description='손실 낙폭 변화 추이'
           reverseYAxis={true}
           displayAsNegative
-          showLogScaleToggle={false}
-          showInflationAdjustToggle={false}
         />
       </div>
       <div className='mt-12 flex flex-wrap items-center justify-between gap-2 px-3.5 lg:mt-8 lg:flex-nowrap lg:gap-0 lg:px-0'>
