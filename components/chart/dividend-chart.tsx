@@ -28,9 +28,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrencyStore } from '@/store/options';
 import { formatCompactCurrency } from '@/utils/format';
+import { adjustValueForInflation } from '@/utils/inflation';
 
 interface DividendData {
   date: string;
@@ -74,6 +76,7 @@ export function DividendChart({
   chartHeightClassName = 'h-80',
 }: DividendChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>(defaultTimeRange);
+  const [adjustForInflation, setAdjustForInflation] = useState(false);
   const [isMobileChart, setIsMobileChart] = useState(false);
   const { currency } = useCurrencyStore();
   const hoverColor = themeColor.replace('-theme)', '-hover-bg)');
@@ -173,7 +176,11 @@ export function DividendChart({
             date: formatISO(date, { representation: 'date' }),
           };
         }
-        acc[key].value += item.value;
+        const adjustedValue = adjustForInflation
+          ? adjustValueForInflation(item.value, item.date)
+          : item.value;
+
+        acc[key].value += adjustedValue;
         return acc;
       },
       {} as Record<string, { value: number; date: string }>,
@@ -215,7 +222,7 @@ export function DividendChart({
     }
 
     return { chartData: sortedChartData, aggregationPeriod: aggPeriod };
-  }, [data, timeRange]);
+  }, [adjustForInflation, data, timeRange]);
 
   const formatPeriodLabel = (period: string) => {
     if (aggregationPeriod === 'monthly') {
@@ -269,13 +276,50 @@ export function DividendChart({
   return (
     <Card className='chart-card w-full glass-card'>
       <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
-        <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-0'>
-          <div className='flex flex-col gap-1'>
-            <CardTitle className='text-lg flex items-center gap-2'>
-              <Icon style={{ color: themeColor }} className='h-5 w-5' />
-              {title}
-            </CardTitle>
-            {description && <CardDescription>{description}</CardDescription>}
+        <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:items-center lg:gap-4'>
+          <div className='min-w-0 sm:flex-1 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-x-4'>
+            <div className='flex min-h-9 items-center justify-between gap-2 sm:min-h-8 lg:contents'>
+              <CardTitle className='flex min-w-0 items-center gap-2 text-lg leading-snug'>
+                <Icon style={{ color: themeColor }} className='h-5 w-5' />
+                {title}
+              </CardTitle>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                aria-pressed={adjustForInflation}
+                onClick={() => setAdjustForInflation((current) => !current)}
+                className='interactive-lift h-9 shrink-0 cursor-pointer gap-1.5 rounded-md border-white/15 bg-white/[0.04] px-3 text-xs font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground sm:h-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center lg:text-sm'
+                style={
+                  adjustForInflation
+                    ? {
+                        backgroundColor: themeColor,
+                        borderColor: themeColor,
+                        color: '#fff',
+                      }
+                    : undefined
+                }
+              >
+                <span className='whitespace-nowrap'>물가 보정</span>
+                <span
+                  className={
+                    adjustForInflation
+                      ? 'text-[10px] text-white/80 lg:text-xs'
+                      : 'text-[10px] lg:text-xs'
+                  }
+                  style={
+                    adjustForInflation ? undefined : { color: themeColor }
+                  }
+                >
+                  {adjustForInflation ? 'ON' : 'OFF'}
+                </span>
+              </Button>
+            </div>
+            {description && (
+              <CardDescription className='mt-1 lg:col-start-1 lg:row-start-2'>
+                {description}
+              </CardDescription>
+            )}
           </div>
           {showTimeRangeTabs && (
             <Tabs

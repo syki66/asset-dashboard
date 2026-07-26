@@ -35,13 +35,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { koreaCpiIndexes } from '@/constants/korea-cpi-indexes';
 import { useCurrencyStore } from '@/store/options';
 import { Button } from '../ui/button';
 import { SeriesToggleButtons, SeriesInfo } from '../ui/series-toggle-buttons';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarPicker } from '../ui/calendar-picker';
 import { formatCompactCurrency } from '@/utils/format';
+import { adjustValueForInflation } from '@/utils/inflation';
 
 // 차트 시리즈 타입 정의
 interface AssetDataPoint {
@@ -104,16 +104,6 @@ const DEFAULT_COLORS = [
   '#06b6d4', // 사이안
   '#d946ef', // 퓨시아
 ];
-
-const latestCpiIndex = koreaCpiIndexes[0]?.index ?? 100;
-
-const getCpiIndexForDate = (date: string) => {
-  const month = date.slice(0, 7);
-  const matchingEntry = koreaCpiIndexes.find((entry) => entry.date <= month);
-  const oldestEntry = koreaCpiIndexes.at(-1);
-
-  return matchingEntry?.index ?? oldestEntry?.index ?? latestCpiIndex;
-};
 
 interface AssetHistoryChartProps {
   series: AssetSeries[];
@@ -186,15 +176,6 @@ export function AssetChart({
   useEffect(() => {
     setActiveSeries(seriesWithColors.map((s) => s.id));
   }, [seriesWithColors]);
-
-  // 인플레이션 조정 함수
-  const adjustValueForInflation = (value: number, dateStr: string) => {
-    if (!adjustForInflation) return value;
-
-    const dateIndex = getCpiIndexForDate(dateStr);
-
-    return value * (latestCpiIndex / dateIndex);
-  };
 
   // 데이터 처리 - 각 시리즈별로 처리
   const processedSeriesData = seriesWithColors.map((series) => {
