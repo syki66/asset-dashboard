@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type ElementType } from 'react';
+import { useState, useEffect, useMemo, type ElementType } from 'react';
 import {
   Bar,
   BarChart,
@@ -74,8 +74,23 @@ export function DividendChart({
   chartHeightClassName = 'h-80',
 }: DividendChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>(defaultTimeRange);
+  const [isMobileChart, setIsMobileChart] = useState(false);
   const { currency } = useCurrencyStore();
   const hoverColor = themeColor.replace('-theme)', '-hover-bg)');
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+
+    const mobileMediaQuery = window.matchMedia('(max-width: 639px)');
+    const updateMobileChart = () => setIsMobileChart(mobileMediaQuery.matches);
+
+    updateMobileChart();
+    mobileMediaQuery.addEventListener('change', updateMobileChart);
+
+    return () =>
+      mobileMediaQuery.removeEventListener('change', updateMobileChart);
+  }, []);
+
   const formatCurrencyValue = (value: number, compact = false) => {
     if (currency === 'usd') {
       if (compact) {
@@ -311,6 +326,7 @@ export function DividendChart({
                 />
                 <YAxis
                   fontSize={12}
+                  width={isMobileChart ? 44 : 60}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(value) =>

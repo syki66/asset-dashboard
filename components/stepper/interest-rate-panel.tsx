@@ -318,7 +318,7 @@ export function InterestRatePanel({
                 )}
               </div>
 
-              <div className="touch-pan-x overflow-x-auto overscroll-x-contain rounded-xl border border-white/10 bg-white/[0.03] p-1 sm:p-2 lg:touch-auto lg:overflow-visible lg:overscroll-auto lg:p-3">
+              <div className="touch-auto overflow-x-auto overscroll-x-contain rounded-xl border border-white/10 bg-white/[0.03] p-1 sm:p-2 lg:overflow-visible lg:overscroll-auto lg:p-3">
                 <div className="grid min-w-[44rem] grid-cols-[2.75rem_repeat(12,minmax(3rem,1fr))] gap-1.5 text-[0.6875rem] lg:min-w-[auto] lg:grid-cols-[2.75rem_repeat(12,minmax(0,1fr))]">
                   <div />
                   {monthColumns.map((rate, index) => {

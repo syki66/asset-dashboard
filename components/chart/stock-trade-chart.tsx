@@ -189,7 +189,21 @@ export function StockTradeChart({
   const [viewMode, setViewMode] = useState<DataViewMode>('quantity');
   const [aggregationMode, setAggregationMode] = useState<AggregationMode>('daily');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
+  const [isMobileChart, setIsMobileChart] = useState(false);
   const currency = useCurrencyStore((state) => state.currency);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+
+    const mobileMediaQuery = window.matchMedia('(max-width: 639px)');
+    const updateMobileChart = () => setIsMobileChart(mobileMediaQuery.matches);
+
+    updateMobileChart();
+    mobileMediaQuery.addEventListener('change', updateMobileChart);
+
+    return () =>
+      mobileMediaQuery.removeEventListener('change', updateMobileChart);
+  }, []);
   const formatTradeValue = (value: number) => {
     if (viewMode === 'quantity') {
       return `${Math.round(value).toLocaleString()}주`;
@@ -742,6 +756,7 @@ export function StockTradeChart({
                 />
                 <YAxis
                   fontSize={12}
+                  width={isMobileChart ? 44 : 60}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={getYAxisLabel()}

@@ -156,7 +156,21 @@ export function AssetChart({
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const [startPickerOpen, setStartPickerOpen] = useState(false);
   const [endPickerOpen, setEndPickerOpen] = useState(false);
+  const [isMobileChart, setIsMobileChart] = useState(false);
   const currency = useCurrencyStore((state) => state.currency);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+
+    const mobileMediaQuery = window.matchMedia('(max-width: 639px)');
+    const updateMobileChart = () => setIsMobileChart(mobileMediaQuery.matches);
+
+    updateMobileChart();
+    mobileMediaQuery.addEventListener('change', updateMobileChart);
+
+    return () =>
+      mobileMediaQuery.removeEventListener('change', updateMobileChart);
+  }, []);
 
   // 시리즈에 색상 할당
   const seriesWithColors = useMemo(
@@ -869,8 +883,8 @@ export function AssetChart({
   return (
     <Card className='chart-card w-full h-full glass-card flex flex-col'>
       <CardHeader className='p-3.5 sm:p-4 lg:p-6'>
-        <div className='min-w-0'>
-          <div className='flex h-7 items-center justify-between gap-2 lg:gap-4'>
+        <div className='min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-x-4'>
+          <div className='flex min-h-9 items-center justify-between gap-2 sm:min-h-8 lg:contents'>
             <CardTitle className='flex min-w-0 items-center gap-2 text-lg leading-snug'>
               {Icon ? (
                 <Icon style={{ color: themeColor }} className='h-5 w-5' />
@@ -882,7 +896,7 @@ export function AssetChart({
               )}
               {title}
             </CardTitle>
-            <div className='flex max-w-[65%] shrink-0 flex-row items-center gap-1 sm:w-auto sm:max-w-none sm:gap-2'>
+            <div className='flex max-w-[65%] shrink-0 flex-row items-center gap-1 sm:w-auto sm:max-w-none sm:gap-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center'>
               {(showLogScaleToggle === undefined || showLogScaleToggle) && (
                 <Button
                   type='button'
@@ -890,7 +904,7 @@ export function AssetChart({
                   size='sm'
                   aria-pressed={useLogScale}
                   onClick={() => setUseLogScale((current) => !current)}
-                  className='interactive-lift h-7 shrink-0 cursor-pointer gap-1 rounded-md border-white/15 bg-white/[0.04] px-2 text-[10px] font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground lg:h-[26px] lg:text-xs'
+                  className='interactive-lift h-9 shrink-0 cursor-pointer gap-1.5 rounded-md border-white/15 bg-white/[0.04] px-3 text-xs font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground sm:h-8 lg:text-sm'
                   style={
                     useLogScale
                       ? {
@@ -907,9 +921,10 @@ export function AssetChart({
                   <span
                     className={
                       useLogScale
-                        ? 'text-[9px] text-white/80 lg:text-[11px]'
-                        : 'text-[9px] text-muted-foreground lg:text-[11px]'
+                        ? 'text-[10px] text-white/80 lg:text-xs'
+                        : 'text-[10px] lg:text-xs'
                     }
+                    style={useLogScale ? undefined : { color: themeColor }}
                   >
                     {useLogScale ? 'ON' : 'OFF'}
                   </span>
@@ -925,7 +940,7 @@ export function AssetChart({
                   onClick={() =>
                     setAdjustForInflation((current) => !current)
                   }
-                  className='interactive-lift h-7 shrink-0 cursor-pointer gap-1 rounded-md border-white/15 bg-white/[0.04] px-2 text-[10px] font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground lg:h-[26px] lg:text-xs'
+                  className='interactive-lift h-9 shrink-0 cursor-pointer gap-1.5 rounded-md border-white/15 bg-white/[0.04] px-3 text-xs font-semibold shadow-sm hover:bg-white/[0.1] hover:text-foreground sm:h-8 lg:text-sm'
                   style={
                     adjustForInflation
                       ? {
@@ -940,8 +955,11 @@ export function AssetChart({
                   <span
                     className={
                       adjustForInflation
-                        ? 'text-[9px] text-white/80 lg:text-[11px]'
-                        : 'text-[9px] text-muted-foreground lg:text-[11px]'
+                        ? 'text-[10px] text-white/80 lg:text-xs'
+                        : 'text-[10px] lg:text-xs'
+                    }
+                    style={
+                      adjustForInflation ? undefined : { color: themeColor }
                     }
                   >
                     {adjustForInflation ? 'ON' : 'OFF'}
@@ -951,7 +969,7 @@ export function AssetChart({
             </div>
           </div>
           {(description || logScaleDescription) && (
-            <CardDescription className='mt-1'>
+            <CardDescription className='mt-1 lg:col-start-1 lg:row-start-2'>
               {[description, logScaleDescription].filter(Boolean).join(' ')}
             </CardDescription>
           )}
@@ -1103,6 +1121,7 @@ export function AssetChart({
                 <YAxis
                   axisLine={false}
                   fontSize={12}
+                  width={isMobileChart ? 44 : 60}
                   scale={yScale}
                   domain={yDomain}
                   tickFormatter={formatYAxisTick}
@@ -1136,6 +1155,7 @@ export function AssetChart({
                 <CartesianGrid strokeDasharray='3 3' />
                 <XAxis
                   dataKey='date'
+                  fontSize={12}
                   tickFormatter={getXAxisTickFormatter()}
                   type='category'
                   ticks={calculateXAxisTicks}
@@ -1143,6 +1163,8 @@ export function AssetChart({
                   axisLine={false}
                 />
                 <YAxis
+                  fontSize={12}
+                  width={isMobileChart ? 44 : 60}
                   scale={yScale}
                   domain={yDomain}
                   tickFormatter={formatYAxisTick}

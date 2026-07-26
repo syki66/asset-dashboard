@@ -236,13 +236,13 @@ export function CalendarPicker({
               onClick={() => navigateYear('prev')}
               disabled={!canNavigatePrevYear}
               className={cn(
-                "interactive-lift h-7 w-7 cursor-pointer",
+                "interactive-lift h-6.5 w-6.5 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigatePrevYear && "cursor-not-allowed opacity-45",
               )}
               aria-label="이전 연도"
             >
-              <ChevronsLeft className="h-4 w-4" />
+              <ChevronsLeft className="h-3.5 w-3.5" />
             </Button>
 
             <Button
@@ -252,18 +252,18 @@ export function CalendarPicker({
               onClick={() => navigateMonth('prev')}
               disabled={!canNavigatePrevMonth}
               className={cn(
-                "interactive-lift h-7 w-7 cursor-pointer",
+                "interactive-lift h-6.5 w-6.5 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigatePrevMonth && "cursor-not-allowed opacity-45",
               )}
               aria-label="이전 달"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3.5 w-3.5" />
             </Button>
 
             <h2
               className={cn(
-                "text-base font-semibold min-w-[6.25rem] text-center",
+                "min-w-[6rem] text-center text-[15px] font-semibold",
                 "text-[color:var(--calendar-theme)]"
               )}
             >
@@ -277,13 +277,13 @@ export function CalendarPicker({
               onClick={() => navigateMonth('next')}
               disabled={!canNavigateNextMonth}
               className={cn(
-                "interactive-lift h-7 w-7 cursor-pointer",
+                "interactive-lift h-6.5 w-6.5 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigateNextMonth && "cursor-not-allowed opacity-45",
               )}
               aria-label="다음 달"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </Button>
 
             <Button
@@ -293,13 +293,13 @@ export function CalendarPicker({
               onClick={() => navigateYear('next')}
               disabled={!canNavigateNextYear}
               className={cn(
-                "interactive-lift h-7 w-7 cursor-pointer",
+                "interactive-lift h-6.5 w-6.5 cursor-pointer",
                 "border-white/10 bg-transparent text-[color:var(--calendar-theme)] hover:bg-[var(--calendar-hover)] hover:text-[color:var(--calendar-theme)]",
                 !canNavigateNextYear && "cursor-not-allowed opacity-45",
               )}
               aria-label="다음 연도"
             >
-              <ChevronsRight className="h-4 w-4" />
+              <ChevronsRight className="h-3.5 w-3.5" />
             </Button>
           </div>
 
@@ -307,13 +307,13 @@ export function CalendarPicker({
             onClick={handleTodayClick}
             disabled={!isTodaySelectable}
             className={cn(
-              'interactive-lift ml-1 h-7 cursor-pointer border-transparent px-2 text-xs font-medium shadow-sm',
+              'interactive-lift ml-1 h-7 cursor-pointer gap-1.5 border-transparent px-2 text-[11px] font-medium shadow-sm',
               !isTodaySelectable && "cursor-not-allowed opacity-45",
               "bg-[color:var(--calendar-theme)] text-white hover:bg-[color:var(--calendar-theme)]",
             )}
             size="sm"
           >
-            <Calendar className="h-4 w-4 mr-2" />
+            <Calendar className="h-4 w-4" />
             오늘
           </Button>
         </div>
