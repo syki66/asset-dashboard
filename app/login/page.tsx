@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { LoginForm } from '@/components/auth/login-form';
 
 export const metadata: Metadata = {
-  title: 'Login - Asset Dashboard',
-  description: 'Sign in to access encrypted CSV storage',
+  title: '로그인',
+  description: '암호화된 CSV 저장 데이터를 안전하게 불러오세요.',
+  robots: { index: false, follow: false },
 };
 
 const getSafeNextPath = (value?: string | string[]) => {

@@ -1,4 +1,4 @@
-# 📈 Asset Dashboard
+# 📈 자산 대시보드
 
 신한투자증권의 계좌 거래내역 데이터(CSV)를 기반으로 파생 데이터를 생성하고, 이를 직관적인 대시보드와 차트로 시각화해 주는 웹 애플리케이션입니다.
 
@@ -6,9 +6,9 @@
 
 투자 성과, 자산 현황, 배당 수익, 위험도, 포트폴리오 구성, 거래 히스토리 등을 한눈에 확인할 수 있습니다.
 
-🔗 **[Live Demo](https://asset-dashboard-preview.vercel.app/setup?mode=demo)**
+🔗 **[Live Demo](https://asset.pokugi.com/setup?mode=demo)**
 
-![Asset Dashboard](./public/asset-dashboard.png)
+![자산 대시보드](./public/asset-dashboard.png)
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
