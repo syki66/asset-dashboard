@@ -344,10 +344,22 @@ export const initialDashboardData: DashboardProps = {
 // 대시보드 데이터 상태 관리
 interface DashboardState {
   dashboardData: DashboardProps;
+  // 설정 화면과 레이아웃이 동일한 실제 계산 생명주기를 공유합니다.
+  isDashboardCalculating: boolean;
+  // 실패 여부를 설정 화면에 전달해 성공 안내 대신 선택값을 복구하게 합니다.
+  dashboardCalculationError: string | null;
   setDashboardData: (data: DashboardProps) => void;
+  setIsDashboardCalculating: (isCalculating: boolean) => void;
+  setDashboardCalculationError: (error: string | null) => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
   dashboardData: initialDashboardData,
+  isDashboardCalculating: false,
+  dashboardCalculationError: null,
   setDashboardData: (data) => set({ dashboardData: data }),
+  setIsDashboardCalculating: (isDashboardCalculating) =>
+    set({ isDashboardCalculating }),
+  setDashboardCalculationError: (dashboardCalculationError) =>
+    set({ dashboardCalculationError }),
 }));

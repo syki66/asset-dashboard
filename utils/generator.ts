@@ -60,10 +60,10 @@ export const createBenchmarkData = async (
     }
   });
 
-  let termsKrw: TermsProps[] = []; // 예금 상품 (KRW)
-  let termsUsd: TermsProps[] = []; // 예금 상품 (USD)
+  const termsKrw: TermsProps[] = []; // 예금 상품 (KRW)
+  const termsUsd: TermsProps[] = []; // 예금 상품 (USD)
 
-  let result: {
+  const result: {
     date: string;
     benchmarkNetValueKrw: number;
     benchmarkNetValueUsd: number;
@@ -142,7 +142,7 @@ export function getFxRate(
     }
   }
 
-  return closest.close;
+  return closest.close ?? DEFAULT_FX_RATE;
 }
 
 // 1년 뒤 날짜 반환

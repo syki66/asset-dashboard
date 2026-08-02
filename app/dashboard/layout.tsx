@@ -15,10 +15,15 @@ import {
   useChartLayoutStore,
   useDashboardDateStore,
 } from '@/store/options';
-import { useAccountStore } from '@/store/account';
+import { useAccountStore, useInterestRateStore } from '@/store/account';
+import { useFeeSettingsStore } from '@/store/fee-settings';
 import { useSelectedAccountsStore } from '@/store/selectedAccounts';
-import { convertToDashboardData, mergeAccountData } from '@/utils/converter';
-import { DashboardProps } from '@/types';
+import {
+  convertToDashboardData,
+  getDashboardDataByDate,
+  mergeAccountData,
+} from '@/utils/converter';
+import type { DashboardDataset } from '@/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDateKey, formatDateKr, timeAgo } from '@/utils/format';
 import {
@@ -49,6 +54,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CalendarPicker } from '@/components/ui/calendar-picker';
 import { LoadingOverlay } from '@/components/ui/loading-overlay';
+import { toast } from 'sonner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -188,28 +194,30 @@ const getPageDetails = (pathname: string) => {
   return { title: '대시보드', description: '데이터를 분석하고 관리하세요.' };
 };
 
-const findDashboardDataByDate = (
-  data: DashboardProps[],
-  targetDate: string | null,
-) => {
-  if (data.length === 0) return undefined;
-  if (!targetDate) return data.at(-1);
-
-  const exact = data.find((item) => item.date === targetDate);
-  if (exact) return exact;
-
-  // 조회일 데이터가 없으면 최신값으로 튀지 않도록 선택일 이전의 가장 가까운 데이터를 사용합니다.
-  return [...data].reverse().find((item) => item.date <= targetDate) ?? data[0];
-};
-
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const setDashboardData = useDashboardStore((state) => state.setDashboardData);
+  const isDashboardCalculating = useDashboardStore(
+    (state) => state.isDashboardCalculating,
+  );
+  const setIsDashboardCalculating = useDashboardStore(
+    (state) => state.setIsDashboardCalculating,
+  );
+  const setDashboardCalculationError = useDashboardStore(
+    (state) => state.setDashboardCalculationError,
+  );
   const { currency, setCurrency } = useCurrencyStore();
   const { tax, setTax } = useTaxStore();
   const { chartLayout, setChartLayout } = useChartLayoutStore();
   const dashboardDate = useDashboardDateStore((state) => state.dashboardDate);
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
+  const bestInterestRates = useInterestRateStore(
+    (state) => state.bestInterestRates,
+  );
+  const worstInterestRates = useInterestRateStore(
+    (state) => state.worstInterestRates,
+  );
+  const feeSettings = useFeeSettingsStore((state) => state.feeSettings);
   const { selectedAccounts } = useSelectedAccountsStore();
   const pathname = usePathname();
   const router = useRouter();
@@ -219,25 +227,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(() =>
     formatDateKey(dashboardDate),
   );
-  const [allDashboardData, setAllDashboardData] = useState<DashboardProps[]>(
-    [],
-  );
+  const [dashboardDataset, setDashboardDataset] =
+    useState<DashboardDataset | null>(null);
   const [isCurrencyCalculating, setIsCurrencyCalculating] = useState(false);
   const [pendingCurrency, setPendingCurrency] = useState<'krw' | 'usd' | null>(
     null,
   );
-  const [readyCurrency, setReadyCurrency] = useState<'krw' | 'usd' | null>(
-    null,
-  );
+  const calculationCurrency = pendingCurrency ?? currency;
   const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false);
   const [isDesktopViewport, setIsDesktopViewport] = useState(false);
-  const dashboardDataCacheRef = useRef(new Map<string, DashboardProps[]>());
-  const currencyCalculationTimeoutRef = useRef<number | null>(null);
-  // 계좌 선택 순서가 달라도 같은 조합이면 같은 캐시를 쓰도록 정렬한 키를 만듭니다.
-  const selectedAccountKey = useMemo(
-    () => [...selectedAccounts].sort().join('|'),
-    [selectedAccounts],
-  );
+  const currencyCalculationFrameRef = useRef<number | null>(null);
+  // 통화 계산 성공 후 pending 값만 해제될 때 같은 통화 계산이 다시 실행되지 않도록
+  // effect는 실제 계산 통화(calculationCurrency)의 변화만 구독합니다.
+  const pendingCurrencyRef = useRef(pendingCurrency);
+  pendingCurrencyRef.current = pendingCurrency;
+  // 통화 계산 실패로 기존 통화로 돌아가는 한 번의 상태 전환만 건너뜁니다.
+  // 계산 결과를 보관하거나 재사용하는 캐시는 아닙니다.
+  const skipCurrencyRollbackCalculationRef = useRef(false);
+  // 계산 commit 직후 날짜 effect가 같은 차트 prefix와 종목을 다시 만들지 않도록 추적합니다.
+  const materializedDashboardRef = useRef<{
+    dataset: DashboardDataset | null;
+    snapshotDate: string | null;
+  }>({ dataset: null, snapshotDate: null });
+  const selectedDateRef = useRef(selectedDate);
+  selectedDateRef.current = selectedDate;
 
   useEffect(() => {
     if (!isSetupComplete || !isValidDashboardRoute) {
@@ -245,18 +258,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [isSetupComplete, isValidDashboardRoute, router]);
 
-  // 원본 계좌 데이터가 새로 업로드되거나 교체되면 이전 계산 결과는 더 이상 유효하지 않습니다.
-  useEffect(() => {
-    dashboardDataCacheRef.current.clear();
-  }, [totalAccountData]);
-
   useEffect(() => {
     return () => {
-      if (currencyCalculationTimeoutRef.current !== null) {
-        window.clearTimeout(currencyCalculationTimeoutRef.current);
+      if (currencyCalculationFrameRef.current !== null) {
+        window.cancelAnimationFrame(currencyCalculationFrameRef.current);
       }
+      setIsDashboardCalculating(false);
     };
-  }, []);
+  }, [setIsDashboardCalculating]);
 
   useEffect(() => {
     if (!isMobileControlsOpen) return;
@@ -299,56 +308,110 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     };
   }, [setChartLayout]);
 
-  // 선택 계좌와 통화 조합별로 대시보드 변환 결과를 캐시해 불필요한 재계산을 줄입니다.
+  // Setup 완료 또는 Settings 계좌 적용 시 전체 기간 MWR까지 한 번에 계산합니다.
+  // 페이지 경로는 의존성에 없으므로 대시보드 화면 이동만으로는 다시 계산하지 않습니다.
   useEffect(() => {
-    let isCancelled = false;
-    const calculationCurrency = pendingCurrency ?? currency;
-    const cacheKey = `${calculationCurrency}:${selectedAccountKey}`;
-    const cachedDashboardData = dashboardDataCacheRef.current.get(cacheKey);
-
-    if (cachedDashboardData) {
-      setAllDashboardData(cachedDashboardData);
-      if (pendingCurrency) {
-        setReadyCurrency(calculationCurrency);
-      } else {
-        setIsCurrencyCalculating(false);
-      }
+    if (skipCurrencyRollbackCalculationRef.current) {
+      skipCurrencyRollbackCalculationRef.current = false;
       return;
     }
 
+    let isCancelled = false;
+    const shouldCommitPendingCurrency = pendingCurrencyRef.current !== null;
+
+    const finishCurrencyCalculation = () => {
+      if (shouldCommitPendingCurrency) {
+        // 새 데이터와 표시 통화를 같은 계산 commit 안에서 바꿔 단위가 엇갈리는 프레임을 막습니다.
+        setCurrency(calculationCurrency);
+        setPendingCurrency(null);
+      }
+      setIsCurrencyCalculating(false);
+    };
+
+    const commitDashboardDataset = (nextDataset: DashboardDataset) => {
+      const nextDashboardData = getDashboardDataByDate(
+        nextDataset,
+        selectedDateRef.current,
+      );
+
+      setDashboardDataset(nextDataset);
+      if (nextDashboardData) {
+        materializedDashboardRef.current = {
+          dataset: nextDataset,
+          snapshotDate: nextDashboardData.date,
+        };
+        setDashboardData(nextDashboardData);
+        if (nextDashboardData.date !== selectedDateRef.current) {
+          selectedDateRef.current = nextDashboardData.date;
+          setSelectedDate(nextDashboardData.date);
+        }
+      } else {
+        materializedDashboardRef.current = {
+          dataset: nextDataset,
+          snapshotDate: null,
+        };
+        setDashboardData(initialDashboardData);
+      }
+
+      finishCurrencyCalculation();
+      setIsDashboardCalculating(false);
+    };
+
+    const failDashboardCalculation = (error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : '알 수 없는 오류가 발생했습니다.';
+      console.error('대시보드 데이터 계산에 실패했습니다.', error);
+
+      setDashboardCalculationError(message);
+      if (shouldCommitPendingCurrency) {
+        skipCurrencyRollbackCalculationRef.current = true;
+        setPendingCurrency(null);
+      }
+      setIsCurrencyCalculating(false);
+      setIsDashboardCalculating(false);
+      toast.error('대시보드 계산 실패', {
+        description: '계좌 데이터를 계산하지 못했습니다. 다시 시도해 주세요.',
+      });
+    };
+
+    setDashboardCalculationError(null);
+    setIsDashboardCalculating(true);
+
+    // 0ms 예약은 계산을 늦추기 위한 지연이 아니라, 로딩 overlay를 먼저 paint할 기회를 줍니다.
+    // effect가 교체되면 cleanup에서 아직 시작하지 않은 계산을 취소할 수 있습니다.
     const timeoutId = window.setTimeout(() => {
       if (!totalAccountData || selectedAccounts.length === 0) {
         if (!isCancelled) {
-          dashboardDataCacheRef.current.set(cacheKey, []);
-          setAllDashboardData([]);
-          if (pendingCurrency) {
-            setReadyCurrency(calculationCurrency);
-          } else {
-            setIsCurrencyCalculating(false);
-          }
+          setDashboardDataset(null);
+          materializedDashboardRef.current = {
+            dataset: null,
+            snapshotDate: null,
+          };
+          setDashboardData(initialDashboardData);
+          finishCurrencyCalculation();
+          setIsDashboardCalculating(false);
         }
         return;
       }
 
-      const selectedAccountSet = new Set(selectedAccounts);
-      const filteredData = totalAccountData.filter((data) =>
-        selectedAccountSet.has(data.name),
-      );
-      const mergedAccountData = mergeAccountData(filteredData);
-      const convertedDashboardData = convertToDashboardData(
-        mergedAccountData,
-        calculationCurrency,
-      );
+      try {
+        const selectedAccountSet = new Set(selectedAccounts);
+        const filteredData = totalAccountData.filter((data) =>
+          selectedAccountSet.has(data.name),
+        );
+        const mergedAccountData = mergeAccountData(filteredData);
+        const convertedDashboardData = convertToDashboardData(
+          mergedAccountData,
+          calculationCurrency,
+        );
 
-      if (!isCancelled) {
-        // 계산 결과를 저장해두면 같은 계좌/통화 조합을 다시 선택할 때 즉시 재사용할 수 있습니다.
-        dashboardDataCacheRef.current.set(cacheKey, convertedDashboardData);
-        setAllDashboardData(convertedDashboardData);
-        if (pendingCurrency) {
-          setReadyCurrency(calculationCurrency);
-        } else {
-          setIsCurrencyCalculating(false);
+        if (!isCancelled) {
+          commitDashboardDataset(convertedDashboardData);
         }
+      } catch (error) {
+        if (!isCancelled) failDashboardCalculation(error);
       }
     }, 0);
 
@@ -357,11 +420,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       window.clearTimeout(timeoutId);
     };
   }, [
-    currency,
-    pendingCurrency,
-    selectedAccountKey,
+    bestInterestRates,
+    calculationCurrency,
+    feeSettings,
     selectedAccounts,
+    setDashboardCalculationError,
+    setDashboardData,
+    setCurrency,
+    setIsDashboardCalculating,
     totalAccountData,
+    worstInterestRates,
   ]);
 
   const dashboardDateRange = useMemo(() => {
@@ -370,39 +438,49 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       return new Date(year, month - 1, day);
     };
 
-    const firstDate = allDashboardData.at(0)?.date;
-    const lastDate = allDashboardData.at(-1)?.date;
+    const firstDate = dashboardDataset?.snapshots.at(0)?.date;
+    const lastDate = dashboardDataset?.snapshots.at(-1)?.date;
 
     return {
       minDate: firstDate ? parseDate(firstDate) : undefined,
       maxDate: lastDate ? parseDate(lastDate) : undefined,
     };
-  }, [allDashboardData]);
+  }, [dashboardDataset]);
 
   // 계좌 데이터와 통화가 변경될 때마다 전역 상태관리로 데이터 전달
   useEffect(() => {
-    if (allDashboardData.length > 0) {
-      const data = findDashboardDataByDate(allDashboardData, selectedDate);
-      setDashboardData(data as DashboardProps);
+    if (dashboardDataset && dashboardDataset.snapshots.length > 0) {
+      const data = getDashboardDataByDate(dashboardDataset, selectedDate);
+      if (!data) return;
 
       // 선택한 날짜가 데이터에 없거나 초기 상태인 경우, 실제 데이터의 날짜로 상태 업데이트
-      if (data && data.date !== selectedDate) {
+      if (data.date !== selectedDate) {
+        selectedDateRef.current = data.date;
         setSelectedDate(data.date);
       }
+
+      if (
+        materializedDashboardRef.current.dataset === dashboardDataset &&
+        materializedDashboardRef.current.snapshotDate === data.date
+      ) {
+        return;
+      }
+
+      materializedDashboardRef.current = {
+        dataset: dashboardDataset,
+        snapshotDate: data.date,
+      };
+      setDashboardData(data);
     } else {
+      if (materializedDashboardRef.current.dataset === null) return;
+
+      materializedDashboardRef.current = {
+        dataset: null,
+        snapshotDate: null,
+      };
       setDashboardData(initialDashboardData);
     }
-  }, [allDashboardData, selectedDate, setDashboardData]);
-
-  // 계산 결과를 대시보드에 반영한 뒤에만 화면의 통화 단위를 전환합니다.
-  useEffect(() => {
-    if (!readyCurrency) return;
-
-    setCurrency(readyCurrency);
-    setPendingCurrency(null);
-    setReadyCurrency(null);
-    setIsCurrencyCalculating(false);
-  }, [readyCurrency, setCurrency]);
+  }, [dashboardDataset, selectedDate, setDashboardData]);
 
   const activeCategory =
     categories.find((c) => pathname.startsWith(c.href))?.id || 'overview';
@@ -430,10 +508,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (nextCurrency === currency || isCurrencyCalculating) return;
 
     setIsCurrencyCalculating(true);
-    currencyCalculationTimeoutRef.current = window.setTimeout(() => {
-      currencyCalculationTimeoutRef.current = null;
+    currencyCalculationFrameRef.current = window.requestAnimationFrame(() => {
+      currencyCalculationFrameRef.current = null;
       setPendingCurrency(nextCurrency);
-    }, 500);
+    });
   };
 
   if (!isSetupComplete || !isValidDashboardRoute) {
@@ -443,7 +521,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div
       className={cn(
-        'flex min-h-screen min-w-0 flex-col overflow-x-clip lg:min-w-[auto] lg:flex-row lg:overflow-x-visible',
+        'relative flex min-h-screen min-w-0 flex-col overflow-x-clip lg:min-w-[auto] lg:flex-row lg:overflow-x-visible',
         pageBgClass,
       )}
     >
@@ -748,6 +826,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <SlidersHorizontal className='h-4 w-4' />
       </Button>
+      {isDashboardCalculating && !isCurrencyCalculating && (
+        <div className='fixed inset-0 z-[100]'>
+          <LoadingOverlay
+            title='대시보드 분석 중'
+            description='선택한 계좌 데이터를 계산하고 있습니다.'
+            accentColor={`var(--${activeCategory}-theme)`}
+          />
+        </div>
+      )}
     </div>
   );
 }

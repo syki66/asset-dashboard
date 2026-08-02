@@ -1,16 +1,18 @@
 import {
   AccountProps,
-  StockProps,
   Currency,
-  DividendProps,
   StockHistoryProps,
   TransactionProps,
   DashboardProps,
   ChartProps,
+  StockProps,
   StockTradeHistoryChartProps,
-  MergeAccountDataInput,
-  StockTradeHistoryProps,
   type PrincipalAdjustment,
+  type DashboardCharts,
+  type DashboardDataset,
+  type DashboardSnapshot,
+  type ReadonlyAccountProps,
+  type ReadonlyMergeAccountDataInput,
 } from '@/types';
 import {
   dateToTimestamp,
@@ -23,7 +25,11 @@ import {
   mergeStocks,
   mergeStockTradeHistory,
 } from './mergeHelpers';
-import { calculateXIRR, CashFlow } from './xirr';
+import {
+  calculateXIRRBatch,
+  compileCashFlows,
+  type CashFlow,
+} from './xirr';
 import { annualizeTwr, calculateTwrFactor } from './twr';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -44,11 +50,15 @@ import {
 import { useInterestRateStore } from '@/store/account';
 import { useFeeSettingsStore } from '@/store/fee-settings';
 
-// 대시보드 표시용 데이터로 가공하는 함수
+/**
+ * 계좌 이력을 날짜별 요약(`snapshots`)과 한 벌의 전체 차트(`charts`)로 변환합니다.
+ * 대시보드 페이지 이동 시 재계산하지 않도록 전체 기간 MWR도 여기서 미리 계산합니다.
+ * 각 스냅샷에 차트 배열을 복제하지 않아 기간이 길어져도 메모리가 중복되지 않습니다.
+ */
 export const convertToDashboardData = (
-  accountData: AccountProps[],
+  accountData: readonly ReadonlyAccountProps[],
   currency: Currency,
-): DashboardProps[] => {
+): DashboardDataset => {
   // 자산 증감 내역 차트용 데이터
   const principalChartData: ChartProps[] = [];
   const currentValueChartData: ChartProps[] = [];
@@ -73,8 +83,6 @@ export const convertToDashboardData = (
   const bestSharpeRatioChartData: ChartProps[] = [];
   const worstSharpeRatioChartData: ChartProps[] = [];
   const volatilityChartData: ChartProps[] = [];
-  let dividendHistoryChartData: ChartProps[] = [];
-  let dividendHistoryChartDataNet: ChartProps[] = [];
   const yieldOnCostChartData: ChartProps[] = [];
   const yieldOnCostChartDataNet: ChartProps[] = [];
   const dividendYieldChartData: ChartProps[] = [];
@@ -87,8 +95,6 @@ export const convertToDashboardData = (
   const benchmarkWorstNetChartData: ChartProps[] = [];
   const benchmarkWorstProfitChartData: ChartProps[] = [];
   const benchmarkWorstNetProfitChartData: ChartProps[] = [];
-  let stockTradeHistoryChartData: StockTradeHistoryChartProps[] = [];
-
   // MDD 계산용 변수
   let maxDrawdown = 0; // 역대 MDD (금액)
   let peakValue = 0; // 평가자산 최고점
@@ -141,8 +147,9 @@ export const convertToDashboardData = (
     dividendSource: 'domestic' | 'foreign' | undefined,
   ) => (dividendSource === 'foreign' ? usDividendTaxRate : krDividendTaxRate);
 
-  // 병합된 데이터를 순회하면서 각 계좌의 대시보드 데이터를 생성
-  const dashboardData = accountData.map((account: AccountProps) => {
+  // 스냅샷에는 날짜별 숫자 지표만 저장하고, stocks와 charts는 조회 시 결합합니다.
+  const snapshots: DashboardSnapshot[] = accountData.map(
+    (account: ReadonlyAccountProps) => {
     // USD 주식 총 금액 계산
     const usdStockValue = account.usd.stocks.reduce(
       (acc, stock) => acc + stock.price * stock.balance.length,
@@ -315,46 +322,6 @@ export const convertToDashboardData = (
     let benchmarkBestNetMwr = 0;
     let benchmarkWorstMwr = 0;
     let benchmarkWorstNetMwr = 0;
-
-    if (cashFlows.length > 0) {
-      const currentCFs = [
-        ...cashFlows,
-        { date: account.date, amount: currentValue },
-      ];
-      mwr = calculateXIRR(currentCFs);
-
-      const currentNetCFs = [
-        ...cashFlows,
-        { date: account.date, amount: netCurrentValue },
-      ];
-      netMwr = calculateXIRR(currentNetCFs);
-    }
-
-    // 환전 처리된 총 보유 주식 목록
-    const stocksConverted =
-      currency === 'usd'
-        ? [
-            ...account.usd.stocks,
-            ...account.krw.stocks.map((stock) => ({
-              ...stock,
-              balance: stock.balance.map((b) => ({
-                ...b,
-                price: b.price / b.fxRate, // KRW → USD (각각의 fxRate 사용)
-              })),
-              price: stock.price / account.fxRate, // KRW → USD
-            })),
-          ]
-        : [
-            ...account.krw.stocks,
-            ...account.usd.stocks.map((stock) => ({
-              ...stock,
-              balance: stock.balance.map((b) => ({
-                ...b,
-                price: b.price * b.fxRate, // USD → KRW (각각의 fxRate 사용)
-              })),
-              price: stock.price * account.fxRate, // USD → KRW
-            })),
-          ];
 
     // 배당금 (최근 1년간)
     const oneYearAgo = new Date(account.date);
@@ -629,31 +596,31 @@ export const convertToDashboardData = (
       netProfit - benchmarkWorstNetProfit
     );
 
-    // 벤치마크 MWR 계산
+    // 계좌 적용 시 모든 날짜의 MWR 6종을 선계산해 페이지 이동 재계산을 없앱니다.
     if (cashFlows.length > 0) {
-      const currentBenchmarkBestCFs = [
-        ...cashFlows,
-        { date: account.date, amount: benchmarkBestValue },
-      ];
-      benchmarkBestMwr = calculateXIRR(currentBenchmarkBestCFs);
+      const compiledCashFlows = compileCashFlows(cashFlows, {
+        assumeSorted: true,
+      });
+      const xirrResults = calculateXIRRBatch(
+        compiledCashFlows,
+        [
+          { date: account.date, amount: currentValue },
+          { date: account.date, amount: netCurrentValue },
+          { date: account.date, amount: benchmarkBestValue },
+          { date: account.date, amount: benchmarkBestNetValue },
+          { date: account.date, amount: benchmarkWorstValue },
+          { date: account.date, amount: benchmarkWorstNetValue },
+        ],
+      );
 
-      const currentBenchmarkBestNetCFs = [
-        ...cashFlows,
-        { date: account.date, amount: benchmarkBestNetValue },
-      ];
-      benchmarkBestNetMwr = calculateXIRR(currentBenchmarkBestNetCFs);
-
-      const currentBenchmarkWorstCFs = [
-        ...cashFlows,
-        { date: account.date, amount: benchmarkWorstValue },
-      ];
-      benchmarkWorstMwr = calculateXIRR(currentBenchmarkWorstCFs);
-
-      const currentBenchmarkWorstNetCFs = [
-        ...cashFlows,
-        { date: account.date, amount: benchmarkWorstNetValue },
-      ];
-      benchmarkWorstNetMwr = calculateXIRR(currentBenchmarkWorstNetCFs);
+      [
+        mwr,
+        netMwr,
+        benchmarkBestMwr,
+        benchmarkBestNetMwr,
+        benchmarkWorstMwr,
+        benchmarkWorstNetMwr,
+      ] = xirrResults;
     }
 
     // TWR 계산
@@ -837,56 +804,6 @@ export const convertToDashboardData = (
       value: volatility,
     });
 
-    // 배당금 기록 차트 데이터
-    const krwDividends = account.usd.dividends.map((dividend) => {
-      const taxRate = getDividendTaxRate(dividend.dividendSource);
-      const netPrice = dividend.price * (1 - taxRate);
-      return {
-        date: dividend.date,
-        value:
-          currency === 'usd'
-            ? dividend.price
-            : dividend.price * dividend.fxRate,
-        netValue: currency === 'usd' ? netPrice : netPrice * dividend.fxRate,
-      };
-    });
-
-    const usdDividends = account.krw.dividends.map((dividend) => {
-      const taxRate = getDividendTaxRate(dividend.dividendSource);
-      const netPrice = dividend.price * (1 - taxRate);
-      return {
-        date: dividend.date,
-        value:
-          currency === 'usd'
-            ? dividend.price / dividend.fxRate
-            : dividend.price,
-        netValue: currency === 'usd' ? netPrice / dividend.fxRate : netPrice,
-      };
-    });
-
-    dividendHistoryChartData = [
-      ...krwDividends.map((dividend) => ({
-        date: dividend.date,
-        value: dividend.value,
-      })),
-      ...usdDividends.map((dividend) => ({
-        date: dividend.date,
-        value: dividend.value,
-      })),
-    ];
-    dividendHistoryChartDataNet = [
-      ...krwDividends.map((dividend) => ({
-        date: dividend.date,
-        value: dividend.netValue,
-      })),
-      ...usdDividends.map((dividend) => ({
-        date: dividend.date,
-        value: dividend.netValue,
-      })),
-    ];
-    dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date));
-    dividendHistoryChartDataNet.sort((a, b) => a.date.localeCompare(b.date));
-
     // Yield on Cost 차트 데이터
     yieldOnCostChartData.push({
       date: account.date,
@@ -955,67 +872,6 @@ export const convertToDashboardData = (
       value: benchmarkWorstNetProfit,
     });
 
-    // 주식 매매 기록 차트 데이터 (매수, 매도 통합)
-    const krwStockTradeHistory = account.krw.stockTradeHistory.map((trade) => ({
-      date: trade.date,
-      type: trade.type,
-      quantityBySymbol: Object.fromEntries(
-        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-          symbol,
-          prices.length,
-        ]),
-      ),
-      priceBySymbol: Object.fromEntries(
-        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-          symbol,
-          prices.reduce(
-            (acc, price) =>
-              currency === 'usd' ? acc + price / trade.fxRate : acc + price,
-            0,
-          ),
-        ]),
-      ),
-      namesBySymbol: Object.fromEntries(
-        Object.keys(trade.pricesBySymbol).map((symbol) => [
-          symbol,
-          trade.namesBySymbol?.[symbol] ?? symbol,
-        ]),
-      ),
-    }));
-
-    const usdStockTradeHistory = account.usd.stockTradeHistory.map((trade) => ({
-      date: trade.date,
-      type: trade.type,
-      quantityBySymbol: Object.fromEntries(
-        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-          symbol,
-          prices.length,
-        ]),
-      ),
-      priceBySymbol: Object.fromEntries(
-        Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
-          symbol,
-          prices.reduce(
-            (acc, price) =>
-              currency === 'usd' ? acc + price : acc + price * trade.fxRate,
-            0,
-          ),
-        ]),
-      ),
-      namesBySymbol: Object.fromEntries(
-        Object.keys(trade.pricesBySymbol).map((symbol) => [
-          symbol,
-          symbol,
-        ]),
-      ),
-    }));
-
-    stockTradeHistoryChartData = [
-      ...krwStockTradeHistory,
-      ...usdStockTradeHistory,
-    ];
-    stockTradeHistoryChartData.sort((a, b) => a.date.localeCompare(b.date)); // 날짜 순서 정렬
-
     return {
       date: account.date,
       lastUpdated: account.lastUpdated,
@@ -1068,7 +924,6 @@ export const convertToDashboardData = (
         usFxFee,
         usTax,
       },
-      stocks: stocksConverted,
       benchmarkBest: {
         value: benchmarkBestValue,
         netValue: benchmarkBestNetValue,
@@ -1116,50 +971,302 @@ export const convertToDashboardData = (
         worstSharpeRatio,
         volatility,
       },
-      charts: {
-        principal: [...principalChartData],
-        currentValue: [...currentValueChartData],
-        netCurrentValue: [...netCurrentValueChartData],
-        profit: [...profitChartData],
-        netProfit: [...netProfitChartData],
-        returnRate: [...returnRateChartData],
-        netReturnRate: [...netReturnRateChartData],
-        benchmarkBestReturnRate: [...benchmarkBestReturnRateChartData],
-        benchmarkBestNetReturnRate: [...benchmarkBestNetReturnRateChartData],
-        benchmarkWorstReturnRate: [...benchmarkWorstReturnRateChartData],
-        benchmarkWorstNetReturnRate: [...benchmarkWorstNetReturnRateChartData],
-        mwr: [...mwrChartData],
-        netMwr: [...netMwrChartData],
-        twr: [...twrChartData],
-        netTwr: [...netTwrChartData],
-        cagr: [...cagrChartData],
-        netCagr: [...netCagrChartData],
-        averageAnnualReturn: [...averageAnnualReturnChartData],
-        netAverageAnnualReturn: [...netAverageAnnualReturnChartData],
-        drawdown: [...drawdownChartData],
-        bestSharpeRatio: [...bestSharpeRatioChartData],
-        worstSharpeRatio: [...worstSharpeRatioChartData],
-        volatility: [...volatilityChartData],
-        dividendHistory: dividendHistoryChartData,
-        dividendHistoryNet: dividendHistoryChartDataNet,
-        yieldOnCost: [...yieldOnCostChartData],
-        yieldOnCostNet: [...yieldOnCostChartDataNet],
-        dividendYield: [...dividendYieldChartData],
-        dividendYieldNet: [...dividendYieldChartDataNet],
-        benchmarkBest: [...benchmarkBestChartData],
-        benchmarkBestNet: [...benchmarkBestNetChartData],
-        benchmarkBestProfit: [...benchmarkBestProfitChartData],
-        benchmarkBestNetProfit: [...benchmarkBestNetProfitChartData],
-        benchmarkWorst: [...benchmarkWorstChartData],
-        benchmarkWorstNet: [...benchmarkWorstNetChartData],
-        benchmarkWorstProfit: [...benchmarkWorstProfitChartData],
-        benchmarkWorstNetProfit: [...benchmarkWorstNetProfitChartData],
-        stockTradeHistory: stockTradeHistoryChartData,
-      },
     };
-  });
+    },
+  );
 
-  return dashboardData;
+  // 배당·거래는 날짜가 지날수록 누적되므로 마지막 계좌에 전체 이력이 들어 있습니다.
+  // 매 스냅샷을 다시 순회하지 않고 여기서 한 번만 차트 형태로 변환합니다.
+  const latestAccount = accountData.at(-1);
+  const dividendHistoryChartData: ChartProps[] = latestAccount
+    ? [
+        ...latestAccount.usd.dividends.map((dividend) => ({
+          date: dividend.date,
+          value:
+            currency === 'usd'
+              ? dividend.price
+              : dividend.price * dividend.fxRate,
+        })),
+        ...latestAccount.krw.dividends.map((dividend) => ({
+          date: dividend.date,
+          value:
+            currency === 'usd'
+              ? dividend.price / dividend.fxRate
+              : dividend.price,
+        })),
+      ]
+    : [];
+  const dividendHistoryChartDataNet: ChartProps[] = latestAccount
+    ? [
+        ...latestAccount.usd.dividends.map((dividend) => {
+          const netPrice =
+            dividend.price *
+            (1 - getDividendTaxRate(dividend.dividendSource));
+          return {
+            date: dividend.date,
+            value:
+              currency === 'usd' ? netPrice : netPrice * dividend.fxRate,
+          };
+        }),
+        ...latestAccount.krw.dividends.map((dividend) => {
+          const netPrice =
+            dividend.price *
+            (1 - getDividendTaxRate(dividend.dividendSource));
+          return {
+            date: dividend.date,
+            value:
+              currency === 'usd' ? netPrice / dividend.fxRate : netPrice,
+          };
+        }),
+      ]
+    : [];
+
+  dividendHistoryChartData.sort((a, b) => a.date.localeCompare(b.date));
+  dividendHistoryChartDataNet.sort((a, b) => a.date.localeCompare(b.date));
+
+  // 최신 누적 거래 이력도 한 번만 통화 변환하고, 과거 조회에서는 날짜로 잘라 씁니다.
+  const toStockTradeHistoryChart = (
+    account: ReadonlyAccountProps,
+  ): StockTradeHistoryChartProps[] => {
+    const krwStockTradeHistory = account.krw.stockTradeHistory.map(
+      (trade) => ({
+        date: trade.date,
+        type: trade.type,
+        quantityBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.length,
+          ]),
+        ),
+        priceBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.reduce(
+              (sum, price) =>
+                currency === 'usd' ? sum + price / trade.fxRate : sum + price,
+              0,
+            ),
+          ]),
+        ),
+        namesBySymbol: Object.fromEntries(
+          Object.keys(trade.pricesBySymbol).map((symbol) => [
+            symbol,
+            trade.namesBySymbol?.[symbol] ?? symbol,
+          ]),
+        ),
+      }),
+    );
+    const usdStockTradeHistory = account.usd.stockTradeHistory.map(
+      (trade) => ({
+        date: trade.date,
+        type: trade.type,
+        quantityBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.length,
+          ]),
+        ),
+        priceBySymbol: Object.fromEntries(
+          Object.entries(trade.pricesBySymbol).map(([symbol, prices]) => [
+            symbol,
+            prices.reduce(
+              (sum, price) =>
+                currency === 'usd' ? sum + price : sum + price * trade.fxRate,
+              0,
+            ),
+          ]),
+        ),
+        namesBySymbol: Object.fromEntries(
+          Object.keys(trade.pricesBySymbol).map((symbol) => [symbol, symbol]),
+        ),
+      }),
+    );
+
+    return [...krwStockTradeHistory, ...usdStockTradeHistory].sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
+  };
+  const stockTradeHistoryChartData = latestAccount
+    ? toStockTradeHistoryChart(latestAccount)
+    : [];
+
+  // 원본 계좌 이력은 readonly 기초 데이터로 보관해 선택 날짜의 stocks만 나중에 구성합니다.
+  return {
+    snapshots,
+    accountData,
+    currency,
+    charts: {
+      principal: principalChartData,
+      currentValue: currentValueChartData,
+      netCurrentValue: netCurrentValueChartData,
+      profit: profitChartData,
+      netProfit: netProfitChartData,
+      returnRate: returnRateChartData,
+      netReturnRate: netReturnRateChartData,
+      benchmarkBestReturnRate: benchmarkBestReturnRateChartData,
+      benchmarkBestNetReturnRate: benchmarkBestNetReturnRateChartData,
+      benchmarkWorstReturnRate: benchmarkWorstReturnRateChartData,
+      benchmarkWorstNetReturnRate: benchmarkWorstNetReturnRateChartData,
+      mwr: mwrChartData,
+      netMwr: netMwrChartData,
+      twr: twrChartData,
+      netTwr: netTwrChartData,
+      cagr: cagrChartData,
+      netCagr: netCagrChartData,
+      averageAnnualReturn: averageAnnualReturnChartData,
+      netAverageAnnualReturn: netAverageAnnualReturnChartData,
+      drawdown: drawdownChartData,
+      bestSharpeRatio: bestSharpeRatioChartData,
+      worstSharpeRatio: worstSharpeRatioChartData,
+      volatility: volatilityChartData,
+      dividendHistory: dividendHistoryChartData,
+      dividendHistoryNet: dividendHistoryChartDataNet,
+      yieldOnCost: yieldOnCostChartData,
+      yieldOnCostNet: yieldOnCostChartDataNet,
+      dividendYield: dividendYieldChartData,
+      dividendYieldNet: dividendYieldChartDataNet,
+      benchmarkBest: benchmarkBestChartData,
+      benchmarkBestNet: benchmarkBestNetChartData,
+      benchmarkBestProfit: benchmarkBestProfitChartData,
+      benchmarkBestNetProfit: benchmarkBestNetProfitChartData,
+      benchmarkWorst: benchmarkWorstChartData,
+      benchmarkWorstNet: benchmarkWorstNetChartData,
+      benchmarkWorstProfit: benchmarkWorstProfitChartData,
+      benchmarkWorstNetProfit: benchmarkWorstNetProfitChartData,
+      stockTradeHistory: stockTradeHistoryChartData,
+    },
+  };
+};
+
+/**
+ * 날짜 오름차순으로 정렬된 배열에서 기준일과 같거나 이전인 마지막 항목의
+ * 인덱스를 이진 검색합니다. 기준일 이전 항목이 하나도 없으면 -1을 반환합니다.
+ * 날짜는 사전순 비교와 시간순이 같은 `YYYY-MM-DD` 형식을 전제로 합니다.
+ */
+const findLastIndexAtOrBefore = <T extends { date: string }>(
+  items: T[],
+  targetDate: string,
+) => {
+  let low = 0;
+  let high = items.length - 1;
+  let foundIndex = -1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    if (items[middle].date <= targetDate) {
+      // 조건을 만족해도 더 오른쪽에 가까운 날짜가 있을 수 있으므로 계속 탐색합니다.
+      foundIndex = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  return foundIndex;
+};
+
+/**
+ * 날짜 오름차순 시계열에서 기준일까지의 구간을 새 배열로 반환합니다.
+ * 기준일과 같거나 이전인 데이터가 없으면 빈 배열을 반환합니다.
+ */
+const sliceSeriesAtDate = <T extends { date: string }>(
+  items: T[],
+  targetDate: string,
+) => {
+  const lastIndex = findLastIndexAtOrBefore(items, targetDate);
+  return lastIndex < 0 ? [] : items.slice(0, lastIndex + 1);
+};
+
+/**
+ * 조회 통화와 이미 같은 통화인 종목도 readonly 원본과 분리되도록 stock과
+ * balance를 복제합니다. 이 함수에서는 가격의 통화 환산은 수행하지 않습니다.
+ */
+const cloneStocks = (
+  stocks: ReadonlyAccountProps['krw']['stocks'],
+): StockProps[] =>
+  stocks.map((stock) => ({
+    ...stock,
+    balance: stock.balance.map((balance) => ({ ...balance })),
+  }));
+
+/**
+ * 선택 날짜의 양 통화 보유 종목을 조회 통화로 합칩니다.
+ * readonly 원본을 보호하도록 stock과 balance를 새 객체로 구체화합니다.
+ * 매수 잔고 가격은 각 잔고의 fxRate로, 현재 종목 가격은 스냅샷의 fxRate로
+ * 환산해 기존 날짜별 평가 로직을 유지합니다.
+ */
+const materializeStocks = (
+  account: ReadonlyAccountProps,
+  currency: Currency,
+): StockProps[] => {
+  if (currency === 'usd') {
+    return [
+      ...cloneStocks(account.usd.stocks),
+      ...account.krw.stocks.map((stock) => ({
+        ...stock,
+        balance: stock.balance.map((balance) => ({
+          ...balance,
+          price: balance.price / balance.fxRate, // KRW → USD (각각의 fxRate 사용)
+        })),
+        price: stock.price / account.fxRate, // KRW → USD
+      })),
+    ];
+  }
+
+  return [
+    ...cloneStocks(account.krw.stocks),
+    ...account.usd.stocks.map((stock) => ({
+      ...stock,
+      balance: stock.balance.map((balance) => ({
+        ...balance,
+        price: balance.price * balance.fxRate, // USD → KRW (각각의 fxRate 사용)
+      })),
+      price: stock.price * account.fxRate, // USD → KRW
+    })),
+  ];
+};
+
+/**
+ * 요청일 이하의 가장 가까운 스냅샷에 stocks와 차트를 결합합니다.
+ * targetDate가 null이면 최신 스냅샷을, 최초 데이터보다 이르면 최초
+ * 스냅샷을 사용합니다. 정확한 요청일 데이터가 없으면 직전 날짜를 사용합니다.
+ * 최신일은 전체 차트 참조를 재사용하고, 과거일만 선택 날짜까지 잘라 반환합니다.
+ * 전체 계좌 병합이나 MWR 계산은 여기서 다시 수행하지 않습니다.
+ */
+export const getDashboardDataByDate = (
+  dataset: DashboardDataset,
+  targetDate: string | null,
+): DashboardProps | undefined => {
+  if (dataset.snapshots.length === 0) return undefined;
+
+  const isLatestDate = !targetDate;
+  const snapshotIndex = isLatestDate
+    ? dataset.snapshots.length - 1
+    : Math.max(
+        0,
+        findLastIndexAtOrBefore(dataset.snapshots, targetDate as string),
+      );
+  const snapshot = dataset.snapshots[snapshotIndex];
+  const stocks = materializeStocks(
+    dataset.accountData[snapshotIndex],
+    dataset.currency,
+  );
+
+  if (snapshotIndex === dataset.snapshots.length - 1) {
+    return { ...snapshot, stocks, charts: dataset.charts };
+  }
+
+  const chartEntries = Object.entries(dataset.charts) as Array<
+    [keyof DashboardCharts, Array<{ date: string }>]
+  >;
+  const charts = Object.fromEntries(
+    chartEntries.map(([key, series]) => [
+      key,
+      sliceSeriesAtDate(series, snapshot.date),
+    ]),
+  ) as unknown as DashboardCharts;
+
+  return { ...snapshot, stocks, charts };
 };
 
 // 계좌의 원금(principalAmount)을 업데이트 합니다.
@@ -1381,6 +1488,7 @@ export const createAccountData = async (
             const stockToSell = account[currency].stocks.find(
               (stock) => stock.code === transaction.ISIN,
             );
+            const stockSymbol = stockToSell?.symbol ?? transaction.ISIN;
 
             // 주식 매도 이력 추가
             account[currency].stockTradeHistory.push({
@@ -1388,12 +1496,12 @@ export const createAccountData = async (
               type: 'sell',
               fxRate: account.fxRate,
               pricesBySymbol: {
-                [stockToSell?.symbol!]: Array(transaction.quantity).fill(
+                [stockSymbol]: Array(transaction.quantity).fill(
                   transaction.price,
                 ),
               },
               namesBySymbol: {
-                [stockToSell?.symbol!]:
+                [stockSymbol]:
                   stockToSell?.shortName ?? stockToSell?.symbol ?? '',
               },
             });
@@ -1544,16 +1652,19 @@ export const getStockInfo = async (
           longName,
           prices: priceResponse.data,
         };
-      } catch (error: any) {
-        const failedApi = error.config?.url?.includes('/api/search')
+      } catch (error: unknown) {
+        const axiosError = axios.isAxiosError(error) ? error : undefined;
+        const failedApi = axiosError?.config?.url?.includes('/api/search')
           ? 'Search API'
           : 'Price API';
 
         throw {
           code, // 종목 코드
           api: failedApi, // 실패한 API 종류
-          status: error.response?.status || 'Network Error', // HTTP 상태 코드 (네트워크 오류일 경우 메시지)
-          message: error.response?.data?.message || error.message, // API 응답 메시지 또는 기본 오류 메시지
+          status: axiosError?.response?.status || 'Network Error', // HTTP 상태 코드 (네트워크 오류일 경우 메시지)
+          message:
+            axiosError?.response?.data?.message ||
+            (error instanceof Error ? error.message : 'Unknown error'), // API 응답 메시지 또는 기본 오류 메시지
         };
       }
     }),
@@ -1575,21 +1686,50 @@ export const getStockInfo = async (
   };
 };
 
-// 여러개의 계좌 데이터 병합
-export const mergeAccountData = (
-  accountDataArray: MergeAccountDataInput[],
-): AccountProps[] => {
-  // 계좌 데이터를 날짜별로 합치기 위해 Map을 사용
-  const mergedMap = new Map<string, AccountProps>();
+// 여러 계좌를 병합할 때 수정할 객체 껍데기와 공유 가능한 readonly 컬렉션을 구분합니다.
+type ShallowMutable<T> = {
+  -readonly [Key in keyof T]: T[Key];
+};
 
-  const _accountDataArray = structuredClone(accountDataArray); // Deep copy
+type MergeAccountDetails = ShallowMutable<ReadonlyAccountProps['krw']>;
+type MergeAccountAccumulator = Omit<
+  ShallowMutable<ReadonlyAccountProps>,
+  'krw' | 'usd'
+> & {
+  krw: MergeAccountDetails;
+  usd: MergeAccountDetails;
+};
+
+const cloneAccountDetailsForMerge = (
+  details: ReadonlyAccountProps['krw'],
+): MergeAccountDetails => ({
+  // 컬렉션은 readonly 계약 아래 공유하고, 값과 참조가 바뀌는 통화 객체만 복제합니다.
+  ...details,
+});
+
+/**
+ * 날짜가 같은 여러 계좌를 병합합니다.
+ *
+ * 입력과 반환값은 깊은 readonly 계약을 따릅니다. 첫 계좌의 중첩 컬렉션은
+ * 구조적으로 공유하고, 실제 충돌이 발생한 컬렉션만 병합 함수가 새로 만듭니다.
+ */
+export const mergeAccountData = (
+  accountDataArray: readonly ReadonlyMergeAccountDataInput[],
+): readonly ReadonlyAccountProps[] => {
+  // 계좌 데이터를 날짜별로 합치기 위해 Map을 사용
+  const mergedMap = new Map<string, MergeAccountAccumulator>();
 
   // Iterate through all accounts and each accountData within
-  _accountDataArray.forEach((account) => {
+  accountDataArray.forEach((account) => {
     account.accountData.forEach((data) => {
       const date = data.date;
       if (!mergedMap.has(date)) {
-        mergedMap.set(date, { ...data });
+        // 최초 계좌는 전체 복사하지 않고 병합 중 수정되는 최상위·통화 객체만 소유합니다.
+        mergedMap.set(date, {
+          ...data,
+          krw: cloneAccountDetailsForMerge(data.krw),
+          usd: cloneAccountDetailsForMerge(data.usd),
+        });
       } else {
         // 이미 있는 날짜의 데이터가 있으면, 해당 데이터를 가져와서 새로운 데이터와 합침
         const merged = mergedMap.get(date)!;
@@ -1661,9 +1801,9 @@ export const mergeAccountData = (
     }
   });
 
-  const mergedArray: AccountProps[] = Array.from(mergedMap.values()).sort(
-    (a, b) => a.date.localeCompare(b.date),
-  );
+  const mergedArray: readonly ReadonlyAccountProps[] = Array.from(
+    mergedMap.values(),
+  ).sort((a, b) => a.date.localeCompare(b.date));
 
   return mergedArray;
 };

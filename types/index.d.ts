@@ -59,6 +59,23 @@ export type StockTradeHistoryProps = {
   namesBySymbol?: Record<string, string>; // 종목별 표시명
 };
 
+/**
+ * 병합 헬퍼가 변경되지 않은 하위 객체를 안전하게 구조 공유하기 위한 타입
+ * 경계입니다. 런타임 freeze가 아니라 컴파일 단계의 불변 계약이므로,
+ * 변경이 필요한 코드는 해당 경로를 복사한 뒤 새 값으로 반환해야 합니다.
+ */
+export type DeepReadonly<T> = T extends readonly (infer Item)[]
+  ? readonly DeepReadonly<Item>[]
+  : T extends object
+    ? { readonly [Key in keyof T]: DeepReadonly<T[Key]> }
+    : T;
+
+export type ReadonlyDividendProps = DeepReadonly<DividendProps>;
+export type ReadonlyStockProps = DeepReadonly<StockProps>;
+export type ReadonlyStockTradeHistoryProps =
+  DeepReadonly<StockTradeHistoryProps>;
+export type ReadonlyAccountProps = DeepReadonly<AccountProps>;
+
 export type StockTradeHistoryChartProps = {
   date: string;
   type: 'buy' | 'sell'; // 종목 매매 타입 추가
@@ -77,8 +94,8 @@ export type PrincipalAdjustment = {
 export type StockHistoryProps = {
   date: string;
   preSplitClose: number;
-  close: number;
-  adjClose: number;
+  close: number | null;
+  adjClose: number | null;
   dividends?: number;
 };
 
@@ -234,6 +251,19 @@ export type DashboardProps = {
   };
 };
 
+/** 날짜별 값만 보관하고, 누적 차트와 주식 목록의 반복 복사를 피합니다. */
+export type DashboardSnapshot = Omit<DashboardProps, 'charts' | 'stocks'>;
+
+export type DashboardCharts = DashboardProps['charts'];
+
+export type DashboardDataset = {
+  snapshots: DashboardSnapshot[];
+  charts: DashboardCharts;
+  /** 선택 날짜의 보유종목 환산에 재사용하므로 변환 이후 변경하면 안 됩니다. */
+  accountData: readonly ReadonlyAccountProps[];
+  currency: Currency;
+};
+
 export type TermsProps = {
   startDate: string;
   maturityDate: string;
@@ -260,3 +290,6 @@ export type MergeAccountDataInput = {
     benchmarkNetValueUsd: number;
   }[];
 };
+
+/** 병합 과정에서 원본 계좌와 구조 공유 데이터를 변경하지 못하게 하는 경계입니다. */
+export type ReadonlyMergeAccountDataInput = DeepReadonly<MergeAccountDataInput>;

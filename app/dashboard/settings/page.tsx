@@ -38,6 +38,18 @@ export default function Page() {
   const shouldRedirectToOverview = searchParams.get('redirect') === 'overview';
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const dashboardData = useDashboardStore((state) => state.dashboardData);
+  const isDashboardCalculating = useDashboardStore(
+    (state) => state.isDashboardCalculating,
+  );
+  const dashboardCalculationError = useDashboardStore(
+    (state) => state.dashboardCalculationError,
+  );
+  const setIsDashboardCalculating = useDashboardStore(
+    (state) => state.setIsDashboardCalculating,
+  );
+  const setDashboardCalculationError = useDashboardStore(
+    (state) => state.setDashboardCalculationError,
+  );
   const { selectedAccounts, setSelectedAccounts } = useSelectedAccountsStore();
   // 계좌 클릭만으로 무거운 대시보드 계산이 돌지 않도록, 적용 전 선택값은 화면 안에서만 보관합니다.
   const [draftSelectedAccounts, setDraftSelectedAccounts] =
@@ -46,16 +58,41 @@ export default function Page() {
     shouldRedirectToOverview,
   );
   const hasShownAutoCompleteToastRef = useRef(false);
+  const applyFrameRef = useRef<number | null>(null);
+  // 계산 실패 시 실제 적용값은 되돌리되 사용자가 고른 draft는 남겨 바로 재시도할 수 있게 합니다.
+  const previousSelectedAccountsRef = useRef<string[] | null>(null);
+  const preserveDraftOnSelectionSyncRef = useRef(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const frameId = window.requestAnimationFrame(() => window.scrollTo(0, 0));
 
-    return () => window.cancelAnimationFrame(frameId);
-  }, []);
+    return () => {
+      let cancelledPendingApply = false;
+      window.cancelAnimationFrame(frameId);
+      if (applyFrameRef.current !== null) {
+        window.cancelAnimationFrame(applyFrameRef.current);
+        applyFrameRef.current = null;
+        cancelledPendingApply = true;
+      }
+      const previousSelectedAccounts = previousSelectedAccountsRef.current;
+      if (
+        previousSelectedAccounts &&
+        useDashboardStore.getState().isDashboardCalculating
+      ) {
+        setSelectedAccounts(previousSelectedAccounts);
+        cancelledPendingApply = true;
+      }
+      if (cancelledPendingApply) setIsDashboardCalculating(false);
+    };
+  }, [setIsDashboardCalculating, setSelectedAccounts]);
 
   // 실제 적용된 계좌가 바뀌면 임시 선택값도 맞춰서 설정 화면의 체크 상태를 동기화합니다.
   useEffect(() => {
+    if (preserveDraftOnSelectionSyncRef.current) {
+      preserveDraftOnSelectionSyncRef.current = false;
+      return;
+    }
     setDraftSelectedAccounts(selectedAccounts);
   }, [selectedAccounts]);
 
@@ -65,14 +102,24 @@ export default function Page() {
       dashboardData.date !== initialDashboardData.date;
 
     // 계산이 끝나기 전까지는 설정 화면 위에 로딩 오버레이를 유지합니다.
-    if (shouldRedirectToOverview && !isDashboardCalculated) {
+    if (
+      shouldRedirectToOverview &&
+      !isDashboardCalculated &&
+      !dashboardCalculationError
+    ) {
       setIsApplyingSelection(true);
+    }
+
+    if (shouldRedirectToOverview && dashboardCalculationError) {
+      setIsApplyingSelection(false);
+      return;
     }
 
     // layout에서 전체 계좌 기준 dashboardData 계산이 끝나면 완료 안내 후 개요로 이동합니다.
     if (
       shouldRedirectToOverview &&
       isDashboardCalculated &&
+      !isDashboardCalculating &&
       selectedAccounts.length > 0
     ) {
       // React 개발 모드의 effect 재실행으로 완료 토스트가 중복 표시되지 않게 막습니다.
@@ -83,39 +130,50 @@ export default function Page() {
         });
       }
 
-      // 완료 토스트와 로딩 상태가 잠깐 보이도록 이동 전에 짧은 여유를 둡니다.
-      const timeoutId = window.setTimeout(() => {
-        router.replace('/dashboard/overview', { scroll: true });
-      }, 700);
-
-      return () => window.clearTimeout(timeoutId);
+      router.replace('/dashboard/overview', { scroll: true });
     }
   }, [
+    dashboardCalculationError,
     dashboardData.date,
+    isDashboardCalculating,
     router,
     selectedAccounts.length,
     shouldRedirectToOverview,
   ]);
 
-  // 전역 선택값이 반영된 뒤에도 차트 재계산/렌더링 시간을 조금 확보하고, 완료 안내를 표시합니다.
+  // 레이아웃의 실제 계산 완료 상태를 기준으로 로딩을 닫고 안내를 표시합니다.
   useEffect(() => {
-    if (!isApplyingSelection || shouldRedirectToOverview) return;
+    if (
+      !isApplyingSelection ||
+      shouldRedirectToOverview ||
+      isDashboardCalculating
+    ) {
+      return;
+    }
 
-    const timeoutId = window.setTimeout(() => {
-      setIsApplyingSelection(false);
-      toast.success('계좌 선택 반영 완료', {
-        description: '선택한 계좌 기준으로 대시보드를 다시 계산했습니다.',
-      });
-    }, 700);
+    setIsApplyingSelection(false);
+    if (dashboardCalculationError) {
+      const previousSelectedAccounts = previousSelectedAccountsRef.current;
+      previousSelectedAccountsRef.current = null;
+      if (previousSelectedAccounts) {
+        // 다음 selectedAccounts 동기화 한 번은 건너뛰어 실패했던 draft 선택을 보존합니다.
+        preserveDraftOnSelectionSyncRef.current = true;
+        setSelectedAccounts(previousSelectedAccounts);
+      }
+      return;
+    }
 
-    return () => window.clearTimeout(timeoutId);
-  }, [isApplyingSelection, selectedAccounts, shouldRedirectToOverview]);
-
-  // 로딩 안내를 500ms 먼저 보여준 뒤 선택값을 적용해 긴 계산 전에 화면이 보이게 합니다.
-  const runWithLoading = (updateSelection: () => void) => {
-    setIsApplyingSelection(true);
-    window.setTimeout(updateSelection, 500);
-  };
+    previousSelectedAccountsRef.current = null;
+    toast.success('계좌 선택 반영 완료', {
+      description: '선택한 계좌 기준으로 대시보드를 다시 계산했습니다.',
+    });
+  }, [
+    dashboardCalculationError,
+    isApplyingSelection,
+    isDashboardCalculating,
+    setSelectedAccounts,
+    shouldRedirectToOverview,
+  ]);
 
   // 적용 버튼은 실제 적용 상태와 화면에서 고른 임시 선택값이 다를 때만 활성화합니다.
   const hasSelectionChanges = useMemo(() => {
@@ -146,7 +204,15 @@ export default function Page() {
 
   // 여기서만 전역 selectedAccounts를 갱신하므로, 대시보드 재계산도 적용 버튼을 눌렀을 때만 발생합니다.
   const handleApplySelectedAccounts = () => {
-    runWithLoading(() => {
+    // 전역 선택을 바꾸기 전에 복구 지점을 저장합니다.
+    previousSelectedAccountsRef.current = [...selectedAccounts];
+    setIsApplyingSelection(true);
+    setDashboardCalculationError(null);
+    setIsDashboardCalculating(true);
+
+    // 로딩 오버레이가 먼저 그려진 다음 프레임에 실제 선택 상태를 반영합니다.
+    applyFrameRef.current = window.requestAnimationFrame(() => {
+      applyFrameRef.current = null;
       setSelectedAccounts(draftSelectedAccounts);
     });
   };
@@ -432,7 +498,7 @@ export default function Page() {
           )}
         </CardContent>
       </Card>
-      {isApplyingSelection && (
+      {isApplyingSelection && !isDashboardCalculating && (
         <LoadingOverlay
           title='계좌 선택을 반영하는 중입니다.'
           description='대시보드 데이터를 다시 계산하고 있습니다.'

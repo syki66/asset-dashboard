@@ -5,6 +5,15 @@ import {
 } from '../mergeHelpers';
 import { DividendProps, StockProps, StockTradeHistoryProps } from '@/types';
 
+const deepFreeze = <T>(value: T): T => {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.values(value as Record<string, unknown>).forEach(deepFreeze);
+    Object.freeze(value);
+  }
+
+  return value;
+};
+
 describe('병합 헬퍼 함수', () => {
   describe('mergeDividends', () => {
     it('빈 배당금 배열 두 개를 병합해야 함', () => {
@@ -27,6 +36,30 @@ describe('병합 헬퍼 함수', () => {
       ];
       const result = mergeDividends([], arr2);
       expect(result).toEqual(arr2);
+    });
+
+    it('입력을 변경하지 않고 dividendSource 제거 동작을 유지한다', () => {
+      const arr1: DividendProps[] = [
+        {
+          date: '2024-01-01',
+          price: 100,
+          fxRate: 1200,
+          dividendSource: 'foreign',
+        },
+      ];
+      const before = structuredClone(arr1);
+      deepFreeze(arr1);
+
+      const result = mergeDividends(arr1, []);
+
+      expect(arr1).toEqual(before);
+      expect(result[0]).not.toBe(arr1[0]);
+      expect(result[0]).toEqual({
+        date: '2024-01-01',
+        price: 100,
+        fxRate: 1200,
+      });
+      expect(result[0]).not.toHaveProperty('dividendSource');
     });
 
     it('같은 날짜의 배당금을 합산해야 함', () => {
@@ -81,6 +114,52 @@ describe('병합 헬퍼 함수', () => {
       expect(result).toHaveLength(3);
       const march = result.find((d) => d.date === '2024-03-01');
       expect(march?.price).toBe(250);
+    });
+
+    it('같은 날짜·통화의 동일 환율과 날짜 등장 순서를 유지해야 함', () => {
+      const arr1: DividendProps[] = [
+        { date: '2024-03-01', price: 10, fxRate: 1250 },
+        { date: '2024-03-01', price: 20, fxRate: 1250 },
+        { date: '2024-01-01', price: 30, fxRate: 1200 },
+      ];
+      const arr2: DividendProps[] = [
+        { date: '2024-03-01', price: 40, fxRate: 1250 },
+        { date: '2024-02-01', price: 50, fxRate: 1210 },
+      ];
+
+      expect(mergeDividends(arr1, arr2)).toEqual([
+        { date: '2024-03-01', price: 70, fxRate: 1250 },
+        { date: '2024-01-01', price: 30, fxRate: 1200 },
+        { date: '2024-02-01', price: 50, fxRate: 1210 },
+      ]);
+    });
+
+    it('큰 입력도 날짜별로 정확히 병합해야 함', () => {
+      const size = 5000;
+      const arr1: DividendProps[] = Array.from({ length: size }, (_, index) => ({
+        date: `date-${index}`,
+        price: index,
+        fxRate: 1200,
+      }));
+      const arr2: DividendProps[] = Array.from({ length: size }, (_, index) => ({
+        date: `date-${index}`,
+        price: index + 1,
+        fxRate: 1300,
+      }));
+
+      const result = mergeDividends(arr1, arr2);
+
+      expect(result).toHaveLength(size);
+      expect(result[0]).toEqual({
+        date: 'date-0',
+        price: 1,
+        fxRate: 1200,
+      });
+      expect(result[size - 1]).toEqual({
+        date: `date-${size - 1}`,
+        price: size * 2 - 1,
+        fxRate: 1200,
+      });
     });
   });
 
@@ -189,6 +268,46 @@ describe('병합 헬퍼 함수', () => {
       expect(result).toHaveLength(2);
       expect(result.map((s) => s.code)).toContain('US46138G6492');
       expect(result.map((s) => s.code)).toContain('US9229087690');
+      expect(result[0]).toBe(arr1[0]);
+      expect(result[1]).toBe(arr2[0]);
+    });
+
+    it('입력을 변경하지 않고 충돌 wrapper만 복제해 balance leaf를 공유한다', () => {
+      const arr1: StockProps[] = [
+        {
+          shortName: 'Apple',
+          longName: 'Apple Inc.',
+          symbol: 'AAPL',
+          code: 'US0378331005',
+          price: 150,
+          balance: [{ date: '2024-01-01', price: 150, fxRate: 1200 }],
+        },
+      ];
+      const arr2: StockProps[] = [
+        {
+          shortName: 'Apple',
+          longName: 'Apple Inc.',
+          symbol: 'AAPL',
+          code: 'US0378331005',
+          price: 155,
+          balance: [{ date: '2024-02-01', price: 155, fxRate: 1210 }],
+        },
+      ];
+      const arr1Before = structuredClone(arr1);
+      const arr2Before = structuredClone(arr2);
+      deepFreeze(arr1);
+      deepFreeze(arr2);
+
+      const result = mergeStocks(arr1, arr2);
+
+      expect(arr1).toEqual(arr1Before);
+      expect(arr2).toEqual(arr2Before);
+      expect(result[0]).not.toBe(arr1[0]);
+      expect(result[0]).not.toBe(arr2[0]);
+      expect(result[0].balance).not.toBe(arr1[0].balance);
+      expect(result[0].balance).not.toBe(arr2[0].balance);
+      expect(result[0].balance[0]).toBe(arr1[0].balance[0]);
+      expect(result[0].balance[1]).toBe(arr2[0].balance[0]);
     });
   });
 
@@ -230,6 +349,8 @@ describe('병합 헬퍼 함수', () => {
       ];
       const result = mergeStockTradeHistory(arr1, arr2);
       expect(result).toHaveLength(2);
+      expect(result[0]).toBe(arr1[0]);
+      expect(result[1]).toBe(arr2[0]);
     });
 
     it('같은 날짜와 타입의 가격을 병합해야 함', () => {
@@ -326,6 +447,90 @@ describe('병합 헬퍼 함수', () => {
         GOOGL: [2800],
         MSFT: [300],
       });
+    });
+
+    it('입력을 변경하지 않고 충돌한 거래와 가격 배열만 복제한다', () => {
+      const arr1: StockTradeHistoryProps[] = [
+        {
+          date: '2024-01-01',
+          type: 'buy',
+          fxRate: 1200,
+          pricesBySymbol: { AAPL: [150], GOOGL: [2800] },
+          namesBySymbol: { AAPL: 'Apple', GOOGL: 'Google' },
+        },
+      ];
+      const arr2: StockTradeHistoryProps[] = [
+        {
+          date: '2024-01-01',
+          type: 'buy',
+          fxRate: 1210,
+          pricesBySymbol: { AAPL: [151], MSFT: [300] },
+          namesBySymbol: { AAPL: 'Apple Inc.', MSFT: 'Microsoft' },
+        },
+      ];
+      const arr1Before = structuredClone(arr1);
+      const arr2Before = structuredClone(arr2);
+      deepFreeze(arr1);
+      deepFreeze(arr2);
+
+      const result = mergeStockTradeHistory(arr1, arr2);
+
+      expect(arr1).toEqual(arr1Before);
+      expect(arr2).toEqual(arr2Before);
+      expect(result[0]).not.toBe(arr1[0]);
+      expect(result[0].pricesBySymbol).not.toBe(arr1[0].pricesBySymbol);
+      expect(result[0].pricesBySymbol.AAPL).not.toBe(
+        arr1[0].pricesBySymbol.AAPL,
+      );
+      expect(result[0].pricesBySymbol.AAPL).not.toBe(
+        arr2[0].pricesBySymbol.AAPL,
+      );
+      expect(result[0].pricesBySymbol.GOOGL).toBe(
+        arr1[0].pricesBySymbol.GOOGL,
+      );
+      expect(result[0].pricesBySymbol.MSFT).toBe(
+        arr2[0].pricesBySymbol.MSFT,
+      );
+      expect(result[0].namesBySymbol).not.toBe(arr1[0].namesBySymbol);
+      expect(result[0].namesBySymbol).not.toBe(arr2[0].namesBySymbol);
+    });
+
+    it('arr1 내부 중복 항목과 전체 결과 순서를 기존 방식대로 유지해야 함', () => {
+      const arr1: StockTradeHistoryProps[] = [
+        {
+          date: '2024-01-01',
+          type: 'buy',
+          fxRate: 1200,
+          pricesBySymbol: { AAPL: [150] },
+        },
+        {
+          date: '2024-01-01',
+          type: 'buy',
+          fxRate: 1201,
+          pricesBySymbol: { AAPL: [151] },
+        },
+      ];
+      const arr2: StockTradeHistoryProps[] = [
+        {
+          date: '2024-01-01',
+          type: 'buy',
+          fxRate: 1210,
+          pricesBySymbol: { AAPL: [152] },
+        },
+        {
+          date: '2024-02-01',
+          type: 'sell',
+          fxRate: 1220,
+          pricesBySymbol: { MSFT: [300] },
+        },
+      ];
+
+      const result = mergeStockTradeHistory(arr1, arr2);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].pricesBySymbol.AAPL).toEqual([150, 152]);
+      expect(result[1].pricesBySymbol.AAPL).toEqual([151]);
+      expect(result[2]).toEqual(arr2[1]);
     });
   });
 });
