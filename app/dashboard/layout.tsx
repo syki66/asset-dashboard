@@ -55,6 +55,10 @@ import { Button } from '@/components/ui/button';
 import { CalendarPicker } from '@/components/ui/calendar-picker';
 import { LoadingOverlay } from '@/components/ui/loading-overlay';
 import { toast } from 'sonner';
+import {
+  DashboardCalculationCache,
+  getAccountSelectionCacheKey,
+} from '@/utils/dashboard-calculation-cache';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -237,6 +241,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false);
   const [isDesktopViewport, setIsDesktopViewport] = useState(false);
   const currencyCalculationFrameRef = useRef<number | null>(null);
+  const calculationCacheRef = useRef(new DashboardCalculationCache());
   // 통화 계산 성공 후 pending 값만 해제될 때 같은 통화 계산이 다시 실행되지 않도록
   // effect는 실제 계산 통화(calculationCurrency)의 변화만 구독합니다.
   const pendingCurrencyRef = useRef(pendingCurrency);
@@ -376,6 +381,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       });
     };
 
+    const calculationCache = calculationCacheRef.current;
+    calculationCache.setAccountSource(totalAccountData);
+    const selectionKey = getAccountSelectionCacheKey(selectedAccounts);
+    const datasetCacheInput = {
+      selectionKey,
+      currency: calculationCurrency,
+      feeSettings,
+      bestInterestRates,
+      worstInterestRates,
+    };
+    const cachedDataset = calculationCache.getDataset(datasetCacheInput);
+
+    if (cachedDataset) {
+      setDashboardCalculationError(null);
+      commitDashboardDataset(cachedDataset);
+      return;
+    }
+
     setDashboardCalculationError(null);
     setIsDashboardCalculating(true);
 
@@ -401,10 +424,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         const filteredData = totalAccountData.filter((data) =>
           selectedAccountSet.has(data.name),
         );
-        const mergedAccountData = mergeAccountData(filteredData);
+        let mergedAccountData = calculationCache.getMerged(selectionKey);
+        if (!mergedAccountData) {
+          mergedAccountData = mergeAccountData(filteredData);
+          calculationCache.setMerged(selectionKey, mergedAccountData);
+        }
         const convertedDashboardData = convertToDashboardData(
           mergedAccountData,
           calculationCurrency,
+        );
+        calculationCache.setDataset(
+          datasetCacheInput,
+          convertedDashboardData,
         );
 
         if (!isCancelled) {
@@ -826,15 +857,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <SlidersHorizontal className='h-4 w-4' />
       </Button>
-      {isDashboardCalculating && !isCurrencyCalculating && (
-        <div className='fixed inset-0 z-[100]'>
-          <LoadingOverlay
-            title='대시보드 분석 중'
-            description='선택한 계좌 데이터를 계산하고 있습니다.'
-            accentColor={`var(--${activeCategory}-theme)`}
-          />
-        </div>
-      )}
+      {isDashboardCalculating &&
+        !isCurrencyCalculating &&
+        pathname !== '/dashboard/settings' && (
+          <div className='fixed inset-0 z-[100]'>
+            <LoadingOverlay
+              title='대시보드 분석 중'
+              description='선택한 계좌 데이터를 계산하고 있습니다.'
+              accentColor={`var(--${activeCategory}-theme)`}
+            />
+          </div>
+        )}
     </div>
   );
 }

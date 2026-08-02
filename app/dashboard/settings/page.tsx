@@ -165,7 +165,7 @@ export default function Page() {
 
     previousSelectedAccountsRef.current = null;
     toast.success('계좌 선택 반영 완료', {
-      description: '선택한 계좌 기준으로 대시보드를 다시 계산했습니다.',
+      description: '선택한 계좌 기준으로 대시보드를 반영했습니다.',
     });
   }, [
     dashboardCalculationError,
@@ -498,10 +498,10 @@ export default function Page() {
           )}
         </CardContent>
       </Card>
-      {isApplyingSelection && !isDashboardCalculating && (
+      {isApplyingSelection && (
         <LoadingOverlay
           title='계좌 선택을 반영하는 중입니다.'
-          description='대시보드 데이터를 다시 계산하고 있습니다.'
+          description='선택한 계좌 데이터를 준비하고 있습니다.'
           accentColor='var(--settings-theme)'
         />
       )}
