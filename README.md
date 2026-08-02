@@ -120,7 +120,7 @@ flowchart LR
 - **날짜 기준 조회 지원**  
   계좌 조회 기준일을 설정해 특정 시점의 자산 현황을 확인할 수 있고, 업로드된 파일의 최근 업데이트 날짜도 함께 확인할 수 있습니다.
 - **화면 보기 방식 전환**  
-  차트를 펼쳐보기 또는 모아보기로 전환해 화면 구성을 조정할 수 있습니다.
+  데스크톱에서는 차트를 펼쳐보기 또는 모아보기로 전환할 수 있고, 모바일은 가독성을 위해 펼쳐보기로 고정됩니다.
 - **반응형 모바일 UI 지원**
   데스크톱뿐 아니라 모바일에서도 Setup, 대시보드, 차트와 표를 편리하게 확인하고 조작할 수 있습니다.
 - **Toast 알림 제공**  
@@ -147,6 +147,8 @@ flowchart LR
   최근 1년 배당금, 배당률, 원금 대비 배당률(YOC)과 전체 기간 누적 배당금을 함께 확인할 수 있습니다.
 - **기간별 배당금 그래프**  
   기간별 배당금 지급 내역을 막대그래프로 표시해 배당 현금흐름을 직관적으로 보여줍니다.
+- **배당금 물가 보정**  
+  배당금 막대 차트를 최신 CPI 기준 구매력으로 환산해 명목 금액과 비교할 수 있습니다.
 - **배당률 변화 추이 차트**  
   평가금 대비 배당률과 원금 대비 배당률(YOC)을 선 그래프로 표시해 시간에 따른 배당 효율 변화를 확인할 수 있습니다.
 
@@ -189,14 +191,14 @@ flowchart LR
 - **종목별 표시 토글 지원**  
   거래한 종목 목록을 토글로 선택해 차트에 표시하거나 숨길 수 있습니다.
 - **거래 요약 카드 제공**  
-  차트 상단에서 총 매수, 총 매도, 순매매, 거래 종목 수를 확인할 수 있습니다. 매수·매도 수량과 거래금액을 함께 표시하며, 선택한 기간과 종목 필터를 동일하게 반영합니다.
+  차트 상단에서 총 매수, 총 매도, 순매매와 매수·매도 종목 수를 확인할 수 있습니다. 매수·매도 수량과 거래금액을 함께 표시하며, 선택한 기간과 종목 필터를 동일하게 반영합니다.
 
 ## 🚀 개발 서버 (Configuration & Setup)
 
 ### 📦 요구 사항
 
-- Node.js 21+
-- npm / yarn / pnpm
+- Node.js 20+ 권장
+- npm
 
 ### 💻 설치 및 실행
 
@@ -204,18 +206,16 @@ flowchart LR
 # 의존성 설치
 npm install
 
-# 환경변수 설정
-cp .env.example .env.local
-
 # 로컬 개발 서버 실행
 npm run dev
 ```
 
 ### Supabase 사용자 데이터 저장 설정
 
-1. `supabase/schema.sql`을 Supabase SQL Editor에서 실행합니다.
-2. Supabase Auth의 이메일/비밀번호 로그인을 활성화합니다.
-3. `.env.local`과 Vercel 환경변수에 다음 값을 설정합니다.
+1. `cp .env.example .env.local`을 실행하고 실제 프로젝트 값으로 교체합니다.
+2. `supabase/schema.sql`을 Supabase SQL Editor에서 실행합니다.
+3. Supabase Auth의 이메일/비밀번호 로그인을 활성화합니다.
+4. `.env.local`과 Vercel 환경변수에 다음 값을 설정합니다.
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -266,26 +266,38 @@ asset-visualizer/
 │   │   ├── portfolio/          # 포트폴리오 분석
 │   │   ├── transaction/        # 거래 내역
 │   │   └── settings/           # 계좌 선택 및 설정
+│   ├── login/                  # Supabase 이메일 인증 화면
+│   ├── services/data/          # Yahoo Finance 응답 변환
 │   ├── setup/                  # CSV 업로드 및 초기 설정
 │   ├── globals.css             # 전역 스타일과 테마 변수
 │   ├── layout.tsx              # 루트 레이아웃
 │   └── page.tsx                # 초기 진입 페이지
 ├── components/
+│   ├── auth/                   # 인증 세션 Provider와 로그인 폼
 │   ├── chart/                  # 자산, 배당, 포트폴리오, 거래내역 차트
 │   ├── dashboard/              # 대시보드 카드, 비교표, 보유 종목 테이블
+│   ├── footer/                 # Disclaimer
 │   ├── stepper/                # Setup 단계별 입력 컴포넌트
 │   └── ui/                     # 공통 UI 컴포넌트
 ├── constants/
 │   ├── keywords.ts             # 기본 환율, 세율, 수수료, 심볼
 │   └── korea-cpi-indexes.ts    # 한국 월별 소비자물가지수 원지수
+├── lib/
+│   ├── asset-data-crypto.ts    # CSV gzip 압축과 AES-GCM 암복호화
+│   ├── setup-mode.ts           # default/demo/admin 진입 모드 판별
+│   └── supabase/               # 브라우저 Supabase client
 ├── store/                      # Zustand 전역 상태
+├── supabase/schema.sql         # asset_data 테이블과 강제 RLS 정책
 ├── types/                      # 주요 타입 정의
 ├── utils/
 │   ├── converter.ts            # 계좌 데이터 생성, 병합, 대시보드 데이터 변환
+│   ├── dashboard-calculation-cache.ts # 계좌 조합·DashboardDataset LRU 캐시
 │   ├── shsec-adapter.ts        # 신한 CSV 파싱 및 거래 정규화
 │   ├── generator.ts            # 예금 벤치마크 생성
+│   ├── inflation.ts            # CPI 기준 금액 보정
 │   ├── mergeHelpers.ts         # 배당/종목/거래 이력 병합
 │   ├── risk.ts                 # 변동성, 샤프지수 계산
+│   ├── security-identifiers.ts # 미국 ISIN에서 CUSIP 추출
 │   ├── twr.ts                  # TWR 계산
 │   ├── xirr.ts                 # XIRR/MWR 계산
 │   └── year-performance.ts     # 연도별 성과 계산
@@ -319,32 +331,47 @@ flowchart TD
   H --> I
 
   I --> J[선택 계좌 필터링]
+  O2[Setup 완료 또는 Settings 계좌 적용] --> J
+  O1[표시 통화 USD/KRW 변경] --> J
+  S2 --> J
   J --> K[mergeAccountData]
   K --> L[convertToDashboardData]
-  S2 --> L
+  L --> DATA[DashboardDataset]
 
-  O1[표시 통화 USD/KRW 변경] --> R[대시보드 재계산 트리거]
-  O2[선택 계좌 변경] --> R
-  R --> J
+  DATA --> M1[snapshots: 날짜별 계산 지표]
+  DATA --> M2[charts: 전체 기간 차트 1벌]
+  DATA --> M3[accountData: 선택 날짜 보유종목 생성·통화 환산용 원본]
+  DATA --> M4[currency: 보유종목 표시 통화]
 
-  L --> M[DashboardProps 날짜별 스냅샷 생성]
-  M --> N[선택 날짜 DashboardProps, 세전/세후 표시값 선택]
-  N --> O[대시보드 화면 렌더링 Overview/Performance/Dividends/Risk/Portfolio/Transaction]
+  M1 --> N[getDashboardDataByDate]
+  M2 --> N
+  M3 --> N
+  M4 --> N
+  N --> N1[선택 날짜 스냅샷 검색]
+  N --> N2[선택 날짜 stocks만 환산·복제]
+  N --> N3[최신 차트 재사용 또는 과거 구간 절단]
+  N1 --> D[선택 날짜 DashboardProps]
+  N2 --> D
+  N3 --> D
+  D --> DS[useDashboardStore.dashboardData]
+  DS --> O[대시보드 화면 렌더링]
+  TAX[세전/세후 표시 토글] --> O
 ```
 
 ## 주요 파일 및 함수
 
-| 파일                       | 함수 / 상태               | 역할                                                                                                                             |
-| -------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `utils/shsec-adapter.ts`   | `shsecCsvToJson`          | 신한 CSV 문자열을 JSON 배열로 변환합니다.                                                                                        |
-| `utils/shsec-adapter.ts`   | `createShsecTransactions` | 신한 거래 구분값을 앱 내부 거래 형식인 `TransactionProps[]`로 정규화합니다.                                                      |
-| `utils/converter.ts`       | `createAccountData`       | 거래 목록을 날짜별 계좌 스냅샷인 `AccountProps[]`로 변환합니다.                                                                  |
-| `utils/converter.ts`       | `mergeAccountData`        | 여러 계좌의 날짜별 데이터와 벤치마크 데이터를 하나의 계좌 데이터로 병합합니다.                                                   |
-| `utils/converter.ts`       | `convertToDashboardData`  | 병합된 계좌 데이터를 화면 표시용 `DashboardProps[]`로 변환하고 성과, 배당, 비용, 리스크, 차트 데이터를 계산합니다.               |
-| `utils/generator.ts`       | `createBenchmarkData`     | 실제 입출금 흐름을 예금 상품에 넣었다고 가정해 best/worst 벤치마크 데이터를 생성합니다.                                          |
-| `app/setup/page.tsx`       | `Page`                    | CSV 업로드부터 원금 보정, 수수료/세금, 금리 설정까지 처리하고 계좌 데이터를 생성합니다.                                          |
-| `app/dashboard/layout.tsx` | `DashboardLayout`         | 대시보드 공통 레이아웃을 구성하며, 선택 계좌와 통화 기준에 따라 데이터를 병합/변환하고 대시보드 전역 상태를 갱신합니다.          |
-| `app/dashboard/*`          | `DashboardLayout`, `Page` | 선택 계좌와 표시 옵션에 따라 대시보드 데이터를 계산하고, 개요·수익성·배당·리스크·포트폴리오·거래내역·설정 페이지를 렌더링합니다. |
+| 파일                       | 함수 / 상태               | 역할                                                                                                                       |
+| -------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `utils/shsec-adapter.ts`   | `shsecCsvToJson`          | 신한 CSV 문자열을 JSON 배열로 변환합니다.                                                                                  |
+| `utils/shsec-adapter.ts`   | `createShsecTransactions` | 신한 거래 구분값을 앱 내부 거래 형식인 `TransactionProps[]`로 정규화합니다.                                                |
+| `utils/converter.ts`       | `createAccountData`       | 거래 목록을 날짜별 계좌 스냅샷인 `AccountProps[]`로 변환합니다.                                                            |
+| `utils/converter.ts`       | `mergeAccountData`        | 여러 계좌의 날짜별 데이터와 벤치마크를 copy-on-write 방식으로 병합하며, 변경되지 않은 하위 데이터는 readonly로 공유합니다. |
+| `utils/converter.ts`       | `convertToDashboardData`  | 병합 데이터를 전체 기간 MWR이 계산된 날짜별 표시 스냅샷과 공용 차트 한 벌을 가진 `DashboardDataset`으로 변환합니다.        |
+| `utils/converter.ts`       | `getDashboardDataByDate`  | 이진 검색으로 조회 스냅샷을 찾고, 선택 날짜의 보유종목과 과거 차트 구간을 결합해 최종 `DashboardProps`를 만듭니다.         |
+| `utils/generator.ts`       | `createBenchmarkData`     | 실제 입출금 흐름을 예금 상품에 넣었다고 가정해 best/worst 벤치마크 데이터를 생성합니다.                                    |
+| `app/setup/page.tsx`       | `Page`                    | CSV 업로드부터 원금 보정, 수수료/세금, 금리 설정까지 처리하고 계좌 데이터를 생성합니다.                                    |
+| `app/dashboard/layout.tsx` | `DashboardLayout`         | 대시보드 공통 레이아웃을 구성하며, 선택 계좌와 통화 기준에 따라 데이터를 병합/변환하고 대시보드 전역 상태를 갱신합니다.    |
+| `app/dashboard/*`          | `Page`                    | 레이아웃이 전역 상태에 구체화한 `DashboardProps`를 사용해 각 분석 화면을 렌더링하고 세전/세후 및 차트 옵션을 적용합니다.   |
 
 ## 데이터 모델
 
@@ -370,7 +397,34 @@ classDiagram
     krw
     usd
   }
+  class ReadonlyAccountProps {
+    DeepReadonly AccountProps
+  }
+  class DashboardSnapshot {
+    date
+    lastUpdated
+    fxRate
+    performance
+    dividends
+    cash
+    costs
+    benchmarkBest
+    benchmarkWorst
+    drawdown
+  }
+  class DashboardCharts {
+    전체 기간 누적 차트 배열
+  }
+  class DashboardDataset {
+    DashboardSnapshot[] snapshots
+    DashboardCharts charts
+    ReadonlyAccountProps[] accountData
+    Currency currency
+  }
   class DashboardProps {
+    date
+    lastUpdated
+    fxRate
     performance
     dividends
     cash
@@ -389,7 +443,12 @@ classDiagram
   }
   TransactionProps --> AccountProps
   AccountProps --> MergeAccountDataInput
-  MergeAccountDataInput --> DashboardProps
+  MergeAccountDataInput --> ReadonlyAccountProps : mergeAccountData
+  ReadonlyAccountProps --> DashboardDataset : convertToDashboardData
+  DashboardDataset *-- DashboardSnapshot : snapshots
+  DashboardDataset *-- DashboardCharts : charts 1벌
+  DashboardDataset o-- ReadonlyAccountProps : accountData 참조
+  DashboardDataset --> DashboardProps : getDashboardDataByDate
 ```
 
 ### TransactionProps
@@ -408,11 +467,24 @@ CSV에서 추출한 거래내역을 앱 내부에서 사용하기 위해 정규�
 
 `stocksProfit`은 해당 날짜 기준 보유 주식의 평가손익입니다. `createAccountData`에서 현재가와 평균매수가의 차이를 기반으로 미리 계산해두고, 이후 `convertToDashboardData`에서 선택 통화로 환산해 낙폭/리스크 차트 데이터에 사용합니다.
 
-이후 `convertToDashboardData`에서 사용자가 선택한 KRW/USD 표시 통화에 맞춰 한쪽 통화를 환율로 환산하고, 두 통화의 데이터를 합산해 Dashboard 값을 만듭니다.
+이후 `convertToDashboardData`가 사용자가 선택한 KRW/USD 표시 통화에 맞춰 모든 날짜의 숫자 지표를 환산·합산합니다. 보유종목은 전체 날짜에 미리 복제하지 않고, `getDashboardDataByDate`가 선택 날짜의 `stocks`와 각 `balance`만 환산합니다.
+
+### DashboardDataset / DashboardSnapshot
+
+`DashboardDataset`은 Setup 완료 또는 Settings 계좌 적용 시 전체 기간을 선계산하는 중간 모델입니다. 날짜별 표시 지표와 MWR 6종은 `snapshots`에, 누적 시계열은 `charts` 한 벌에 저장해 모든 날짜마다 같은 차트 배열과 보유종목 목록을 복제하지 않습니다. `accountData`와 `currency`는 선택 날짜의 보유종목을 환산할 때 사용합니다.
+
+`convertToDashboardData`가 `DashboardDataset`을 반환하면 `DashboardLayout`의 `commitDashboardDataset`이 이를 현재 선택 날짜와 함께 `getDashboardDataByDate`에 전달해 화면용 `DashboardProps`를 만듭니다.  
+이후 조회 날짜만 바뀌면 계좌 병합과 전체 기간 변환은 다시 실행하지 않고 기존 데이터셋에 `getDashboardDataByDate`만 적용합니다. 계산 캐시에 적중한 경우에도 `mergeAccountData`와 `convertToDashboardData`를 건너뛰고 캐시된 데이터셋부터 같은 과정을 진행합니다.
+
+`DashboardSnapshot`에는 날짜와 최근 업데이트일, 성과·배당·현금·비용·벤치마크·낙폭 및 연도별 성과처럼 해당 날짜에 필요한 표시 지표가 들어갑니다. 크기가 계속 누적되는 `charts`, `stocks`, 원본 `stockTradeHistory`는 스냅샷에 넣지 않습니다. 거래 차트는 마지막 계좌 상태의 누적 거래내역에서 한 번 생성해 `DashboardDataset.charts`에 저장합니다.
 
 ### DashboardProps
 
-화면 표시용 최종 데이터입니다. 성과, 배당, 비용, 리스크, 벤치마크, 차트 데이터가 모두 포함됩니다.
+선택한 한 날짜의 화면 표시용 최종 데이터입니다. `getDashboardDataByDate`가 요청일 이하의 가장 가까운 스냅샷을 이진 검색하고, 해당 날짜에 환산한 `stocks`와 선택일까지의 `charts`를 결합합니다. MWR 6종을 포함한 숫자 지표는 계좌 적용 단계에서 이미 계산되어 있습니다.
+
+### Readonly와 copy-on-write 병합
+
+병합 과정에서는 `DeepReadonly` 타입을 사용해 입력 데이터를 그대로 유지합니다. `mergeAccountData`와 병합 helper는 실제로 변경되는 객체와 배열만 새로 만들고, 바뀌지 않은 데이터는 기존 참조를 재사용합니다. `Object.freeze`를 적용한 것은 아니므로, 공유된 데이터를 수정해야 한다면 먼저 복사한 뒤 변경해야 합니다.
 
 ## API 라우트
 
@@ -539,3 +611,4 @@ Yahoo Finance에서 액면분할/액면병합 이벤트를 받아와 `preSplitCl
 - [ ] 계좌별 원금 보정 기준일 직접 선택
 - [ ] 소수점 주식 계산
 - [ ] 환율 차트 추가할지 여부
+- [ ] `createAccountData` 단계부터 배당·보유잔고 등 중첩 배열의 데이터 구조를 개선해 `DashboardDataset.accountData`의 메모리 사용 최적화
