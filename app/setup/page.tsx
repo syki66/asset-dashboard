@@ -120,6 +120,11 @@ function SetupPageContent() {
   const setupMode = getSetupMode(searchParams.get('mode') ?? undefined);
   const isDemo = setupMode === 'demo';
   const isAdmin = setupMode === 'admin';
+  const showCsvDownload =
+    isAdmin && searchParams.get('download') === 'true';
+  const adminLoginPath = `/login?next=${encodeURIComponent(
+    `/setup?${searchParams.toString()}`,
+  )}`;
   const setupThemeStyle = {
     '--setup-primary': 'oklch(0.62 0.24 255)',
     '--setup-secondary': 'oklch(0.66 0.22 155)',
@@ -132,9 +137,9 @@ function SetupPageContent() {
 
   useEffect(() => {
     if (isAdmin && !isAuthLoading && !user) {
-      router.replace('/login?next=%2Fsetup%3Fmode%3Dadmin');
+      router.replace(adminLoginPath);
     }
-  }, [isAdmin, isAuthLoading, router, user]);
+  }, [adminLoginPath, isAdmin, isAuthLoading, router, user]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -296,11 +301,8 @@ function SetupPageContent() {
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
-      // 로딩 안내를 500ms 먼저 보여준 뒤 무거운 CSV 계산을 시작합니다.
       setIsPreparingCalculation(true);
-      window.setTimeout(() => {
-        void refetch().finally(() => setIsPreparingCalculation(false));
-      }, 500);
+      void refetch().finally(() => setIsPreparingCalculation(false));
     } else {
       setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
@@ -398,6 +400,7 @@ function SetupPageContent() {
                     setUploadedFiles={setUploadedFiles}
                     showDemoPrompt={isDemo}
                     showSecureStorage={isAdmin}
+                    showDownload={showCsvDownload}
                   />
                 </div>
               )}

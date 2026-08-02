@@ -5,6 +5,7 @@ import {
   Check,
   CloudDownload,
   CloudUpload,
+  Download,
   FileUp,
   Upload,
   X,
@@ -32,6 +33,8 @@ interface CsvStepProps {
   showDemoPrompt?: boolean;
   // admin 모드에서만 Supabase 암호화 저장 영역을 노출합니다.
   showSecureStorage?: boolean;
+  // admin 모드와 download=true가 모두 설정된 경우에만 노출합니다.
+  showDownload?: boolean;
 }
 
 // 데모 스포트라이트 구멍을 실제 버튼과 같은 위치와 모양으로 그리기 위한 값입니다.
@@ -60,6 +63,7 @@ export function CsvStep({
   setUploadedFiles,
   showDemoPrompt = false,
   showSecureStorage = false,
+  showDownload = false,
 }: CsvStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   // 암호는 서버나 브라우저 저장소에 보관하지 않고 현재 화면의 메모리에만 유지합니다.
@@ -228,6 +232,17 @@ export function CsvStep({
   // 업로드 취소
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const downloadFile = (file: File) => {
+    const objectUrl = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
   };
 
   const requireEncryptionPassword = () => {
@@ -523,14 +538,32 @@ export function CsvStep({
                       {file.name}
                     </span>
                   </div>
-                  <Button
-                    variant='outline'
-                    size='icon'
-                    className='interactive-lift h-7 w-7 cursor-pointer rounded-lg border-white/15 bg-white/[0.04] shadow-sm hover:bg-white/[0.1] hover:text-foreground'
-                    onClick={() => removeFile(index)}
-                  >
-                    <X className='h-4 w-4' />
-                  </Button>
+                  <div className='flex shrink-0 items-center gap-1'>
+                    {showDownload && (
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='icon'
+                        className='interactive-lift h-7 w-7 cursor-pointer rounded-lg border-white/15 bg-white/[0.04] shadow-sm hover:bg-white/[0.1] hover:text-foreground'
+                        aria-label={`${file.name} 다운로드`}
+                        title='다운로드'
+                        onClick={() => downloadFile(file)}
+                      >
+                        <Download className='h-4 w-4' />
+                      </Button>
+                    )}
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='icon'
+                      className='interactive-lift h-7 w-7 cursor-pointer rounded-lg border-white/15 bg-white/[0.04] shadow-sm hover:bg-white/[0.1] hover:text-foreground'
+                      aria-label={`${file.name} 제거`}
+                      title='제거'
+                      onClick={() => removeFile(index)}
+                    >
+                      <X className='h-4 w-4' />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
