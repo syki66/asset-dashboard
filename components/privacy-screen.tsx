@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Fingerprint, Loader2, LockKeyhole } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
   authenticateDevice,
@@ -14,12 +15,18 @@ import {
 const PRIVACY_ATTRIBUTE = 'data-privacy-locked';
 
 export function PrivacyScreen() {
+  const pathname = usePathname();
   const unlockButtonRef = useRef<HTMLButtonElement>(null);
   const [isDeviceAuthEnabled, setIsDeviceAuthEnabled] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authenticationError, setAuthenticationError] = useState('');
 
   useEffect(() => {
+    if (pathname.startsWith('/setup') || pathname.startsWith('/login')) {
+      document.documentElement.removeAttribute(PRIVACY_ATTRIBUTE);
+      return;
+    }
+
     const lock = () => {
       if (
         document.documentElement.hasAttribute(
@@ -65,7 +72,7 @@ export function PrivacyScreen() {
       window.removeEventListener(DEVICE_AUTH_CHANGE_EVENT, syncDeviceAuth);
       document.documentElement.removeAttribute(PRIVACY_ATTRIBUTE);
     };
-  }, []);
+  }, [pathname]);
 
   const unlock = async () => {
     if (!isDeviceAuthEnabled) {

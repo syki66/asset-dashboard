@@ -6,6 +6,8 @@ import {
   CloudDownload,
   CloudUpload,
   Download,
+  Eye,
+  EyeOff,
   FileUp,
   Upload,
   X,
@@ -68,6 +70,7 @@ export function CsvStep({
   const [isDragging, setIsDragging] = useState(false);
   // 암호는 서버나 브라우저 저장소에 보관하지 않고 현재 화면의 메모리에만 유지합니다.
   const [encryptionPassword, setEncryptionPassword] = useState('');
+  const [showEncryptionPassword, setShowEncryptionPassword] = useState(false);
   // 저장·불러오기·로그아웃 중 중복 요청과 버튼 입력을 막습니다.
   const [secureAction, setSecureAction] = useState<SecureAction>();
   // 아래 상태와 ref는 데모 스포트라이트가 실제 버튼을 따라가도록 사용합니다.
@@ -229,6 +232,19 @@ export function CsvStep({
     }
   };
 
+  const openFilePicker = () => {
+    document.getElementById('file-upload')?.click();
+  };
+
+  const handleUploadAreaClick = (
+    event: React.MouseEvent<HTMLDivElement>,
+  ) => {
+    const target = event.target as HTMLElement;
+
+    if (target.closest('button, [data-upload-file-list]')) return;
+    openFilePicker();
+  };
+
   // 업로드 취소
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -287,6 +303,7 @@ export function CsvStep({
       if (error) throw error;
 
       setEncryptionPassword('');
+      setShowEncryptionPassword(false);
       toast.success('암호화 CSV 저장 완료', {
         description: '이 계정의 기존 저장 행을 새 데이터로 덮어썼습니다.',
       });
@@ -341,6 +358,7 @@ export function CsvStep({
       }
 
       setEncryptionPassword('');
+      setShowEncryptionPassword(false);
       toast.success('암호화 CSV 불러오기 완료', {
         description: `${validFileCount}개의 CSV가 기존 처리 흐름에 연결되었습니다.`,
       });
@@ -368,6 +386,7 @@ export function CsvStep({
 
       setUploadedFiles([]);
       setEncryptionPassword('');
+      setShowEncryptionPassword(false);
       window.location.assign('/login?next=%2Fsetup%3Fmode%3Dadmin');
     } catch (error) {
       toast.error('로그아웃 실패', {
@@ -473,7 +492,7 @@ export function CsvStep({
       <div className='space-y-5 lg:space-y-4'>
         <div
           className={cn(
-            'rounded-xl border border-dashed p-4 text-center shadow-sm backdrop-blur-md transition-all duration-200 sm:p-5 lg:rounded-2xl lg:p-8',
+            'cursor-pointer rounded-xl border border-dashed p-4 text-center shadow-sm backdrop-blur-md transition-all duration-200 sm:p-5 lg:rounded-2xl lg:p-8',
             isDragging
               ? 'border-[color:var(--setup-primary,var(--primary))] bg-[color:var(--setup-primary,var(--primary))]/5 shadow-[color:var(--setup-primary,var(--primary))]/10'
               : 'border-white/15 bg-transparent hover:border-[color:var(--setup-primary,var(--primary))]/35 hover:bg-white/[0.03]',
@@ -481,6 +500,7 @@ export function CsvStep({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={handleUploadAreaClick}
         >
           <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] shadow-sm lg:h-14 lg:w-14 lg:rounded-2xl'>
             <FileUp className='h-6 w-6 text-[color:var(--setup-primary,var(--primary))] lg:h-7 lg:w-7' />
@@ -502,8 +522,8 @@ export function CsvStep({
           <div className='mt-5 flex flex-col items-stretch justify-center gap-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 lg:mt-5'>
             <Button
               variant='outline'
-              className='w-full cursor-pointer rounded-xl border-white/15 bg-white/[0.04] text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.1] hover:text-foreground hover:shadow-md sm:w-auto'
-              onClick={() => document.getElementById('file-upload')?.click()}
+              className='interactive-lift liquid-glass-surface w-full !cursor-pointer !border-white/15 !bg-white/[0.04] !text-foreground hover:!bg-white/[0.1] hover:!text-foreground sm:w-auto'
+              onClick={openFilePicker}
             >
               <Upload className='mr-2 h-4 w-4' />
               파일 선택
@@ -513,7 +533,7 @@ export function CsvStep({
               ref={dummyButtonRef}
               variant='secondary'
               className={cn(
-                'w-full cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md sm:w-auto',
+                'interactive-lift liquid-glass-surface w-full cursor-pointer rounded-xl border border-white/15 bg-[linear-gradient(135deg,var(--setup-primary,var(--primary)),var(--setup-secondary,var(--secondary)))] text-white shadow-sm shadow-[color:var(--setup-primary,var(--primary))]/20 transition-all hover:opacity-90 sm:w-auto',
                 showDemoSpotlight &&
                   'ring-2 ring-inset ring-white/70 hover:translate-y-0',
               )}
@@ -525,7 +545,10 @@ export function CsvStep({
           </div>
 
           {uploadedFiles.length > 0 && (
-            <div className='mx-auto mt-4 max-w-2xl space-y-1.5 text-left lg:mt-6 lg:space-y-2 lg:rounded-2xl lg:border lg:border-white/15 lg:bg-white/[0.04] lg:p-4 lg:shadow-sm'>
+            <div
+              data-upload-file-list
+              className='mx-auto mt-4 max-w-2xl cursor-default space-y-1.5 text-left lg:mt-6 lg:space-y-2 lg:rounded-2xl lg:border lg:border-white/15 lg:bg-white/[0.04] lg:p-4 lg:shadow-sm'
+            >
               <h4 className='text-base font-bold lg:text-sm'>업로드된 파일</h4>
               {uploadedFiles.map((file, index) => (
                 <div
@@ -544,7 +567,7 @@ export function CsvStep({
                         type='button'
                         variant='outline'
                         size='icon'
-                        className='interactive-lift h-7 w-7 cursor-pointer rounded-lg border-white/15 bg-white/[0.04] shadow-sm hover:bg-white/[0.1] hover:text-foreground'
+                        className='interactive-lift liquid-glass-surface h-7 w-7 !cursor-pointer !rounded-lg !border-white/15 !bg-white/[0.04] !text-foreground hover:!bg-white/[0.1] hover:!text-foreground'
                         aria-label={`${file.name} 다운로드`}
                         title='다운로드'
                         onClick={() => downloadFile(file)}
@@ -572,7 +595,7 @@ export function CsvStep({
 
         {/* Supabase 저장 UI는 mode=admin에서만 렌더링됩니다. */}
         {showSecureStorage && (
-          <div className='rounded-xl border border-white/15 bg-white/[0.04] p-3 shadow-sm backdrop-blur-md sm:p-4 lg:rounded-2xl lg:p-5'>
+          <div className='rounded-xl border border-violet-300/25 bg-[linear-gradient(135deg,oklch(0.86_0.075_250/0.22),oklch(0.98_0.015_290/0.08)_50%,oklch(0.88_0.07_20/0.18))] p-3 shadow-[0_0.75rem_2rem_oklch(0.58_0.09_280/0.1),inset_0_1px_0_rgb(255_255_255/0.3)] backdrop-blur-md sm:p-4 lg:rounded-2xl lg:p-5'>
           <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-4'>
             <div className='flex gap-3'>
               <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.06]'>
@@ -590,7 +613,7 @@ export function CsvStep({
                 type='button'
                 variant='ghost'
                 size='sm'
-                className='cursor-pointer rounded-xl'
+                className='interactive-lift liquid-glass-surface !cursor-pointer !rounded-xl !border-white/15 !bg-white/[0.04] !text-foreground hover:!bg-white/[0.1] hover:!text-foreground'
                 disabled={Boolean(secureAction)}
                 onClick={() => void signOut()}
               >
@@ -638,21 +661,52 @@ export function CsvStep({
                   <span className='break-all font-semibold lg:break-normal'>{user.email}</span>
                   <span className='text-muted-foreground'> 계정으로 연결됨</span>
                 </div>
-                <Input
-                  type='password'
-                  autoComplete='current-password'
-                  value={encryptionPassword}
-                  onChange={(event) =>
-                    setEncryptionPassword(event.target.value)
-                  }
-                  placeholder='암호화 비밀번호'
-                  disabled={Boolean(secureAction)}
-                  className='h-11 rounded-xl border-white/15 bg-white/[0.04]'
-                />
+                <div className='space-y-1.5'>
+                  <label
+                    htmlFor='csv-encryption-password'
+                    className='ml-1 text-xs font-semibold text-foreground/75'
+                  >
+                    암호화 비밀번호
+                  </label>
+                  <div className='group relative'>
+                    <LockKeyhole className='pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-violet-600/65 transition-colors group-focus-within:text-violet-700' />
+                    <Input
+                      id='csv-encryption-password'
+                      type={showEncryptionPassword ? 'text' : 'password'}
+                      autoComplete='current-password'
+                      value={encryptionPassword}
+                      onChange={(event) =>
+                        setEncryptionPassword(event.target.value)
+                      }
+                      placeholder='암호화에 사용할 비밀번호를 입력하세요'
+                      disabled={Boolean(secureAction)}
+                      className='h-12 rounded-2xl !border-violet-300/30 !bg-white/10 pl-10 pr-12 text-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.25),0_0.4rem_1.2rem_oklch(0.58_0.08_280/0.08)] backdrop-blur-md placeholder:text-muted-foreground/70 focus-visible:!border-violet-400/55 focus-visible:ring-violet-400/25'
+                    />
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      className='interactive-lift liquid-glass-surface absolute right-1.5 top-1/2 z-10 h-9 w-9 -translate-y-1/2 !cursor-pointer !rounded-xl !border-white/20 !bg-white/10 !text-foreground hover:!bg-white/20 hover:!text-foreground'
+                      disabled={Boolean(secureAction)}
+                      aria-label={
+                        showEncryptionPassword
+                          ? '암호화 비밀번호 숨기기'
+                          : '암호화 비밀번호 보기'
+                      }
+                      aria-pressed={showEncryptionPassword}
+                      onClick={() =>
+                        setShowEncryptionPassword((current) => !current)
+                      }
+                    >
+                      {showEncryptionPassword ? <EyeOff /> : <Eye />}
+                    </Button>
+                  </div>
+                </div>
                 <div className='flex flex-col gap-2 sm:flex-row'>
                   <Button
                     type='button'
-                    className='cursor-pointer rounded-xl sm:flex-1'
+                    variant='outline'
+                    className='interactive-lift liquid-glass-surface !cursor-pointer !rounded-xl !border-blue-300/45 !bg-blue-500/15 !text-blue-800 hover:!bg-blue-500/25 hover:!text-blue-900 sm:flex-1'
                     disabled={
                       Boolean(secureAction) || uploadedFiles.length === 0
                     }
@@ -668,7 +722,7 @@ export function CsvStep({
                   <Button
                     type='button'
                     variant='outline'
-                    className='cursor-pointer rounded-xl border-white/15 bg-white/[0.04] sm:flex-1'
+                    className='interactive-lift liquid-glass-surface !cursor-pointer !rounded-xl !border-rose-300/45 !bg-rose-500/15 !text-rose-800 hover:!bg-rose-500/25 hover:!text-rose-900 sm:flex-1'
                     disabled={Boolean(secureAction)}
                     onClick={() => void loadEncryptedCsv()}
                   >
