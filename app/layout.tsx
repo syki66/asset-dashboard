@@ -4,6 +4,7 @@ import './globals.css';
 import Providers from '@/utils/providers/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { PwaRegister } from '@/components/pwa-register';
+import { PrivacyScreen } from '@/components/privacy-screen';
 
 const pretendard = localFont({
   src: './fonts/PretendardVariable.woff2',
@@ -114,6 +115,7 @@ export default function RootLayout({
   return (
     <html lang='ko'>
       <body className={`${pretendard.variable} antialiased`}>
+        <PrivacyScreen />
         <Providers>{children}</Providers>
         <Toaster expand={true} position='top-center' />
         <PwaRegister />

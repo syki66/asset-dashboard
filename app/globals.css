@@ -195,6 +195,133 @@
 }
 
 /* ================================
+   Privacy screen
+================================ */
+.privacy-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  color: oklch(0.34 0.045 285);
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      oklch(0.92 0.07 320) 0,
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      oklch(0.93 0.065 205) 0,
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      oklch(0.975 0.018 300),
+      oklch(0.985 0.016 35) 50%,
+      oklch(0.975 0.018 210)
+    );
+}
+
+html[data-privacy-locked='true'] {
+  overflow: hidden;
+}
+
+html[data-privacy-locked='true'] .privacy-screen {
+  display: flex;
+}
+
+.privacy-screen__card {
+  display: flex;
+  width: min(100%, 28rem);
+  flex-direction: column;
+  align-items: center;
+  padding: 2.25rem;
+  text-align: center;
+  background: oklch(1 0 0 / 0.68);
+  border: 1px solid oklch(1 0 0 / 0.9);
+  border-radius: 2rem;
+  box-shadow:
+    0 1.5rem 4rem oklch(0.5 0.08 290 / 0.14),
+    inset 0 1px 0 oklch(1 0 0 / 0.95);
+  backdrop-filter: blur(1.5rem);
+}
+
+.privacy-screen__icon {
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-bottom: 1.25rem;
+  border: 2px solid oklch(1 0 0 / 0.9);
+  border-radius: 1.5rem;
+  box-shadow: 0 0.75rem 2rem oklch(0.55 0.1 290 / 0.16);
+}
+
+.privacy-screen__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  margin-bottom: 1rem;
+  color: oklch(0.46 0.13 285);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  background: oklch(0.91 0.055 290 / 0.72);
+  border: 1px solid oklch(0.82 0.07 290 / 0.45);
+  border-radius: 999px;
+}
+
+.privacy-screen__card h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 5vw, 1.8rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.privacy-screen__card p {
+  max-width: 21rem;
+  margin: 0.75rem 0 1.75rem;
+  color: oklch(0.52 0.035 285);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  text-wrap: balance;
+}
+
+.privacy-screen__button {
+  width: 100%;
+  min-height: 3.25rem;
+  color: white;
+  font-weight: 700;
+  background: linear-gradient(
+    110deg,
+    oklch(0.56 0.17 285),
+    oklch(0.62 0.16 330)
+  );
+  border: 1px solid oklch(1 0 0 / 0.35);
+  border-radius: 1rem;
+  box-shadow: 0 0.65rem 1.5rem oklch(0.5 0.14 300 / 0.2);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.privacy-screen__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.85rem 1.75rem oklch(0.5 0.14 300 / 0.24);
+}
+
+.privacy-screen__button:active {
+  transform: translateY(0);
+}
+
+.privacy-screen__button:focus-visible {
+  outline: 3px solid oklch(0.68 0.13 245 / 0.55);
+  outline-offset: 3px;
+}
+
+/* ================================
    Components Layer: 재사용 UI & 테마
 ================================ */
 @layer components {
