@@ -25,6 +25,7 @@ export function PrivacyScreen() {
     if (
       pathname.startsWith('/setup') ||
       pathname.startsWith('/admin') ||
+      pathname.startsWith('/reset-password') ||
       pathname.startsWith('/login')
     ) {
       document.documentElement.removeAttribute(PRIVACY_ATTRIBUTE);

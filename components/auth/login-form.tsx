@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Eye,
   EyeOff,
@@ -194,7 +195,17 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='password'>비밀번호</Label>
+              <div className='flex items-center justify-between gap-3'>
+                <Label htmlFor='password'>비밀번호</Label>
+                {mode === 'sign-in' && (
+                  <Link
+                    href='/reset-password'
+                    className='text-xs font-semibold text-violet-700/70 transition-colors hover:text-violet-800 hover:underline'
+                  >
+                    비밀번호를 잊으셨나요?
+                  </Link>
+                )}
+              </div>
               <div className='group relative'>
                 <LockKeyhole className='pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-violet-600/55 transition-colors group-focus-within:text-violet-700' />
                 <Input
