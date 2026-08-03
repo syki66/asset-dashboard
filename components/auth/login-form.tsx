@@ -146,7 +146,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           </div>
         </CardHeader>
 
-        <div className='mx-5 grid grid-cols-2 gap-1 rounded-2xl border border-white/35 bg-white/20 p-1 shadow-inner shadow-black/5 sm:mx-7'>
+        <div className='mx-5 mb-2 grid grid-cols-2 gap-1 rounded-2xl border border-white/35 bg-white/20 p-1 shadow-inner shadow-black/5 sm:mx-7 sm:mb-3'>
           {(['sign-in', 'sign-up'] as const).map((item) => (
             <button
               key={item}
@@ -250,7 +250,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             </Button>
             <div className='flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground'>
               <ShieldCheck className='h-3.5 w-3.5 shrink-0 text-violet-600/65' />
-              계정 인증과 CSV 암호화 비밀번호는 서로 분리됩니다.
+              계정 인증과 CSV 암호화 비밀번호는 별개로 동작합니다.
             </div>
           </CardFooter>
         </form>

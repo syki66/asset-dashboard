@@ -59,6 +59,7 @@ type FileHandlingOptions = {
 };
 
 type SecureAction = 'save' | 'load' | 'sign-out';
+const MIN_ENCRYPTION_PASSWORD_LENGTH = 16;
 
 export function CsvStep({
   uploadedFiles,
@@ -71,6 +72,9 @@ export function CsvStep({
   // 암호는 서버나 브라우저 저장소에 보관하지 않고 현재 화면의 메모리에만 유지합니다.
   const [encryptionPassword, setEncryptionPassword] = useState('');
   const [showEncryptionPassword, setShowEncryptionPassword] = useState(false);
+  const encryptionPasswordLength = Array.from(encryptionPassword).length;
+  const isEncryptionPasswordLongEnough =
+    encryptionPasswordLength >= MIN_ENCRYPTION_PASSWORD_LENGTH;
   // 저장·불러오기·로그아웃 중 중복 요청과 버튼 입력을 막습니다.
   const [secureAction, setSecureAction] = useState<SecureAction>();
   // 아래 상태와 ref는 데모 스포트라이트가 실제 버튼을 따라가도록 사용합니다.
@@ -261,9 +265,16 @@ export function CsvStep({
     URL.revokeObjectURL(objectUrl);
   };
 
-  const requireEncryptionPassword = () => {
+  const requireEncryptionPassword = (requireMinimumLength = false) => {
     if (!encryptionPassword) {
       toast.error('암호화 비밀번호를 입력해 주세요.');
+      return false;
+    }
+
+    if (requireMinimumLength && !isEncryptionPasswordLongEnough) {
+      toast.error(
+        `새로 저장할 암호화 비밀번호는 ${MIN_ENCRYPTION_PASSWORD_LENGTH}자 이상이어야 합니다.`,
+      );
       return false;
     }
 
@@ -280,7 +291,7 @@ export function CsvStep({
       toast.error('저장할 CSV 파일이 없습니다.');
       return;
     }
-    if (!requireEncryptionPassword()) return;
+    if (!requireEncryptionPassword(true)) return;
 
     setSecureAction('save');
 
@@ -679,6 +690,7 @@ export function CsvStep({
                         setEncryptionPassword(event.target.value)
                       }
                       placeholder='암호화에 사용할 비밀번호를 입력하세요'
+                      aria-describedby='csv-encryption-password-help'
                       disabled={Boolean(secureAction)}
                       className='h-12 rounded-2xl !border-violet-300/30 !bg-white/10 pl-10 pr-12 text-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.25),0_0.4rem_1.2rem_oklch(0.58_0.08_280/0.08)] backdrop-blur-md placeholder:text-muted-foreground/70 focus-visible:!border-violet-400/55 focus-visible:ring-violet-400/25'
                     />
@@ -701,6 +713,24 @@ export function CsvStep({
                       {showEncryptionPassword ? <EyeOff /> : <Eye />}
                     </Button>
                   </div>
+                  <p
+                    id='csv-encryption-password-help'
+                    className={cn(
+                      'flex items-center justify-between gap-2 px-1 text-xs leading-relaxed',
+                      encryptionPasswordLength > 0 &&
+                        !isEncryptionPasswordLongEnough
+                        ? 'text-rose-700'
+                        : 'text-muted-foreground',
+                    )}
+                  >
+                    <span>
+                      새 저장은 16자 이상, 기존 데이터는 기존 암호로 불러올 수
+                      있습니다.
+                    </span>
+                    <span className='shrink-0 tabular-nums'>
+                      {encryptionPasswordLength}/16
+                    </span>
+                  </p>
                 </div>
                 <div className='flex flex-col gap-2 sm:flex-row'>
                   <Button
@@ -708,7 +738,9 @@ export function CsvStep({
                     variant='outline'
                     className='interactive-lift liquid-glass-surface !cursor-pointer !rounded-xl !border-blue-300/45 !bg-blue-500/15 !text-blue-800 hover:!bg-blue-500/25 hover:!text-blue-900 sm:flex-1'
                     disabled={
-                      Boolean(secureAction) || uploadedFiles.length === 0
+                      Boolean(secureAction) ||
+                      uploadedFiles.length === 0 ||
+                      !isEncryptionPasswordLongEnough
                     }
                     onClick={() => void saveEncryptedCsv()}
                   >
