@@ -30,6 +30,7 @@ import { formatCurrency, formatDateKr, timeAgo } from '@/utils/format';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { DeviceAuthSettings } from '@/components/security/device-auth-settings';
 
 export default function Page() {
   const themeColor = 'var(--settings-theme)';
@@ -269,6 +270,7 @@ export default function Page() {
 
   return (
     <div className='relative mb-6 lg:mb-8'>
+      <DeviceAuthSettings />
       <Card className='dashboard-card relative overflow-hidden'>
         <CardHeader className='border-b border-white/5 p-3.5 pb-4 sm:p-4 lg:p-6 lg:pb-4'>
           <div className='flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between lg:items-center lg:gap-4'>

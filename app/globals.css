@@ -288,7 +288,23 @@ html[data-privacy-locked='true'] .privacy-screen {
   text-wrap: balance;
 }
 
+.privacy-screen__card .privacy-screen__error {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  margin: -0.75rem 0 1rem;
+  color: oklch(0.5 0.17 20);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  background: oklch(0.94 0.045 20 / 0.9);
+  border: 1px solid oklch(0.76 0.1 20 / 0.45);
+  border-radius: 0.8rem;
+}
+
 .privacy-screen__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   width: 100%;
   min-height: 3.25rem;
   color: white;
@@ -305,6 +321,11 @@ html[data-privacy-locked='true'] .privacy-screen {
   transition:
     transform 160ms ease,
     box-shadow 160ms ease;
+}
+
+.privacy-screen__button:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .privacy-screen__button:hover {
