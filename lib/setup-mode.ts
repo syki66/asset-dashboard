@@ -1,8 +1,8 @@
-export type SetupMode = 'default' | 'demo' | 'admin';
+export type SetupMode = 'default' | 'demo';
 
 export const getSetupMode = (modeValue?: string): SetupMode => {
-  if (modeValue === 'demo' || modeValue === 'admin') {
-    return modeValue;
+  if (modeValue === 'demo') {
+    return 'demo';
   }
 
   return 'default';

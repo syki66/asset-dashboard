@@ -22,7 +22,11 @@ export function PrivacyScreen() {
   const [authenticationError, setAuthenticationError] = useState('');
 
   useEffect(() => {
-    if (pathname.startsWith('/setup') || pathname.startsWith('/login')) {
+    if (
+      pathname.startsWith('/setup') ||
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/login')
+    ) {
       document.documentElement.removeAttribute(PRIVACY_ATTRIBUTE);
       return;
     }

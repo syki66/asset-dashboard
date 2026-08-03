@@ -3,7 +3,6 @@ import { getSetupMode } from '../setup-mode';
 describe('getSetupMode', () => {
   it.each([
     ['demo', 'demo'],
-    ['admin', 'admin'],
     ['unknown', 'default'],
     [undefined, 'default'],
   ] as const)(

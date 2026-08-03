@@ -284,7 +284,7 @@ export function CsvStep({
   // 현재 CSV 묶음을 gzip 압축·AES-GCM 암호화한 뒤 사용자별 한 행으로 upsert합니다.
   const saveEncryptedCsv = async () => {
     if (!user) {
-      router.push('/login?next=%2Fsetup%3Fmode%3Dadmin');
+      router.push('/login?next=%2Fadmin');
       return;
     }
     if (uploadedFiles.length === 0) {
@@ -333,7 +333,7 @@ export function CsvStep({
   // 버튼을 누른 시점에만 본인 암호문을 조회하고 브라우저에서 복호화·압축 해제합니다.
   const loadEncryptedCsv = async () => {
     if (!user) {
-      router.push('/login?next=%2Fsetup%3Fmode%3Dadmin');
+      router.push('/login?next=%2Fadmin');
       return;
     }
     if (!requireEncryptionPassword()) return;
@@ -398,7 +398,7 @@ export function CsvStep({
       setUploadedFiles([]);
       setEncryptionPassword('');
       setShowEncryptionPassword(false);
-      window.location.assign('/login?next=%2Fsetup%3Fmode%3Dadmin');
+      window.location.assign('/login?next=%2Fadmin');
     } catch (error) {
       toast.error('로그아웃 실패', {
         description:
@@ -604,7 +604,7 @@ export function CsvStep({
           )}
         </div>
 
-        {/* Supabase 저장 UI는 mode=admin에서만 렌더링됩니다. */}
+        {/* Supabase 저장 UI는 관리자 진입점에서만 렌더링됩니다. */}
         {showSecureStorage && (
           <div className='rounded-xl border border-violet-300/25 bg-[linear-gradient(135deg,oklch(0.86_0.075_250/0.22),oklch(0.98_0.015_290/0.08)_50%,oklch(0.88_0.07_20/0.18))] p-3 shadow-[0_0.75rem_2rem_oklch(0.58_0.09_280/0.1),inset_0_1px_0_rgb(255_255_255/0.3)] backdrop-blur-md sm:p-4 lg:rounded-2xl lg:p-5'>
           <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between lg:gap-4'>
@@ -659,7 +659,7 @@ export function CsvStep({
                   variant='outline'
                   className='shrink-0 cursor-pointer rounded-xl bg-white/[0.04]'
                   onClick={() =>
-                    router.push('/login?next=%2Fsetup%3Fmode%3Dadmin')
+                    router.push('/login?next=%2Fadmin')
                   }
                 >
                   <LogIn />
