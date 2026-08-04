@@ -86,7 +86,7 @@ export const registerDeviceAuth = async () => {
         rp: { name: '자산 대시보드' },
         user: {
           id: crypto.getRandomValues(new Uint8Array(32)),
-          name: 'asset-dashboard-device-lock',
+          name: 'pokugi-asset-dashboard',
           displayName: '자산 대시보드 잠금 해제',
         },
         pubKeyCredParams: [

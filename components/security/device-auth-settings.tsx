@@ -126,7 +126,7 @@ export function DeviceAuthSettings() {
             <Button
               type='button'
               variant='outline'
-              className='interactive-lift w-full cursor-pointer sm:w-auto'
+              className='interactive-lift w-full cursor-pointer border-white/15 bg-white/10 text-foreground shadow-sm hover:bg-white/15 hover:text-foreground sm:w-auto'
               disabled={isBusy || isSupported !== true}
               onClick={() => void resetDeviceAuth()}
             >
@@ -137,7 +137,11 @@ export function DeviceAuthSettings() {
           <Button
             type='button'
             variant={isEnabled ? 'outline' : 'default'}
-            className='interactive-lift w-full cursor-pointer sm:w-auto'
+            className={
+              isEnabled
+                ? 'interactive-lift w-full cursor-pointer border-white/15 bg-white/10 text-foreground shadow-sm hover:bg-white/15 hover:text-foreground sm:w-auto'
+                : 'interactive-lift w-full cursor-pointer border-transparent bg-[color:var(--settings-theme)] text-white shadow-md shadow-[color:var(--settings-theme)]/20 hover:bg-[color:var(--settings-theme)] hover:brightness-105 sm:w-auto'
+            }
             disabled={isBusy || isSupported !== true}
             onClick={() => {
               void (isEnabled ? disableDeviceAuth() : enableDeviceAuth());

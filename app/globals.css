@@ -300,64 +300,6 @@ html[data-privacy-locked='true'] .privacy-screen {
   border-radius: 0.8rem;
 }
 
-.privacy-screen__reset-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  margin: -0.25rem 0 1rem;
-  color: oklch(0.48 0.1 285);
-  font-size: 0.82rem;
-  font-weight: 700;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.privacy-screen__reset-button:hover {
-  text-decoration: underline;
-}
-
-.privacy-screen__reset-confirmation {
-  width: 100%;
-  padding: 0.85rem;
-  margin: -0.5rem 0 1rem;
-  background: oklch(0.95 0.035 80 / 0.88);
-  border: 1px solid oklch(0.78 0.08 75 / 0.5);
-  border-radius: 0.9rem;
-}
-
-.privacy-screen__reset-confirmation p {
-  margin: 0 0 0.75rem;
-  color: oklch(0.45 0.06 70);
-  font-size: 0.8rem;
-  line-height: 1.5;
-}
-
-.privacy-screen__reset-confirmation > div {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 0.5rem;
-}
-
-.privacy-screen__reset-confirmation button {
-  min-height: 2.4rem;
-  padding: 0.4rem 0.65rem;
-  color: oklch(0.42 0.05 70);
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: oklch(1 0 0 / 0.55);
-  border: 1px solid oklch(0.8 0.06 75 / 0.55);
-  border-radius: 0.7rem;
-  cursor: pointer;
-}
-
-.privacy-screen__reset-confirmation button:last-child {
-  color: white;
-  background: oklch(0.58 0.14 45);
-  border-color: oklch(0.72 0.1 45 / 0.55);
-}
-
 .privacy-screen__button {
   display: inline-flex;
   align-items: center;
