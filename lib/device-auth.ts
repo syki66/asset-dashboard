@@ -186,7 +186,7 @@ export const removeDeviceAuth = () => {
 export const getDeviceAuthErrorMessage = (error: unknown) => {
   if (error instanceof DOMException) {
     if (error.name === 'NotAllowedError') {
-      return '인증이 취소되었거나 제한 시간 안에 완료되지 않았습니다.';
+      return '인증이 취소되었거나 등록한 패스키를 기기에서 찾을 수 없습니다.';
     }
     if (error.name === 'InvalidStateError') {
       return '이미 등록된 기기 인증 정보가 있습니다.';
