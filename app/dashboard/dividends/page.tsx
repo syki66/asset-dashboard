@@ -98,6 +98,7 @@ export default function Page() {
       <div className='mt-4'>
         <DividendChart
           themeColor={themeColor}
+          referenceDate={dashboardData.date}
           data={
             showAfterTax
               ? dashboardData.charts.dividendHistoryNet

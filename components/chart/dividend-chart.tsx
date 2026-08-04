@@ -17,6 +17,7 @@ import {
   startOfQuarter,
   startOfYear,
   formatISO,
+  isValid,
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Landmark } from 'lucide-react';
@@ -49,6 +50,7 @@ interface DividendChartProps {
   showTimeRangeTabs?: boolean;
   defaultTimeRange?: TimeRange;
   chartHeightClassName?: string;
+  referenceDate?: string;
 }
 
 type AggregationPeriod = 'monthly' | 'quarterly' | 'annual';
@@ -74,6 +76,7 @@ export function DividendChart({
   showTimeRangeTabs = true,
   defaultTimeRange = 'ytd',
   chartHeightClassName = 'h-80',
+  referenceDate,
 }: DividendChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>(defaultTimeRange);
   const [adjustForInflation, setAdjustForInflation] = useState(false);
@@ -120,29 +123,34 @@ export function DividendChart({
     if (!data || data.length === 0)
       return { chartData: [], aggregationPeriod: 'annual' };
 
-    const now = new Date();
+    const parsedReferenceDate = referenceDate
+      ? parseISO(referenceDate)
+      : new Date();
+    const rangeEndDate = isValid(parsedReferenceDate)
+      ? parsedReferenceDate
+      : new Date();
     let startDate: Date;
     let aggPeriod: AggregationPeriod;
 
     switch (timeRange) {
       case 'ytd':
-        startDate = startOfYear(now);
+        startDate = startOfYear(rangeEndDate);
         aggPeriod = 'monthly';
         break;
       case '1y':
-        startDate = subYears(now, 1);
+        startDate = subYears(rangeEndDate, 1);
         aggPeriod = 'monthly';
         break;
       case '3y':
-        startDate = startOfYear(subYears(now, 2));
+        startDate = startOfYear(subYears(rangeEndDate, 2));
         aggPeriod = 'quarterly';
         break;
       case '5y':
-        startDate = startOfYear(subYears(now, 4));
+        startDate = startOfYear(subYears(rangeEndDate, 4));
         aggPeriod = 'annual';
         break;
       case '10y':
-        startDate = startOfYear(subYears(now, 9));
+        startDate = startOfYear(subYears(rangeEndDate, 9));
         aggPeriod = 'annual';
         break;
       case 'max':
@@ -152,9 +160,10 @@ export function DividendChart({
         break;
     }
 
-    const filteredData = data.filter(
-      (item) => parseISO(item.date) >= startDate,
-    );
+    const filteredData = data.filter((item) => {
+      const itemDate = parseISO(item.date);
+      return itemDate >= startDate && itemDate <= rangeEndDate;
+    });
 
     const aggregated = filteredData.reduce(
       (acc, item) => {
@@ -196,7 +205,7 @@ export function DividendChart({
 
     if (aggPeriod === 'annual') {
       const startYear = startDate.getFullYear();
-      const endYear = now.getFullYear();
+      const endYear = rangeEndDate.getFullYear();
       const availableYears = sortedChartData.map((item) => Number(item.period));
       const firstDataYear = availableYears.length
         ? Math.min(...availableYears)
@@ -222,7 +231,7 @@ export function DividendChart({
     }
 
     return { chartData: sortedChartData, aggregationPeriod: aggPeriod };
-  }, [adjustForInflation, data, timeRange]);
+  }, [adjustForInflation, data, referenceDate, timeRange]);
 
   const formatPeriodLabel = (period: string) => {
     if (aggregationPeriod === 'monthly') {

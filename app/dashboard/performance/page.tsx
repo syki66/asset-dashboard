@@ -393,6 +393,7 @@ export default function Page() {
         />
         <DividendChart
           themeColor={themeColor}
+          referenceDate={dashboardData.date}
           data={yearlyProfitChartData}
           title={showAfterTax ? '연도별 순수익금' : '연도별 수익금'}
           description=''
