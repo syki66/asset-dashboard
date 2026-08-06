@@ -55,6 +55,14 @@ interface DividendChartProps {
 
 type AggregationPeriod = 'monthly' | 'quarterly' | 'annual';
 type TimeRange = 'ytd' | '1y' | '3y' | '5y' | '10y' | 'max';
+const TIME_RANGE_LABELS: Record<TimeRange, string> = {
+  ytd: '해당 연도',
+  '1y': '1년',
+  '3y': '3년',
+  '5y': '5년',
+  '10y': '10년',
+  max: '전체 기간',
+};
 type DividendTooltipPayloadItem = {
   payload: {
     value: number;
@@ -245,6 +253,23 @@ export function DividendChart({
     return period;
   };
 
+  const selectedPeriodTotal = useMemo(
+    () => chartData.reduce((total, item) => total + item.value, 0),
+    [chartData],
+  );
+  const selectedPeriodLabel = useMemo(() => {
+    if (timeRange !== 'ytd') return TIME_RANGE_LABELS[timeRange];
+
+    const parsedReferenceDate = referenceDate
+      ? parseISO(referenceDate)
+      : new Date();
+    const rangeEndDate = isValid(parsedReferenceDate)
+      ? parsedReferenceDate
+      : new Date();
+
+    return `${rangeEndDate.getFullYear()}년`;
+  }, [referenceDate, timeRange]);
+
   const CustomTooltip = ({ active, payload, label }: DividendTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -364,7 +389,13 @@ export function DividendChart({
           )}
         </div>
       </CardHeader>
-      <CardContent className='px-2 pb-4 sm:px-4'>
+      <CardContent
+        className={
+          showTimeRangeTabs
+            ? 'px-2 pb-2 sm:px-4 sm:pb-3'
+            : 'px-2 pb-4 sm:px-4'
+        }
+      >
         <div className={chartHeightClassName}>
           <ResponsiveContainer width='100%' height='100%'>
             {chartData.length > 0 ? (
@@ -409,6 +440,30 @@ export function DividendChart({
             )}
           </ResponsiveContainer>
         </div>
+        {showTimeRangeTabs && (
+          <div className='mt-1 flex justify-center px-2 sm:px-0'>
+            <div
+              className='liquid-glass-surface flex h-10 items-center justify-center !rounded-full bg-background/40 px-4 shadow-md backdrop-blur-sm sm:h-8'
+              style={{ borderColor: themeColor }}
+              aria-live='polite'
+            >
+              <span
+                className='mr-2 h-2.5 w-2.5 rounded-full'
+                style={{ backgroundColor: themeColor }}
+                aria-hidden='true'
+              />
+              <span className='text-xs font-medium sm:text-sm'>
+                {selectedPeriodLabel} 합계
+              </span>
+              <span
+                className='ml-2 text-sm font-bold sm:text-base'
+                style={{ color: themeColor }}
+              >
+                {formatCurrencyValue(selectedPeriodTotal)}
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
