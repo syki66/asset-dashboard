@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -35,6 +35,13 @@ type LoginFormProps = {
 };
 
 type AuthMode = 'sign-in' | 'sign-up';
+type AuthFieldErrors = {
+  email?: string;
+  password?: string;
+};
+
+const MIN_ACCOUNT_PASSWORD_LENGTH = 12;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
@@ -44,6 +51,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) router.replace(nextPath);
@@ -51,6 +61,35 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const trimmedEmail = email.trim();
+    const nextErrors: AuthFieldErrors = {};
+
+    if (!trimmedEmail) {
+      nextErrors.email = '이메일을 입력해 주세요.';
+    } else if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      nextErrors.email = '올바른 이메일 형식으로 입력해 주세요.';
+    }
+
+    if (!password) {
+      nextErrors.password = '비밀번호를 입력해 주세요.';
+    } else if (
+      mode === 'sign-up' &&
+      password.length < MIN_ACCOUNT_PASSWORD_LENGTH
+    ) {
+      nextErrors.password = `비밀번호는 ${MIN_ACCOUNT_PASSWORD_LENGTH}자 이상 입력해 주세요.`;
+    }
+
+    setFieldErrors(nextErrors);
+
+    if (nextErrors.email || nextErrors.password) {
+      if (nextErrors.email) {
+        emailInputRef.current?.focus();
+      } else {
+        passwordInputRef.current?.focus();
+      }
+      return;
+    }
 
     if (!isConfigured) {
       toast.error('Supabase 환경변수가 설정되지 않았습니다.');
@@ -64,7 +103,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
       if (mode === 'sign-in') {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: trimmedEmail,
           password,
         });
 
@@ -76,7 +115,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       }
 
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: trimmedEmail,
         password,
       });
 
@@ -111,6 +150,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     setMode(nextMode);
     setPassword('');
     setShowPassword(false);
+    setFieldErrors({});
   };
 
   return (
@@ -168,7 +208,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           ))}
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <CardContent className='space-y-4 px-5 pb-1 pt-5 sm:px-7'>
             {!isConfigured && (
               <div className='rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-base text-destructive sm:text-sm'>
@@ -181,17 +221,43 @@ export function LoginForm({ nextPath }: LoginFormProps) {
               <div className='group relative'>
                 <Mail className='pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-violet-600/55 transition-colors group-focus-within:text-violet-700' />
                 <Input
+                  ref={emailInputRef}
                   id='email'
                   type='email'
                   autoComplete='email'
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (fieldErrors.email) {
+                      setFieldErrors((current) => ({
+                        ...current,
+                        email: undefined,
+                      }));
+                    }
+                  }}
                   placeholder='name@example.com'
-                  required
+                  aria-required='true'
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={
+                    fieldErrors.email ? 'email-error' : undefined
+                  }
                   disabled={isBusy || !isConfigured}
-                  className='h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md placeholder:text-muted-foreground/65 focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20'
+                  className={cn(
+                    'h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md placeholder:text-muted-foreground/65 focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20',
+                    fieldErrors.email &&
+                      '!border-destructive/55 focus-visible:!border-destructive/70 focus-visible:ring-destructive/15',
+                  )}
                 />
               </div>
+              {fieldErrors.email && (
+                <p
+                  id='email-error'
+                  role='alert'
+                  className='px-1 text-xs font-medium text-destructive'
+                >
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div className='space-y-2'>
@@ -209,17 +275,33 @@ export function LoginForm({ nextPath }: LoginFormProps) {
               <div className='group relative'>
                 <LockKeyhole className='pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-violet-600/55 transition-colors group-focus-within:text-violet-700' />
                 <Input
+                  ref={passwordInputRef}
                   id='password'
                   type={showPassword ? 'text' : 'password'}
                   autoComplete={
                     mode === 'sign-in' ? 'current-password' : 'new-password'
                   }
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  minLength={6}
-                  required
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    if (fieldErrors.password) {
+                      setFieldErrors((current) => ({
+                        ...current,
+                        password: undefined,
+                      }));
+                    }
+                  }}
+                  aria-required='true'
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  aria-describedby={
+                    fieldErrors.password ? 'password-error' : undefined
+                  }
                   disabled={isBusy || !isConfigured}
-                  className='h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 pr-12 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20'
+                  className={cn(
+                    'h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 pr-12 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20',
+                    fieldErrors.password &&
+                      '!border-destructive/55 focus-visible:!border-destructive/70 focus-visible:ring-destructive/15',
+                  )}
                 />
                 <button
                   type='button'
@@ -236,6 +318,21 @@ export function LoginForm({ nextPath }: LoginFormProps) {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p
+                  id='password-error'
+                  role='alert'
+                  className='px-1 text-xs font-medium text-destructive'
+                >
+                  {fieldErrors.password}
+                </p>
+              )}
+              {mode === 'sign-up' && !fieldErrors.password && (
+                <p className='px-1 text-xs text-muted-foreground'>
+                  계정 비밀번호는 {MIN_ACCOUNT_PASSWORD_LENGTH}자 이상 입력해
+                  주세요.
+                </p>
+              )}
             </div>
           </CardContent>
 

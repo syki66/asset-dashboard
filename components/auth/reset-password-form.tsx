@@ -2,7 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type RefObject,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -30,10 +36,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 
-const MIN_ACCOUNT_PASSWORD_LENGTH = 6;
+const MIN_ACCOUNT_PASSWORD_LENGTH = 12;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type RecoveryState = 'checking' | 'ready' | 'invalid';
+type ResetFieldErrors = {
+  email?: string;
+  newPassword?: string;
+  passwordConfirmation?: string;
+};
 
 export function ResetPasswordForm({
   isRecoveryFlow,
@@ -48,6 +61,10 @@ export function ResetPasswordForm({
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ResetFieldErrors>({});
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const newPasswordInputRef = useRef<HTMLInputElement>(null);
+  const passwordConfirmationInputRef = useRef<HTMLInputElement>(null);
   const [recoveryState, setRecoveryState] = useState<RecoveryState>(
     isRecoveryFlow ? 'checking' : 'invalid',
   );
@@ -82,6 +99,20 @@ export function ResetPasswordForm({
   const requestResetEmail = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !EMAIL_PATTERN.test(trimmedEmail)) {
+      setFieldErrors({
+        email: !trimmedEmail
+          ? '이메일을 입력해 주세요.'
+          : '올바른 이메일 형식으로 입력해 주세요.',
+      });
+      emailInputRef.current?.focus();
+      return;
+    }
+
+    setFieldErrors({});
+
     if (!isConfigured) {
       toast.error('Supabase 환경변수가 설정되지 않았습니다.');
       return;
@@ -92,9 +123,10 @@ export function ResetPasswordForm({
     try {
       const supabase = getSupabaseBrowserClient();
       const redirectTo = `${window.location.origin}/reset-password/recovery`;
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        trimmedEmail,
+        { redirectTo },
+      );
 
       if (error) throw error;
 
@@ -115,13 +147,28 @@ export function ResetPasswordForm({
   const updatePassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (newPassword.length < MIN_ACCOUNT_PASSWORD_LENGTH) {
-      toast.error(`새 비밀번호는 ${MIN_ACCOUNT_PASSWORD_LENGTH}자 이상이어야 합니다.`);
-      return;
+    const nextErrors: ResetFieldErrors = {};
+
+    if (!newPassword) {
+      nextErrors.newPassword = '새 비밀번호를 입력해 주세요.';
+    } else if (newPassword.length < MIN_ACCOUNT_PASSWORD_LENGTH) {
+      nextErrors.newPassword = `새 비밀번호는 ${MIN_ACCOUNT_PASSWORD_LENGTH}자 이상 입력해 주세요.`;
     }
 
-    if (newPassword !== passwordConfirmation) {
-      toast.error('새 비밀번호가 서로 일치하지 않습니다.');
+    if (!passwordConfirmation) {
+      nextErrors.passwordConfirmation = '새 비밀번호를 한 번 더 입력해 주세요.';
+    } else if (newPassword !== passwordConfirmation) {
+      nextErrors.passwordConfirmation = '새 비밀번호가 서로 일치하지 않습니다.';
+    }
+
+    setFieldErrors(nextErrors);
+
+    if (nextErrors.newPassword || nextErrors.passwordConfirmation) {
+      if (nextErrors.newPassword) {
+        newPasswordInputRef.current?.focus();
+      } else {
+        passwordConfirmationInputRef.current?.focus();
+      }
       return;
     }
 
@@ -209,13 +256,23 @@ export function ResetPasswordForm({
             </Button>
           </CardContent>
         ) : isRecoveryFlow ? (
-          <form onSubmit={updatePassword}>
+          <form onSubmit={updatePassword} noValidate>
             <CardContent className='space-y-4 px-5 pb-1 pt-3 sm:px-7'>
               <PasswordInput
                 id='new-password'
                 label='새 비밀번호'
                 value={newPassword}
-                onChange={setNewPassword}
+                onChange={(value) => {
+                  setNewPassword(value);
+                  if (fieldErrors.newPassword) {
+                    setFieldErrors((current) => ({
+                      ...current,
+                      newPassword: undefined,
+                    }));
+                  }
+                }}
+                error={fieldErrors.newPassword}
+                inputRef={newPasswordInputRef}
                 showPassword={showPassword}
                 onTogglePassword={() => setShowPassword((current) => !current)}
                 disabled={isSubmitting}
@@ -224,7 +281,17 @@ export function ResetPasswordForm({
                 id='password-confirmation'
                 label='새 비밀번호 확인'
                 value={passwordConfirmation}
-                onChange={setPasswordConfirmation}
+                onChange={(value) => {
+                  setPasswordConfirmation(value);
+                  if (fieldErrors.passwordConfirmation) {
+                    setFieldErrors((current) => ({
+                      ...current,
+                      passwordConfirmation: undefined,
+                    }));
+                  }
+                }}
+                error={fieldErrors.passwordConfirmation}
+                inputRef={passwordConfirmationInputRef}
                 showPassword={showPassword}
                 onTogglePassword={() => setShowPassword((current) => !current)}
                 disabled={isSubmitting}
@@ -259,31 +326,57 @@ export function ResetPasswordForm({
             <Button
               type='button'
               variant='outline'
-              className='interactive-lift h-11 w-full rounded-2xl border-white/40 bg-white/25'
+              className='interactive-lift h-11 w-full cursor-pointer rounded-2xl !border-white/40 !bg-white/25 !text-foreground hover:!bg-white/40 hover:!text-foreground focus-visible:ring-violet-400/20'
               onClick={() => setEmailSent(false)}
             >
               다른 이메일로 다시 요청
             </Button>
           </CardContent>
         ) : (
-          <form onSubmit={requestResetEmail}>
+          <form onSubmit={requestResetEmail} noValidate>
             <CardContent className='space-y-4 px-5 pb-1 pt-3 sm:px-7'>
               <div className='space-y-2'>
                 <Label htmlFor='reset-email'>이메일</Label>
                 <div className='group relative'>
                   <Mail className='pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-violet-600/55 transition-colors group-focus-within:text-violet-700' />
                   <Input
+                    ref={emailInputRef}
                     id='reset-email'
                     type='email'
                     autoComplete='email'
                     value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      if (fieldErrors.email) {
+                        setFieldErrors((current) => ({
+                          ...current,
+                          email: undefined,
+                        }));
+                      }
+                    }}
                     placeholder='name@example.com'
-                    required
+                    aria-required='true'
+                    aria-invalid={Boolean(fieldErrors.email)}
+                    aria-describedby={
+                      fieldErrors.email ? 'reset-email-error' : undefined
+                    }
                     disabled={isBusy}
-                    className='h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md placeholder:text-muted-foreground/65 focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20'
+                    className={cn(
+                      'h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md placeholder:text-muted-foreground/65 focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20',
+                      fieldErrors.email &&
+                        '!border-destructive/55 focus-visible:!border-destructive/70 focus-visible:ring-destructive/15',
+                    )}
                   />
                 </div>
+                {fieldErrors.email && (
+                  <p
+                    id='reset-email-error'
+                    role='alert'
+                    className='px-1 text-xs font-medium text-destructive'
+                  >
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
             </CardContent>
             <CardFooter className='flex flex-col gap-3 px-5 pb-6 pt-5 sm:px-7 sm:pb-7'>
@@ -320,6 +413,8 @@ function PasswordInput({
   label,
   value,
   onChange,
+  error,
+  inputRef,
   showPassword,
   onTogglePassword,
   disabled,
@@ -328,6 +423,8 @@ function PasswordInput({
   label: string;
   value: string;
   onChange: (value: string) => void;
+  error?: string;
+  inputRef: RefObject<HTMLInputElement>;
   showPassword: boolean;
   onTogglePassword: () => void;
   disabled: boolean;
@@ -338,15 +435,21 @@ function PasswordInput({
       <div className='group relative'>
         <LockKeyhole className='pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-violet-600/55 transition-colors group-focus-within:text-violet-700' />
         <Input
+          ref={inputRef}
           id={id}
           type={showPassword ? 'text' : 'password'}
           autoComplete='new-password'
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          minLength={MIN_ACCOUNT_PASSWORD_LENGTH}
-          required
+          aria-required='true'
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${id}-error` : undefined}
           disabled={disabled}
-          className='h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 pr-12 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20'
+          className={cn(
+            'h-12 rounded-2xl !border-white/40 !bg-white/25 pl-10 pr-12 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0.35rem_1rem_oklch(0.55_0.07_285/0.07)] backdrop-blur-md focus-visible:!border-violet-300/65 focus-visible:ring-violet-400/20',
+            error &&
+              '!border-destructive/55 focus-visible:!border-destructive/70 focus-visible:ring-destructive/15',
+          )}
         />
         <button
           type='button'
@@ -359,6 +462,15 @@ function PasswordInput({
           {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
         </button>
       </div>
+      {error && (
+        <p
+          id={`${id}-error`}
+          role='alert'
+          className='px-1 text-xs font-medium text-destructive'
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }
