@@ -48,9 +48,15 @@ export function Sidebar({
                 <h1 className='text-xl font-bold leading-tight text-foreground'>
                   투자 대시보드
                 </h1>
-                <p className='mt-0.5 text-xs font-semibold text-[color:var(--sidebar-brand-soft)]'>
-                  Portfolio Analytics
-                </p>
+                <Link
+                  href='https://pokugi.com'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  aria-label='Pokugi Studio 홈페이지 새 창에서 열기'
+                  className='mt-0.5 block w-fit cursor-pointer text-xs font-semibold text-[color:var(--sidebar-brand-soft)] transition-colors hover:text-[color:var(--sidebar-brand-theme)] hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-brand-theme)]/30'
+                >
+                  Pokugi Studio
+                </Link>
               </div>
             </div>
           </div>

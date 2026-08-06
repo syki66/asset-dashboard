@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
 import { LoadingOverlay } from '@/components/ui/loading-overlay';
+import { SiteFooter } from '@/components/footer/site-footer';
 import {
   CsvStep,
   DateStep,
@@ -518,6 +519,7 @@ function SetupPageContent({ isAdmin = false }: SetupPageProps) {
             </Button>
           </CardFooter>
         </Card>
+        <SiteFooter className='mt-3 lg:mt-4' />
         {(isPreparingCalculation || isLoading) && (
           <LoadingOverlay
             title='계좌 데이터를 계산하는 중입니다.'

@@ -8,6 +8,7 @@ import {
   type CSSProperties,
 } from 'react';
 import { Disclaimer } from '@/components/footer/disclaimer';
+import { SiteFooter } from '@/components/footer/site-footer';
 import { initialDashboardData, useDashboardStore } from '@/store/dashboard';
 import {
   useCurrencyStore,
@@ -840,6 +841,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <main className='min-w-0 flex-1 pt-5 lg:min-w-[auto] lg:pt-8'>
             {children}
             <Disclaimer />
+            <SiteFooter
+              className='mx-3.5 mt-5 lg:mx-0 lg:mt-6'
+              accentColor={`var(--${activeCategory}-theme)`}
+            />
           </main>
         </div>
       </div>
