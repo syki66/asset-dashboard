@@ -519,7 +519,10 @@ function SetupPageContent({ isAdmin = false }: SetupPageProps) {
             </Button>
           </CardFooter>
         </Card>
-        <SiteFooter className='mt-3 lg:mt-4' />
+        <SiteFooter
+          className='mt-3 lg:mt-4'
+          accentColor='oklch(0.5 0.16 285)'
+        />
         {(isPreparingCalculation || isLoading) && (
           <LoadingOverlay
             title='계좌 데이터를 계산하는 중입니다.'

@@ -78,8 +78,11 @@ export default function NotFound() {
         </div>
       </section>
 
-      <div className='mt-6 w-full max-w-[30rem]'>
-        <SiteFooter className='w-full' />
+      <div className='mt-2 w-full max-w-[30rem]'>
+        <SiteFooter
+          className='w-full'
+          accentColor='oklch(0.5 0.16 285)'
+        />
       </div>
     </main>
   );
