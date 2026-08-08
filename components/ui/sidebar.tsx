@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { BarChart3 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 // Updated SidebarProps
@@ -41,8 +41,15 @@ export function Sidebar({
             style={brandStyle}
           >
             <div className='flex items-center gap-3'>
-              <div className='animate-[theme-glow_8s_ease-in-out_infinite] flex h-10 w-10 items-center justify-center rounded-xl border border-[color:var(--sidebar-brand-theme)]/20 bg-white/[0.045] text-[color:var(--sidebar-brand-theme)] shadow-sm backdrop-blur-md'>
-                <BarChart3 className='h-5 w-5' />
+              <div className='animate-[theme-glow_8s_ease-in-out_infinite] flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[color:var(--sidebar-brand-theme)]/20 bg-white/[0.045] shadow-sm backdrop-blur-md'>
+                <Image
+                  src='/icons/icon-192.png'
+                  width={40}
+                  height={40}
+                  priority
+                  alt='자산 대시보드 브랜드 아이콘'
+                  className='h-full w-full rounded-xl object-cover'
+                />
               </div>
               <div className='min-w-0'>
                 <h1 className='text-xl font-bold leading-tight text-foreground'>

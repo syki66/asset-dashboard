@@ -13,11 +13,26 @@ const pretendard = localFont({
   variable: '--font-pretendard',
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://asset.pokugi.com';
+
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Pokugi Studio',
+  url: 'https://pokugi.com',
+  email: 'mailto:66syki@gmail.com',
+  logo: `${siteUrl}/icons/icon-512.png`,
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    email: '66syki@gmail.com',
+    availableLanguage: ['ko'],
+  },
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ??
-      'https://asset.pokugi.com',
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     default: '자산 대시보드 | 내 투자 자산 분석',
     template: '%s | 자산 대시보드',
@@ -114,6 +129,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ko'>
+      <head>
+        <script
+          id='organization-json-ld'
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd).replace(
+              /</g,
+              '\\u003c',
+            ),
+          }}
+        />
+      </head>
       <body className={`${pretendard.variable} antialiased`}>
         <PrivacyScreen />
         <Providers>{children}</Providers>
