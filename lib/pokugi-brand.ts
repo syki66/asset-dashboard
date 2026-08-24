@@ -10,7 +10,6 @@ export function shouldShowPokugiBrand(host: string) {
   return (
     LOCAL_DEVELOPMENT_HOSTS.has(hostname) ||
     hostname.endsWith('.localhost') ||
-    hostname.endsWith('.vercel.app') ||
     hostname === 'pokugi.com' ||
     hostname.endsWith('.pokugi.com')
   );
