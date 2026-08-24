@@ -92,6 +92,9 @@ export function CsvStep({
       return;
     }
 
+    const previousBodyOverflow = document.body.style.overflow;
+    let animationFrameId: number | undefined;
+
     const updateSpotlight = () => {
       const button = dummyButtonRef.current;
       if (!button) return;
@@ -117,15 +120,38 @@ export function CsvStep({
       });
     };
 
-    updateSpotlight();
-    window.addEventListener('resize', updateSpotlight);
-    window.addEventListener('scroll', updateSpotlight, true);
+    const scheduleSpotlightUpdate = () => {
+      if (animationFrameId !== undefined) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      animationFrameId = requestAnimationFrame(() => {
+        animationFrameId = undefined;
+        updateSpotlight();
+      });
+    };
+
+    // 스크롤바가 사라지면 중앙 정렬된 콘텐츠의 위치가 바뀔 수 있으므로,
+    // 스크롤을 먼저 잠근 다음 다음 프레임의 최종 레이아웃을 측정합니다.
     document.body.style.overflow = 'hidden';
+    scheduleSpotlightUpdate();
+
+    const resizeObserver = new ResizeObserver(scheduleSpotlightUpdate);
+    if (dummyButtonRef.current) {
+      resizeObserver.observe(dummyButtonRef.current);
+    }
+
+    window.addEventListener('resize', scheduleSpotlightUpdate);
+    window.addEventListener('scroll', scheduleSpotlightUpdate, true);
 
     return () => {
-      window.removeEventListener('resize', updateSpotlight);
-      window.removeEventListener('scroll', updateSpotlight, true);
-      document.body.style.overflow = '';
+      if (animationFrameId !== undefined) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', scheduleSpotlightUpdate);
+      window.removeEventListener('scroll', scheduleSpotlightUpdate, true);
+      document.body.style.overflow = previousBodyOverflow;
     };
   }, [showDemoSpotlight]);
 
