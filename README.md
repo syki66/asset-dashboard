@@ -6,7 +6,7 @@
 
 투자 성과, 자산 현황, 배당 수익, 위험도, 포트폴리오 구성, 거래 히스토리 등을 한눈에 확인할 수 있습니다.
 
-🔗 **[Live Demo](https://asset.pokugi.com/setup?mode=demo)**
+🔗 **[Live Demo](https://asset-dashboard-preview.vercel.app/setup?mode=demo)**
 
 ![자산 대시보드](./public/asset-dashboard.png)
 

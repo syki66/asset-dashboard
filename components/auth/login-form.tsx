@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   UserPlus,
 } from 'lucide-react';
+import { PokugiBrandOnly } from '@/components/branding/pokugi-brand-only';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth/auth-provider';
 import { Button } from '@/components/ui/button';
@@ -175,9 +176,11 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             />
           </div>
           <div>
-            <p className='mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700/65'>
-              Pokugi Studio
-            </p>
+            <PokugiBrandOnly>
+              <p className='mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700/65'>
+                Pokugi Studio
+              </p>
+            </PokugiBrandOnly>
             <CardTitle className='text-2xl font-extrabold tracking-tight sm:text-[1.7rem]'>
               자산 대시보드
             </CardTitle>
