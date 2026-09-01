@@ -446,6 +446,18 @@ export function AssetChart({
 
     if (usesSymLogScale) {
       const padding = Math.max((safeMax - safeMin) * 0.1, 1);
+
+      // 값이 모두 0 이상이면 0부터 최댓값까지 표시합니다.
+      if (safeMin >= 0) {
+        return [0, safeMax + padding];
+      }
+
+      // 값이 모두 0 이하이면 최솟값부터 0까지 표시합니다.
+      if (safeMax <= 0) {
+        return [safeMin - padding, 0];
+      }
+
+      // 양수와 음수가 섞여 있으면 양쪽에 여백을 둡니다.
       return [safeMin - padding, safeMax + padding];
     }
 
@@ -486,7 +498,9 @@ export function AssetChart({
       : 'linear';
   const logScaleDescription = useLogScale
     ? usesSymLogScale
-      ? '0 이하 값이 있어 대칭 로그 스케일을 사용합니다. 0 부근은 차트 범위의 5%를 완충 구간으로 둡니다.'
+      ? displayAsNegative
+        ? '0원을 포함한 낙폭 데이터를 로그 방식으로 압축합니다. 0 부근은 차트 범위의 5%를 완충 구간으로 둡니다.'
+        : '0 이하 값이 있어 대칭 로그 스케일을 사용합니다. 0 부근은 차트 범위의 5%를 완충 구간으로 둡니다.'
       : '큰 값과 작은 값의 차이를 로그로 압축합니다.'
     : '';
 
@@ -897,7 +911,9 @@ export function AssetChart({
                   }
                 >
                   <span className='whitespace-nowrap'>
-                    {usesSymLogScale ? '대칭 로그 스케일' : '로그 스케일'}
+                    {usesSymLogScale && !displayAsNegative
+                      ? '대칭 로그 스케일'
+                      : '로그 스케일'}
                   </span>
                   <span
                     className={

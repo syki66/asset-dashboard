@@ -765,6 +765,7 @@ export function StockTradeChart({
                 <Tooltip
                   content={<CustomTooltip />}
                   cursor={{ fill: 'var(--transaction-hover-bg)' }}
+                  wrapperStyle={{ zIndex: 10 }}
                 />
                 <defs>
                   {selectedStocks.map((stock) => (
