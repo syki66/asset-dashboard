@@ -9,15 +9,14 @@ import { HoldingsView } from '@/components/dashboard/holdings-view';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 import { cn } from '@/lib/utils';
 import { useDashboardStore } from '@/store/dashboard';
-import { useChartLayoutStore } from '@/store/options';
+import { usePageChartLayout } from '@/store/options';
 import { Boxes, Gauge, Layers } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 export default function Page() {
   const themeColor = 'var(--portfolio-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
-  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
-  const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
+  const [chartLayout, setChartLayout] = usePageChartLayout('portfolio');
   const [allocationSummary, setAllocationSummary] =
     useState<PortfolioAllocationSummary | null>(null);
   const [sectorSummary, setSectorSummary] =

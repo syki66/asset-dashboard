@@ -4,7 +4,7 @@ import { AssetChart, PortfolioAllocationChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { DollarSign, Trophy, TrendingUp, PiggyBank } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
-import { useChartLayoutStore, useCurrencyStore, useTaxStore } from '@/store/options';
+import { usePageChartLayout, useCurrencyStore, useTaxStore } from '@/store/options';
 import {
   CURRENT_VALUE_INFO,
   DIVIDEND_YIELD_INFO,
@@ -29,8 +29,7 @@ export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
-  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
-  const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
+  const [chartLayout, setChartLayout] = usePageChartLayout('overview');
 
   useEffect(() => {
     window.scrollTo(0, 0);

@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { AssetChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ChartLayoutToggleButton } from '@/components/ui/chart-layout-toggle-button';
 import { RISK_CHART_COLORS } from '@/constants/chart-colors';
 import { cn } from '@/lib/utils';
 import { useDashboardStore } from '@/store/dashboard';
-import { useChartLayoutStore, useCurrencyStore } from '@/store/options';
+import { usePageChartLayout, useCurrencyStore } from '@/store/options';
 import { formatCurrency } from '@/utils/format';
 import {
   BEST_SHARPE_RATIO_INFO,
@@ -24,19 +23,11 @@ import {
   TrendingDown,
 } from 'lucide-react';
 
-type ChartLayout = 'expanded' | 'compact';
-
 export default function Page() {
   const themeColor = 'var(--risk-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
-  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
-  const [rollingChartLayout, setRollingChartLayout] =
-    useState<ChartLayout>(chartLayout);
-
-  useEffect(() => {
-    setRollingChartLayout(chartLayout);
-  }, [chartLayout]);
+  const [rollingChartLayout, setRollingChartLayout] = usePageChartLayout('risk');
 
   return (
     <>

@@ -4,7 +4,7 @@ import { AssetChart, DividendChart } from '@/components/chart';
 import DashboardCard from '@/components/dashboard/dashboard-card';
 import { useDashboardStore } from '@/store/dashboard';
 import {
-  useChartLayoutStore,
+  usePageChartLayout,
   useCurrencyStore,
   useTaxStore,
 } from '@/store/options';
@@ -26,8 +26,7 @@ export default function Page() {
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
-  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
-  const setChartLayout = useChartLayoutStore((state) => state.setChartLayout);
+  const [chartLayout, setChartLayout] = usePageChartLayout('dividends');
   const showAfterTax = tax === 'post';
   const { dividends } = dashboardData;
 

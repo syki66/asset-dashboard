@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { AssetChart, DividendChart } from '@/components/chart';
 import { DashboardOverviewCard } from '@/components/dashboard/dashboard-overview-card';
 import { ComparisonTable } from '@/components/dashboard/comparison-table';
 import { useDashboardStore } from '@/store/dashboard';
 import {
-  useChartLayoutStore,
+  usePageChartLayout,
+  type ChartLayout,
   useCurrencyStore,
   useTaxStore,
 } from '@/store/options';
@@ -30,25 +30,17 @@ import {
 } from '@/constants/dashboard-info';
 import { PERFORMANCE_CHART_COLORS } from '@/constants/chart-colors';
 
-type ChartLayout = 'expanded' | 'compact';
-
 export default function Page() {
   const themeColor = 'var(--performance-theme)';
   const dashboardData = useDashboardStore((state) => state.dashboardData);
   const currency = useCurrencyStore((state) => state.currency);
   const tax = useTaxStore((state) => state.tax);
-  const chartLayout = useChartLayoutStore((state) => state.chartLayout);
   const feeSettings = useFeeSettingsStore((state) => state.feeSettings);
   const [detailChartLayout, setDetailChartLayout] =
-    useState<ChartLayout>(chartLayout);
+    usePageChartLayout('performance-detail');
   const [returnChartLayout, setReturnChartLayout] =
-    useState<ChartLayout>(chartLayout);
+    usePageChartLayout('performance-return');
   const showAfterTax = tax === 'post';
-
-  useEffect(() => {
-    setDetailChartLayout(chartLayout);
-    setReturnChartLayout(chartLayout);
-  }, [chartLayout]);
 
   const { performance, benchmarkBest, benchmarkWorst, costs } = dashboardData;
   const twrInfo =

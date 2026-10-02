@@ -213,7 +213,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
   const { currency, setCurrency } = useCurrencyStore();
   const { tax, setTax } = useTaxStore();
-  const { chartLayout, setChartLayout } = useChartLayoutStore();
+  const { chartLayout, setChartLayout, setIsDesktopViewport: setChartViewport } =
+    useChartLayoutStore();
   const dashboardDate = useDashboardDateStore((state) => state.dashboardDate);
   const totalAccountData = useAccountStore((state) => state.totalAccountData);
   const bestInterestRates = useInterestRateStore(
@@ -301,9 +302,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const updateViewport = () => {
       const isDesktop = desktopMediaQuery.matches;
       setIsDesktopViewport(isDesktop);
-      if (!isDesktop) {
-        setChartLayout('expanded');
-      }
+      setChartViewport(isDesktop);
     };
 
     updateViewport();
@@ -312,7 +311,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => {
       desktopMediaQuery.removeEventListener('change', updateViewport);
     };
-  }, [setChartLayout]);
+  }, [setChartViewport]);
 
   // Setup 완료 또는 Settings 계좌 적용 시 전체 기간 MWR까지 한 번에 계산합니다.
   // 페이지 경로는 의존성에 없으므로 대시보드 화면 이동만으로는 다시 계산하지 않습니다.
@@ -659,7 +658,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </Tabs>
 
                         <Tabs
-                          value={chartLayout}
+                          value={isDesktopViewport ? chartLayout : 'expanded'}
                           onValueChange={(v) => {
                             if (!isDesktopViewport) return;
                             setChartLayout(v as 'expanded' | 'compact');
