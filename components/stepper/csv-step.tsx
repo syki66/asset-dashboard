@@ -155,21 +155,26 @@ export function CsvStep({
     };
   }, [showDemoSpotlight]);
 
-  // 체험용 더미 CSV 데이터 불러오기 (순차적으로)
+  // 체험용 더미 CSV 데이터 불러오기 (아직 없는 파일을 한 번에)
   const loadDummyCsv = async () => {
-    const fileName = dummyCsvFileNames.find(
+    const fileNames = dummyCsvFileNames.filter(
       (name) => !uploadedFiles.some((file) => file.name === name),
     );
 
-    if (!fileName) {
+    if (fileNames.length === 0) {
       toast.error('더 이상 불러올 CSV가 없습니다.');
       return;
     }
     try {
-      const res = await fetch(`/${fileName}`); // public 폴더에 있는 csv 파일 불러오기
-      const blob = await res.blob();
-      const file = new File([blob], fileName, { type: 'text/csv' });
-      await handleFiles([file]);
+      const files = await Promise.all(
+        fileNames.map(async (fileName) => {
+          const res = await fetch(`/${fileName}`); // public 폴더에 있는 csv 파일 불러오기
+          if (!res.ok) throw new Error(fileName);
+          const blob = await res.blob();
+          return new File([blob], fileName, { type: 'text/csv' });
+        }),
+      );
+      await handleFiles(files);
     } catch {
       toast.error('더미 CSV 로드 실패');
     }
