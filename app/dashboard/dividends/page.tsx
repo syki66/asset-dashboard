@@ -144,7 +144,11 @@ export default function Page() {
             },
           ]}
           title={showAfterTax ? '세후 배당률 변화 추이' : '배당률 변화 추이'}
-          description='자산 평가액 대비 세후 배당률'
+          description={
+            showAfterTax
+              ? '자산 평가액 대비 세후 배당률'
+              : '자산 평가액 대비 배당률'
+          }
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
           yAxisMin={0}
@@ -168,7 +172,11 @@ export default function Page() {
               ? '세후 원금 대비 배당률 변화 추이'
               : '원금 대비 배당률 변화 추이'
           }
-          description='세후 원금 대비 배당률'
+          description={
+            showAfterTax
+              ? '총 투자 원금 대비 세후 배당률'
+              : '총 투자 원금 대비 배당률'
+          }
           icon={TrendingUpDown}
           showInflationAdjustToggle={false}
           showLogScaleToggle={false}
