@@ -485,7 +485,7 @@ export function PortfolioAllocationChart({
         <div className='liquid-glass-surface glassmorphism-tooltip max-w-[calc(100vw-2rem)] lg:max-w-none'>
           <div className='mb-1 flex items-center gap-2 text-base font-bold text-foreground'>
             <span
-              className='size-2.5 rounded-full'
+              className='size-2.5 shrink-0 rounded-full ring-1 ring-white/70'
               style={{ backgroundColor: color }}
             />
             <p>{data.name}</p>
@@ -495,7 +495,7 @@ export function PortfolioAllocationChart({
           <div className='mt-2 space-y-1'>
             <div className='flex justify-between gap-4 text-sm'>
               <span>평가금액</span>
-              <span className='font-semibold' style={{ color }}>
+              <span className='font-semibold text-foreground'>
                 {formatAmount(data.value)}
                 <span
                   className={`text-xs font-normal text-muted-foreground ${
@@ -508,7 +508,7 @@ export function PortfolioAllocationChart({
             </div>
             <div className='flex justify-between gap-4 text-sm'>
               <span>비중</span>
-              <span className='font-semibold' style={{ color }}>
+              <span className='font-semibold text-foreground'>
                 {percentage}%
               </span>
             </div>

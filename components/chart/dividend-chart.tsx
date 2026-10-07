@@ -291,7 +291,7 @@ export function DividendChart({
             <div className='flex items-center justify-between text-sm'>
               <div className='flex items-center'>
                 <div
-                  className='w-2.5 h-2.5 rounded-full mr-2'
+                  className='w-2.5 h-2.5 shrink-0 rounded-full mr-2 ring-1 ring-white/70'
                   style={{ backgroundColor: themeColor }}
                 />
                 <span>{valueLabel}</span>

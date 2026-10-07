@@ -425,24 +425,25 @@ export function StockTradeChart({
           <div className='my-2'>
             <div className={`text-xs font-bold mb-1 ${textColorClass}`}>{title}</div>
             <div className='space-y-1.5'>
-              {items.map((entry, index) => (
-                <div key={index} className='flex items-center justify-between text-sm'>
-                  <div className='flex items-center gap-2'>
-                    <div
-                      className='w-2.5 h-2.5 rounded-full'
-                      style={{ backgroundColor: entry.color }}
-                    />
-                    <span className={`font-medium ${textColorClass}`}>
-                      {getStockDisplayName(
-                        entry.dataKey.replace(/\(매수\)|\(매도\)/g, ''),
-                      )}
+              {items.map((entry, index) => {
+                const stock = entry.dataKey.replace(/\(매수\)|\(매도\)/g, '');
+                return (
+                  <div key={index} className='flex items-center justify-between text-sm'>
+                    <div className='flex items-center gap-2'>
+                      <div
+                        className='w-2.5 h-2.5 shrink-0 rounded-full ring-1 ring-white/70'
+                        style={{ backgroundColor: stockColors[stock] ?? entry.color }}
+                      />
+                      <span className='font-medium text-foreground'>
+                        {getStockDisplayName(stock)}
+                      </span>
+                    </div>
+                    <span className='font-semibold ml-4 text-foreground'>
+                      {formatTradeValue(entry.value)}
                     </span>
                   </div>
-                  <span className={`font-semibold ml-4 ${textColorClass}`}>
-                    {formatTradeValue(entry.value)}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
