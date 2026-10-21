@@ -56,7 +56,13 @@ export function Sidebar({
                 <h1 className='text-xl font-bold leading-tight text-foreground'>
                   투자 대시보드
                 </h1>
-                <PokugiBrandOnly>
+                <PokugiBrandOnly
+                  fallback={
+                    <span className='mt-0.5 block w-fit text-xs font-semibold text-[color:var(--sidebar-brand-soft)]'>
+                      Preview
+                    </span>
+                  }
+                >
                   <Link
                     href='https://pokugi.com'
                     target='_blank'

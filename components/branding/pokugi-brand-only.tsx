@@ -4,12 +4,20 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 import { shouldShowPokugiBrand } from '@/lib/pokugi-brand';
 
-export function PokugiBrandOnly({ children }: { children: ReactNode }) {
-  const [isVisible, setIsVisible] = useState(false);
+export function PokugiBrandOnly({
+  children,
+  fallback = null,
+}: {
+  children: ReactNode;
+  fallback?: ReactNode;
+}) {
+  const [isVisible, setIsVisible] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsVisible(shouldShowPokugiBrand(window.location.host));
   }, []);
 
-  return isVisible ? children : null;
+  if (isVisible === null) return null;
+
+  return isVisible ? children : fallback;
 }

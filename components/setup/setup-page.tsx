@@ -83,11 +83,11 @@ const readFile = async (file: File) => {
 const getFileKey = (file: File) =>
   `${file.name}-${file.size}-${file.lastModified}`;
 
-// 데모에서는 실제 최고금리보다 성과 차이가 분명하게 보이도록 최상 시나리오를 3배로 만듭니다.
+// 데모에서는 더미 계좌의 평가금이 최상/최악 벤치마크 밴드에 일부 걸치도록 최상 시나리오를 (금리 × 4 + 5%p)로 만듭니다.
 const createDemoBestInterestRates = () =>
   bestRateTable.map(({ date, interestRate }) => ({
     date,
-    interestRate: Number((interestRate * 4).toFixed(2)),
+    interestRate: Number((interestRate * 4 + 5).toFixed(2)),
   }));
 
 function SetupPageFallback() {
