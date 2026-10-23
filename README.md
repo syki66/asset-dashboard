@@ -8,7 +8,7 @@
 
 🔗 **[Live Demo](https://asset-dashboard-preview.vercel.app/setup?mode=demo)**
 
-![자산 대시보드](./public/asset-dashboard.png)
+![자산 대시보드 개요](docs/images/overview.png)
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
@@ -107,7 +107,7 @@ flowchart LR
 
 ### 📊 종합 대시보드 & 공통 기능
 
-![Overview](docs/images/dashboard-overview.png)
+![종합 대시보드](docs/images/overview.png)
 
 - **핵심 지표 요약 제공**  
   성과, 배당, 현금 보유액, 포트폴리오 구성, 매매 기록, 리스크 지표 등 각 분석 페이지의 주요 정보를 한 화면에 요약해 보여줍니다.
@@ -132,7 +132,7 @@ flowchart LR
 
 ### 📈 수익성 분석
 
-![Performance](docs/images/dashboard-performance.png)
+![수익성 분석](docs/images/performance.png)
 
 - **수익률 / 수익금 분석**  
   원금, 평가금액, 누적수익금, 누적수익률, MWR, TWR, CAGR, 단순연평균수익률, 벤치마크 대비 초과수익, 연도별 수익금을 표와 차트로 제공해 투자 성과를 여러 관점에서 확인할 수 있습니다.
@@ -143,7 +143,7 @@ flowchart LR
 
 ### 💸 이자 및 배당 수익
 
-![Dividends](docs/images/dashboard-dividends.png)
+![이자 및 배당 수익](docs/images/dividends.png)
 
 - **배당 핵심 지표 제공**  
   최근 1년 배당금, 배당률, 원금 대비 배당률(YOC)과 전체 기간 누적 배당금을 함께 확인할 수 있습니다.
@@ -156,7 +156,7 @@ flowchart LR
 
 ### 🚨 리스크 관리
 
-![Risk](docs/images/dashboard-risk.png)
+![리스크 관리](docs/images/risk.png)
 
 - **최대 손실 낙폭(MDD) 확인**  
   최대 손실 낙폭과 손실 시작일, 종료일, 회복 일수를 함께 표시합니다.
@@ -169,7 +169,7 @@ flowchart LR
 
 ### 🍕 포트폴리오 분석
 
-![Portfolio](docs/images/dashboard-portfolio.png)
+![포트폴리오 분석](docs/images/portfolio.png)
 
 - **포트폴리오 요약 지표 제공**  
   실보유한 종목 수, ETF 내부 구성까지 반영한 구성 종목 수, 종목 집중도, 섹터 집중도를 카드로 제공합니다. 집중도는 현금을 포함한 전체 자산 비중을 기준으로 계산한 HHI를 백분율로 환산해 표시합니다.
@@ -182,7 +182,7 @@ flowchart LR
 
 ### 📚 거래 내역 관리
 
-![Transaction](docs/images/dashboard-transaction.png)
+![거래 내역](docs/images/transaction.png)
 
 - **매수 / 매도 막대그래프 표시**  
   주식 매수는 양수 방향, 매도는 음수 방향으로 표시해 같은 시점의 거래 흐름을 직관적으로 확인할 수 있습니다.
