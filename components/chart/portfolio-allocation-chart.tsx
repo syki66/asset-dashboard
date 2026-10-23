@@ -254,7 +254,11 @@ export function PortfolioAllocationChart({
             }
           }
 
-          addStockMapItem('주식', stockValue, '섹터 구성 미적용 주식 자산');
+          addStockMapItem(
+            '섹터 미분류',
+            stockValue,
+            '섹터 구성 정보가 적용되지 않은 주식·ETF입니다.',
+          );
           continue;
         }
 
