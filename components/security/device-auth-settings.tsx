@@ -87,40 +87,32 @@ export function DeviceAuthSettings() {
   };
 
   return (
-    <Card className='dashboard-card mb-4 overflow-hidden lg:mb-6'>
-      <CardHeader className='border-b border-white/5 p-3.5 pb-4 sm:p-4 lg:p-6 lg:pb-4'>
-        <CardTitle className='flex items-center gap-2 text-xl font-bold text-foreground sm:text-2xl lg:text-lg'>
+    <Card className='dashboard-card mb-4 overflow-hidden sm:flex sm:items-center lg:mb-6'>
+      <CardHeader className='min-w-0 flex-1 p-3.5 sm:p-4 lg:p-6'>
+        <CardTitle className='flex flex-wrap items-center gap-2 text-xl font-bold text-foreground sm:text-2xl lg:text-lg'>
           <ShieldCheck
             className='h-5 w-5'
             style={{ color: 'var(--settings-theme)' }}
           />
           프라이버시 잠금
+          <span
+            role='status'
+            title='이 브라우저의 생체인증 등록 상태'
+            className='rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-xs font-medium text-muted-foreground'
+          >
+            {isSupported === null ? '확인 중' : isEnabled ? '등록됨' : '미등록'}
+          </span>
         </CardTitle>
         <CardDescription className='mt-1 leading-relaxed'>
-          앱이 백그라운드에서 돌아올 때 Face ID, Touch ID, Windows Hello
-          또는 기기 PIN으로 본인을 확인합니다.
+          앱이 백그라운드에서 돌아올 때 생체인증으로 본인을 확인합니다.
         </CardDescription>
+        {isSupported === false && (
+          <p className='text-sm text-muted-foreground'>
+            HTTPS와 생체인증을 지원하는 브라우저가 필요합니다.
+          </p>
+        )}
       </CardHeader>
-      <CardContent className='flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4 lg:p-6'>
-        <div className='flex min-w-0 items-center gap-3'>
-          <div className='rounded-xl border border-white/15 bg-white/10 p-2.5 text-[color:var(--settings-theme)]'>
-            <Fingerprint className='h-5 w-5' />
-          </div>
-          <div>
-            <p className='font-semibold text-foreground'>
-              생체인증으로 화면 잠금 해제
-            </p>
-            <p className='mt-0.5 text-sm text-muted-foreground'>
-              {isSupported === null
-                ? '기기 지원 여부를 확인하고 있습니다.'
-                : !isSupported
-                  ? 'HTTPS와 생체인증을 지원하는 브라우저가 필요합니다.'
-                  : isEnabled
-                    ? '이 브라우저에서 활성화되어 있습니다.'
-                    : '이 브라우저에는 아직 등록되지 않았습니다.'}
-            </p>
-          </div>
-        </div>
+      <CardContent className='p-3.5 pt-0 sm:shrink-0 sm:p-4 sm:pl-0 lg:p-6 lg:pl-0'>
         <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row'>
           {isEnabled && (
             <Button

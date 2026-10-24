@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fingerprint, Loader2, LockKeyhole } from 'lucide-react';
+import { EyeOff, Fingerprint, Loader2, LockKeyhole } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -116,14 +116,18 @@ export function PrivacyScreen() {
           alt=''
         />
         <div className='privacy-screen__badge' aria-hidden='true'>
-          <LockKeyhole size={16} strokeWidth={2.25} />
-          보호 중
+          {isDeviceAuthEnabled ? (
+            <LockKeyhole size={16} strokeWidth={2.25} />
+          ) : (
+            <EyeOff size={16} strokeWidth={2.25} />
+          )}
+          {isDeviceAuthEnabled ? '생체인증 잠금' : '화면 가림'}
         </div>
         <h2 id='privacy-screen-title'>자산 정보를 가렸습니다</h2>
         <p id='privacy-screen-description'>
           {isDeviceAuthEnabled
             ? '등록한 기기의 생체인증을 완료하면 자산 정보를 다시 볼 수 있습니다.'
-            : '다른 사람이 화면을 볼 수 없도록 안전하게 보호하고 있습니다.'}
+            : '화면을 다시 보려면 아래 버튼을 눌러주세요.'}
         </p>
         {authenticationError && (
           <p className='privacy-screen__error' role='alert'>
