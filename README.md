@@ -82,9 +82,9 @@ flowchart LR
 
 ### ⚙️ 간편한 설정 (Setup & Settings)
 
-|              Setup              |                    Settings                     |
-| :-----------------------------: | :---------------------------------------------: |
-| ![Setup](docs/images/setup.png) | ![Settings](docs/images/dashboard-settings.png) |
+| Setup | Settings |
+| :---: | :------: |
+| ![대시보드 사전 설정](docs/images/setup.png) | ![계좌 및 프라이버시 설정](docs/images/settings.png) |
 
 - **CSV 업로드 및 형식 검증**  
   신한투자증권에서 내보낸 거래내역 CSV를 끌어다 놓거나 직접 선택해 업로드할 수 있으며, 업로드 시 지원하는 CSV 형식인지 검증합니다.
@@ -107,7 +107,7 @@ flowchart LR
 
 ### 📊 종합 대시보드 & 공통 기능
 
-![종합 대시보드](docs/images/overview.png)
+![종합 대시보드 및 옵션](docs/images/overview-option.png)
 
 - **핵심 지표 요약 제공**  
   성과, 배당, 현금 보유액, 포트폴리오 구성, 매매 기록, 리스크 지표 등 각 분석 페이지의 주요 정보를 한 화면에 요약해 보여줍니다.
